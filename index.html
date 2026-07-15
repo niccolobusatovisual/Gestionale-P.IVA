@@ -267,6 +267,9 @@ td.euro{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
 #btnCloud.c-sync{color:var(--warn);animation:pulsa 1s infinite}
 #btnCloud.c-err{color:var(--danger)}
 @keyframes pulsa{50%{opacity:.4}}
+#btnSync svg{transition:transform .2s}
+#btnSync.girando svg{animation:ruota .8s linear infinite}
+@keyframes ruota{to{transform:rotate(360deg)}}
 .cloud-desc{color:var(--muted);font-size:13.5px;margin:-8px 0 16px;line-height:1.5}
 .auth-err{grid-column:1/-1;display:none;font-size:13px;color:var(--danger);background:var(--danger-soft);border-radius:13px;padding:10px 13px;font-weight:500}
 .auth-link{grid-column:1/-1;text-align:center;margin-top:4px}
@@ -301,7 +304,7 @@ td.euro{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
     <div class="seg" id="segnav"></div>
     <div class="top-actions">
       <button class="iconbtn" id="btnCloud" title="Sincronizzazione cloud"><svg viewBox="0 0 24 24"><path d="M7 18.5a4.6 4.6 0 1 1 .8-9.1A6.2 6.2 0 0 1 19.6 11.4 3.9 3.9 0 0 1 18.2 18.5z"/></svg></button>
-      <button class="iconbtn" id="btnTheme" title="Tema chiaro/scuro">◐</button>
+      <button class="iconbtn" id="btnSync" title="Sincronizza adesso"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 3v5h-5"/></svg></button>
       <button class="iconbtn" id="btnExport" title="Esporta backup JSON"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 19h16"/></svg></button>
       <button class="iconbtn" id="btnImport" title="Importa backup JSON"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 19h16"/></svg></button>
     </div>
@@ -331,7 +334,7 @@ const CLOUD_DISMISS_KEY = 'gestionale_piva_nb_cloud_dismiss';
 /* ---------- Supabase (sincronizzazione cloud) ---------- */
 const SUPA_URL = 'https://xibxqkoroxjjiuwittlr.supabase.co';
 const SUPA_KEY = 'sb_publishable_Ja5U_9l4Wo-wyCOOYixbqw_lkoig2fo';
-let supa = null, utente = null, cloudStamp = null, pushTimer = null;
+let supa = null, utente = null, cloudStamp = null, pushTimer = null, modifichePendenti = false;
 const ZONE = ['Zanè','Vicenza','Brescia','Milano','Altro'];
 const TIPI_ATTIVITA = ['Ristorante','Bar','Pizzeria','Hotel/B&B','Palestra','Studio professionale','Artigiano/Edile','Negozio','Altro'];
 const SERVIZI = ['Graphic Design','Brand Identity','Web Design','Sito web','Automazioni AI','Consulenza','Content Creation','Foto/Video'];
@@ -400,12 +403,16 @@ function applicaTema(t){
   const m = document.querySelector('meta[name=theme-color]');
   if(m) m.content = t==='dark' ? '#000000' : '#f2f2f7';
 }
-let tema = 'light';
+/* Il tema segue automaticamente le impostazioni di sistema (chiaro/scuro) */
+function temaSistema(){
+  try { return (typeof matchMedia==='function' && matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light'; }
+  catch(e){ return 'light'; }
+}
+applicaTema(temaSistema());
 try {
-  tema = (lsOk && localStorage.getItem(THEME_KEY)) ||
-         (typeof matchMedia==='function' && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  if(typeof matchMedia==='function')
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e=>applicaTema(e.matches?'dark':'light'));
 } catch(e){}
-applicaTema(tema);
 
 /* ---------- dati iniziali ---------- */
 function seed(){
@@ -1016,12 +1023,22 @@ $('#importFile').addEventListener('change', e=>{
   e.target.value='';
 });
 
-/* ---------- tema toggle ---------- */
-$('#btnTheme').addEventListener('click', ()=>{
-  tema = tema==='dark' ? 'light' : 'dark';
-  if(lsOk){ try{ localStorage.setItem(THEME_KEY, tema); }catch(e){} }
-  applicaTema(tema);
-});
+/* ---------- sincronizzazione manuale (rotellina) ---------- */
+window.sincronizzaOra = async function(){
+  if(!supa || !utente){ apriLoginSheet(); return; }
+  const b = $('#btnSync');
+  b.classList.add('girando');
+  clearTimeout(pushTimer);
+  try{
+    if(modifichePendenti) await pushCloud();   // prima spingi le modifiche locali non ancora inviate
+    else await pullCloud();                    // altrimenti scarica l'ultima versione dal cloud
+  } finally {
+    b.classList.remove('girando');
+  }
+  if(!$('#btnCloud').className.includes('c-err')) toast('Sincronizzato');
+  else toast('Errore di rete: riprova');
+};
+$('#btnSync').addEventListener('click', ()=>sincronizzaOra());
 
 /* ============================================================
    SINCRONIZZAZIONE CLOUD (Supabase)
@@ -1041,6 +1058,7 @@ function setSync(stato, titolo){
 }
 function programmaPush(){
   if(!supa || !utente) return;
+  modifichePendenti = true;
   clearTimeout(pushTimer);
   pushTimer = setTimeout(pushCloud, 900);
 }
@@ -1053,11 +1071,13 @@ async function pushCloud(){
       .select('updated_at').single();
     if(error) throw error;
     cloudStamp = data.updated_at;
+    modifichePendenti = false;
     setSync('ok');
   }catch(e){ setSync('err'); }
 }
 async function pullCloud(){
   if(!supa || !utente) return;
+  if(modifichePendenti){ return pushCloud(); }   // prima metti al sicuro le modifiche locali
   setSync('sync');
   try{
     const { data, error } = await supa.from('gestionale')
@@ -1095,6 +1115,7 @@ window.apriLoginSheet = function(){
       <div class="frm">
         <div class="frm-foot">
           <button class="btn danger" onclick="esciCloud()">Esci</button>
+          <button class="btn" onclick="chiudiModal();sincronizzaOra()">Aggiorna adesso</button>
           <button class="btn primary" onclick="chiudiModal()">Chiudi</button>
         </div>
       </div>`);
@@ -1167,6 +1188,8 @@ function initCloud(){
   });
   // quando torni sull'app (es. riapri dal telefono), ricontrolla il cloud
   document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && utente) pullCloud(); });
+  // controllo automatico ogni 60 secondi mentre l'app è aperta
+  setInterval(()=>{ if(!document.hidden && utente) pullCloud(); }, 60000);
 }
 $('#btnCloud').addEventListener('click', ()=>apriLoginSheet());
 
