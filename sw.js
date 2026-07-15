@@ -1,7 +1,7 @@
 /* Service worker — Gestionale P.IVA
    Strategia: network-first per index.html (così gli aggiornamenti arrivano subito),
    cache-first per il resto. Permette di aprire l'app anche offline. */
-const CACHE = 'gestionale-piva-v1';
+const CACHE = 'gestionale-piva-v2';
 const ASSETS = ['.', 'index.html', 'manifest.json', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
