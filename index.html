@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gestionale P.IVA — Niccolò Busato</title>
+<meta name="theme-color" content="#f2f2f7">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Gestionale">
+<style>
+/* ============ DESIGN TOKENS — Apple-like ============ */
+:root{
+  --bg:#f2f2f7; --card:#ffffff; --ink:#1c1c1e; --muted:#8e8e93; --line:rgba(60,60,67,.12);
+  --accent:#ff6b1a; --accent-2:#ff9500;
+  --accent-soft:rgba(255,107,26,.12);
+  --ok:#34c759; --ok-soft:rgba(52,199,89,.15);
+  --blu:#007aff; --blu-soft:rgba(0,122,255,.12);
+  --danger:#ff3b30; --danger-soft:rgba(255,59,48,.12);
+  --warn:#cc7a00; --warn-soft:rgba(255,149,0,.16);
+  --grigio:#8e8e93; --grigio-soft:rgba(120,120,128,.14);
+  --kb:rgba(120,120,128,.09);
+  --input:rgba(120,120,128,.10);
+  --btn:rgba(120,120,128,.13);
+  --glass:rgba(242,242,247,.82);
+  --shadow:0 1px 2px rgba(0,0,0,.04),0 8px 28px rgba(0,0,0,.06);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.05),0 3px 10px rgba(0,0,0,.05);
+  --r-xl:22px; --r-lg:18px; --r-md:14px;
+}
+[data-theme=dark]{
+  --bg:#000000; --card:#1c1c1e; --ink:#f2f2f7; --muted:#98989e; --line:rgba(84,84,88,.5);
+  --accent:#ff7a26; --accent-soft:rgba(255,122,38,.20);
+  --ok:#30d158; --ok-soft:rgba(48,209,88,.20);
+  --blu:#0a84ff; --blu-soft:rgba(10,132,255,.20);
+  --danger:#ff453a; --danger-soft:rgba(255,69,58,.20);
+  --warn:#ffb340; --warn-soft:rgba(255,159,10,.20);
+  --grigio:#98989e; --grigio-soft:rgba(120,120,128,.24);
+  --kb:rgba(120,120,128,.14);
+  --input:rgba(120,120,128,.22);
+  --btn:rgba(120,120,128,.26);
+  --glass:rgba(10,10,12,.8);
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.35);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.3),0 3px 10px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{color-scheme:light dark}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--ink);font-size:15px;line-height:1.45;
+  transition:background .25s,color .25s;
+}
+button{font:inherit;cursor:pointer;color:inherit}
+input,select,textarea{font:inherit;color:inherit}
+
+/* ============ HEADER (glass) ============ */
+header{
+  position:sticky;top:0;z-index:50;
+  background:var(--glass);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);
+  border-bottom:.5px solid var(--line);
+}
+.topbar{max-width:1240px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:14px}
+.brand{font-weight:800;font-size:17px;letter-spacing:-.03em;white-space:nowrap}
+.brand small{color:var(--muted);font-weight:500;letter-spacing:0}
+.seg{display:flex;background:var(--btn);border-radius:99px;padding:3px;gap:2px;margin:0 auto}
+.seg button{
+  border:none;background:none;border-radius:99px;padding:7px 16px;
+  font-weight:600;font-size:13.5px;color:var(--muted);white-space:nowrap;
+  transition:color .15s;
+}
+.seg button.active{background:var(--card);color:var(--ink);box-shadow:var(--shadow-sm)}
+.top-actions{display:flex;gap:8px;margin-left:auto}
+.iconbtn{
+  width:36px;height:36px;border-radius:50%;border:none;background:var(--btn);
+  display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--ink);
+}
+.iconbtn:active{transform:scale(.94)}
+.iconbtn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+
+/* ============ TAB BAR (mobile) ============ */
+#tabbar{
+  display:none;position:fixed;bottom:0;left:0;right:0;z-index:60;
+  background:var(--glass);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);
+  border-top:.5px solid var(--line);
+  padding:6px 8px calc(6px + env(safe-area-inset-bottom));
+}
+#tabbar .row{display:flex;max-width:520px;margin:0 auto}
+#tabbar button{
+  flex:1;border:none;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:4px 0;color:var(--muted);font-size:10px;font-weight:600;border-radius:12px;
+}
+#tabbar button.active{color:var(--accent)}
+#tabbar svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+
+/* ============ LAYOUT ============ */
+main{max-width:1240px;margin:0 auto;padding:20px 16px 60px}
+.sec-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:30px 0 14px;flex-wrap:wrap}
+.sec-head:first-child{margin-top:4px}
+.sec-head h2{font-size:22px;font-weight:800;letter-spacing:-.03em}
+.sec-head .sub{color:var(--muted);font-size:13px;font-weight:500}
+
+/* ============ BUTTONS ============ */
+.btn{
+  border:none;background:var(--btn);color:var(--accent);
+  border-radius:99px;padding:9px 16px;font-weight:600;font-size:14px;
+  transition:transform .1s,opacity .15s;
+}
+.btn:active{transform:scale(.96)}
+.btn.primary{background:var(--accent);color:#fff}
+.btn.mini{padding:6px 12px;font-size:12.5px}
+.btn.danger{color:var(--danger);background:var(--danger-soft)}
+.btn.neutro{color:var(--ink)}
+
+/* ============ DASHBOARD ============ */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:14px}
+.stat{background:var(--card);border-radius:var(--r-xl);padding:18px 18px 16px;box-shadow:var(--shadow-sm)}
+.stat .lbl{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.stat .big{font-size:28px;font-weight:800;letter-spacing:-.03em;margin-top:8px;font-variant-numeric:tabular-nums}
+.stat .det{font-size:13px;color:var(--muted);margin-top:5px;font-weight:500}
+.stat.acc{background:linear-gradient(135deg,var(--accent) 0%,var(--accent-2) 100%);box-shadow:0 10px 30px rgba(255,199,120,.35)}
+[data-theme=dark] .stat.acc{box-shadow:0 10px 30px rgba(255,107,26,.25)}
+.stat.acc .lbl,.stat.acc .det{color:rgba(255,255,255,.85)}
+.stat.acc .big{color:#fff}
+.taxbox{background:var(--card);border-radius:var(--r-xl);padding:20px;margin-top:16px;box-shadow:var(--shadow-sm)}
+.taxbox h3{font-size:16px;font-weight:700;letter-spacing:-.02em;margin-bottom:8px}
+.taxbox p{color:var(--muted);font-size:14px;margin-bottom:6px}
+.taxbox p b{color:var(--ink)}
+.taxrow{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 4px}
+.taxpill{background:var(--input);border-radius:14px;padding:10px 14px;font-size:12.5px;color:var(--muted);font-weight:500}
+.taxpill b{display:block;font-size:16px;color:var(--ink);font-weight:700;letter-spacing:-.02em;margin-top:1px}
+.avviso{background:var(--warn-soft);color:var(--warn);border-radius:14px;padding:12px 15px;font-size:13.5px;margin-top:12px;font-weight:500}
+
+/* ============ BADGE & CHIP ============ */
+.badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap}
+.badge.g{background:var(--grigio-soft);color:var(--grigio)}
+.badge.b{background:var(--blu-soft);color:var(--blu)}
+.badge.v{background:var(--ok-soft);color:var(--ok)}
+.badge.r{background:var(--danger-soft);color:var(--danger)}
+.badge.a{background:var(--warn-soft);color:var(--warn)}
+.chip{display:inline-block;background:var(--grigio-soft);color:var(--muted);border-radius:7px;padding:2px 8px;font-size:11px;font-weight:500;margin:3px 4px 0 0}
+
+/* ============ KANBAN ============ */
+.kb{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 10px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.kb-col{
+  background:var(--kb);border-radius:var(--r-lg);padding:10px;
+  min-width:250px;flex:1 0 250px;scroll-snap-align:start;transition:background .15s;
+}
+.kb-col.over{outline:2px dashed var(--accent);outline-offset:-2px;background:var(--accent-soft)}
+.kb-head{display:flex;align-items:center;justify-content:space-between;margin:2px 4px 10px;padding:0 2px}
+.kb-count{font-size:12px;color:var(--muted);font-weight:700;background:var(--grigio-soft);border-radius:99px;padding:1px 8px}
+.kb-cards{display:flex;flex-direction:column;gap:9px;min-height:44px}
+.kb-empty{color:var(--muted);opacity:.5;text-align:center;font-size:12.5px;padding:12px 0;font-weight:500}
+.kcard{background:var(--card);border-radius:16px;padding:13px 14px;cursor:grab;box-shadow:var(--shadow-sm)}
+.kcard.dragging{opacity:.45;transform:rotate(1.5deg)}
+.kcard-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.kcard .num{font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:7px;padding:2px 8px;letter-spacing:.02em}
+.kcard-val{font-weight:800;font-size:15px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.kcard-title{font-weight:600;font-size:14.5px;margin-top:7px;line-height:1.3;letter-spacing:-.01em}
+.kcard-sub{font-size:12.5px;color:var(--muted);margin-top:2px;font-weight:500}
+.kcard-date{font-size:12px;color:var(--muted);margin-top:5px;font-weight:500}
+.kcard-date.rossa{color:var(--danger);font-weight:600}
+.kcard-actions{display:flex;align-items:center;gap:7px;margin-top:11px;flex-wrap:wrap}
+.spacer{flex:1}
+.mover{display:flex;gap:5px}
+.mv{
+  width:27px;height:27px;border-radius:50%;border:none;background:var(--btn);
+  color:var(--ink);font-size:15px;font-weight:700;line-height:1;
+  display:flex;align-items:center;justify-content:center;padding-bottom:2px;
+}
+.mv:disabled{opacity:.3;cursor:default}
+.mv:not(:disabled):active{transform:scale(.9)}
+.icon{background:none;border:none;color:var(--muted);font-size:14px;padding:4px 6px;border-radius:8px}
+.icon:active{background:var(--grigio-soft)}
+.linkino{font-size:12px;color:var(--ok);font-weight:600}
+.warn-bollo{font-size:11.5px;color:var(--warn);font-weight:600}
+
+/* ============ TABELLE ============ */
+.twrap{background:var(--card);border-radius:var(--r-xl);overflow-x:auto;box-shadow:var(--shadow-sm);-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:780px}
+th{padding:12px 14px;text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:.5px solid var(--line);white-space:nowrap;font-weight:600}
+td{padding:11px 14px;border-bottom:.5px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr.scaduta td{background:var(--danger-soft)}
+td.euro{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.vuoto{padding:30px;text-align:center;color:var(--muted);font-weight:500}
+
+/* ============ CLIENTI ============ */
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:14px}
+.ccard{
+  background:var(--card);border-radius:var(--r-xl);padding:17px;cursor:pointer;
+  box-shadow:var(--shadow-sm);transition:transform .12s;
+}
+.ccard:active{transform:scale(.98)}
+.ccard .avatar{
+  width:44px;height:44px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;margin-bottom:10px;
+}
+.ccard h3{font-size:16px;font-weight:700;letter-spacing:-.02em;margin-bottom:2px}
+.ccard .meta{font-size:12.5px;color:var(--muted);font-weight:500}
+.ccard .conta{display:flex;gap:12px;margin-top:12px;font-size:12px;color:var(--muted);font-weight:500}
+.ccard .conta b{color:var(--ink);font-weight:700}
+.dettaglio-info{background:var(--card);border-radius:var(--r-xl);padding:22px;margin-bottom:6px;box-shadow:var(--shadow-sm)}
+.dettaglio-info .avatar{
+  width:58px;height:58px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;margin-bottom:12px;
+}
+.dettaglio-info h2{font-size:23px;font-weight:800;letter-spacing:-.03em;margin-bottom:5px}
+.dettaglio-info .riga{font-size:14px;color:var(--muted);margin-top:4px;font-weight:500}
+.dettaglio-info .riga b{color:var(--ink);font-weight:600}
+.dettaglio-azioni{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.mini-list{display:flex;flex-direction:column;gap:9px}
+.mini-item{
+  background:var(--card);border-radius:16px;padding:12px 15px;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:var(--shadow-sm);
+}
+.mini-item .tt{font-weight:600;flex:1;min-width:130px;font-size:14px}
+.mini-item .euro{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.mini-item .num{font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:7px;padding:2px 8px}
+
+/* ============ MODAL / SHEET ============ */
+#modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:100;overflow-y:auto}
+#modal.open{display:flex;align-items:flex-start;justify-content:center;padding:18px}
+.modal-box{
+  background:var(--card);border-radius:var(--r-xl);max-width:580px;width:100%;
+  padding:24px;margin:5vh 0 40px;box-shadow:var(--shadow);
+  animation:pop .22s cubic-bezier(.3,1.4,.6,1);
+}
+@keyframes pop{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
+.handle{display:none;width:38px;height:5px;border-radius:99px;background:var(--grigio-soft);margin:0 auto 14px}
+.modal-box h3{font-size:19px;font-weight:800;letter-spacing:-.02em;margin-bottom:18px}
+.frm{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.frm .full{grid-column:1/-1}
+.frm label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;letter-spacing:.01em}
+.frm input[type=text],.frm input[type=email],.frm input[type=tel],.frm input[type=url],
+.frm input[type=number],.frm input[type=date],.frm select,.frm textarea{
+  width:100%;border:none;border-radius:13px;padding:11px 13px;
+  background:var(--input);color:var(--ink);appearance:none;-webkit-appearance:none;
+}
+.frm select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 18px) 55%,calc(100% - 13px) 55%;background-size:5px 5px;background-repeat:no-repeat}
+.frm input:focus,.frm select:focus,.frm textarea:focus{outline:none;box-shadow:0 0 0 2.5px var(--accent)}
+.frm textarea{resize:vertical;min-height:70px}
+.frm input[type=date]{min-height:41px}
+.chkgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px}
+.chk{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:500 !important;color:var(--ink) !important;padding:4px 0;cursor:pointer}
+.chk input{width:17px;height:17px;accent-color:var(--accent)}
+.frm-foot{grid-column:1/-1;display:flex;justify-content:flex-end;gap:9px;margin-top:8px}
+.hint-acc{grid-column:1/-1;font-size:13px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:13px;padding:10px 13px}
+.hint-bollo{grid-column:1/-1;display:none;font-size:12.5px;color:var(--warn);background:var(--warn-soft);border-radius:13px;padding:10px 13px;font-weight:500}
+.nota-campo{font-size:11px;color:var(--muted);font-weight:400;margin-top:3px}
+
+/* ============ TOAST / BANNER ============ */
+#toast{
+  position:fixed;bottom:calc(84px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);
+  background:var(--ink);color:var(--bg);border-radius:99px;padding:11px 20px;
+  font-size:14px;font-weight:600;z-index:200;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  box-shadow:var(--shadow);white-space:nowrap;
+}
+#toast.show{opacity:1}
+.banner-mem{background:var(--warn-soft);color:var(--warn);text-align:center;font-size:13px;padding:7px 12px;font-weight:500}
+
+/* ============ CLOUD SYNC ============ */
+#btnCloud.c-off{color:var(--muted)}
+#btnCloud.c-ok{color:var(--ok)}
+#btnCloud.c-sync{color:var(--warn);animation:pulsa 1s infinite}
+#btnCloud.c-err{color:var(--danger)}
+@keyframes pulsa{50%{opacity:.4}}
+.cloud-desc{color:var(--muted);font-size:13.5px;margin:-8px 0 16px;line-height:1.5}
+.auth-err{grid-column:1/-1;display:none;font-size:13px;color:var(--danger);background:var(--danger-soft);border-radius:13px;padding:10px 13px;font-weight:500}
+.auth-link{grid-column:1/-1;text-align:center;margin-top:4px}
+.auth-link button{background:none;border:none;color:var(--muted);font-size:13px;font-weight:500;text-decoration:underline}
+.cloud-mail{font-weight:700;font-size:15px;word-break:break-all}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width:768px){
+  .seg{display:none}
+  #tabbar{display:block}
+  main{padding:16px 12px calc(100px + env(safe-area-inset-bottom))}
+  .sec-head h2{font-size:20px}
+  .stat .big{font-size:24px}
+  .kb-col{min-width:76vw;flex:0 0 76vw}
+  #modal.open{padding:0;align-items:flex-end}
+  .modal-box{margin:0;max-width:none;border-radius:var(--r-xl) var(--r-xl) 0 0;max-height:93vh;overflow-y:auto;padding:16px 18px calc(22px + env(safe-area-inset-bottom));animation:sheet .3s cubic-bezier(.32,.72,.28,1)}
+  .handle{display:block}
+  @keyframes sheet{from{transform:translateY(60%)}to{transform:none}}
+  .frm{grid-template-columns:1fr}
+  table{font-size:13px}
+}
+@media (max-width:400px){
+  .brand small{display:none}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="topbar">
+    <div class="brand">NB <small>· Gestionale P.IVA</small></div>
+    <div class="seg" id="segnav"></div>
+    <div class="top-actions">
+      <button class="iconbtn" id="btnCloud" title="Sincronizzazione cloud"><svg viewBox="0 0 24 24"><path d="M7 18.5a4.6 4.6 0 1 1 .8-9.1A6.2 6.2 0 0 1 19.6 11.4 3.9 3.9 0 0 1 18.2 18.5z"/></svg></button>
+      <button class="iconbtn" id="btnTheme" title="Tema chiaro/scuro">◐</button>
+      <button class="iconbtn" id="btnExport" title="Esporta backup JSON"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 19h16"/></svg></button>
+      <button class="iconbtn" id="btnImport" title="Importa backup JSON"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 19h16"/></svg></button>
+    </div>
+  </div>
+  <div class="banner-mem" id="bannerMem" style="display:none">⚠ localStorage non disponibile: i dati vivono solo in questa sessione. Usa Esporta per non perderli.</div>
+</header>
+
+<main id="app"></main>
+
+<div id="tabbar"><div class="row" id="tabrow"></div></div>
+<div id="modal"></div>
+<div id="toast"></div>
+<input type="file" id="importFile" accept=".json,application/json" hidden>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+<script>
+'use strict';
+/* ============================================================
+   GESTIONALE P.IVA — Niccolò Busato · regime forfettario
+   Singolo file HTML · dati in localStorage · backup JSON · PWA
+   ============================================================ */
+
+const LS_KEY = 'gestionale_piva_nb_v1';
+const THEME_KEY = 'gestionale_piva_nb_theme';
+const CLOUD_DISMISS_KEY = 'gestionale_piva_nb_cloud_dismiss';
+
+/* ---------- Supabase (sincronizzazione cloud) ---------- */
+const SUPA_URL = 'https://xibxqkoroxjjiuwittlr.supabase.co';
+const SUPA_KEY = 'sb_publishable_Ja5U_9l4Wo-wyCOOYixbqw_lkoig2fo';
+let supa = null, utente = null, cloudStamp = null, pushTimer = null;
+const ZONE = ['Zanè','Vicenza','Brescia','Milano','Altro'];
+const TIPI_ATTIVITA = ['Ristorante','Bar','Pizzeria','Hotel/B&B','Palestra','Studio professionale','Artigiano/Edile','Negozio','Altro'];
+const SERVIZI = ['Graphic Design','Brand Identity','Web Design','Sito web','Automazioni AI','Consulenza','Content Creation','Foto/Video'];
+const STATI_PREVENTIVO = ['Bozza','Inviato','Accettato','Rifiutato','Scaduto'];
+const STATI_PROGETTO = ['Non iniziato','In corso','Fatto'];
+const STATI_FATTURA = ['Da emettere','Emessa','Pagata','Scaduta'];
+const TIPI_DOC = ['Fattura','Nota di credito','Prestazione occasionale'];
+const METODI_PAG = ['Bonifico','PayPal','Contanti','Altro'];
+const ALIQUOTA_ACC = 0.2322;      // ~23% di ogni incasso da accantonare
+const SOGLIA_BOLLO = 77.47;
+
+const STATO_CLASSE = {
+  'Bozza':'g','Inviato':'b','Accettato':'v','Rifiutato':'r','Scaduto':'a',
+  'Non iniziato':'g','In corso':'b','Fatto':'v',
+  'Da emettere':'g','Emessa':'b','Pagata':'v','Scaduta':'r'
+};
+
+const VIEWS = [
+  {id:'dashboard', label:'Dashboard'},
+  {id:'clienti',   label:'Clienti'},
+  {id:'preventivi',label:'Preventivi'},
+  {id:'progetti',  label:'Progetti'},
+  {id:'fatture',   label:'Fatture'}
+];
+const ICONS = {
+  dashboard:'<svg viewBox="0 0 24 24"><rect x="3.2" y="3.2" width="7.6" height="7.6" rx="2.4"/><rect x="13.2" y="3.2" width="7.6" height="7.6" rx="2.4"/><rect x="3.2" y="13.2" width="7.6" height="7.6" rx="2.4"/><rect x="13.2" y="13.2" width="7.6" height="7.6" rx="2.4"/></svg>',
+  clienti:'<svg viewBox="0 0 24 24"><circle cx="12" cy="7.8" r="3.9"/><path d="M4.5 20.5c.8-3.8 3.9-5.9 7.5-5.9s6.7 2.1 7.5 5.9"/></svg>',
+  preventivi:'<svg viewBox="0 0 24 24"><path d="M6 2.8h7.5L18.5 7.8v13.4H6z"/><path d="M13.5 2.8v5h5"/><path d="M9 13h6M9 16.5h6"/></svg>',
+  progetti:'<svg viewBox="0 0 24 24"><path d="M3 7c0-1.1.9-2 2-2h4.2l2 2.4H19c1.1 0 2 .9 2 2V17c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2z"/></svg>',
+  fatture:'<svg viewBox="0 0 24 24"><path d="M6.2 2.8h11.6v18.4l-1.9-1.5-1.9 1.5-2-1.5-2 1.5-1.9-1.5-1.9 1.5z"/><path d="M9.3 8h5.4M9.3 11.8h5.4"/></svg>'
+};
+
+/* ---------- helper ---------- */
+const $ = s => document.querySelector(s);
+function uid(){ return 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function eur(n){ return (n==null || n==='' || isNaN(n)) ? '—' : new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(n); }
+function arrot(x){ return Math.round(x*100)/100; }
+function oggi(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function fmtData(d){ if(!d) return '—'; const p=d.split('-'); return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : d; }
+function somma(arr, fn){ return arr.reduce((s,x)=>s+(parseFloat(fn(x))||0), 0); }
+function badge(st){ return '<span class="badge '+(STATO_CLASSE[st]||'g')+'">'+esc(st)+'</span>'; }
+function chips(arr){ if(!arr||!arr.length) return ''; return '<div>'+arr.map(s=>'<span class="chip">'+esc(s)+'</span>').join('')+'</div>'; }
+function iniziali(nome){ return (nome||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('show'),2400); }
+
+/* ---------- persistenza (localStorage con fallback in memoria) ---------- */
+let lsOk = true;
+try { localStorage.setItem('__t','1'); localStorage.removeItem('__t'); } catch(e){ lsOk=false; }
+
+function caricaDB(){
+  if(!lsOk) return null;
+  try { const raw = localStorage.getItem(LS_KEY); return raw ? JSON.parse(raw) : null; } catch(e){ return null; }
+}
+function salvaLocale(){
+  if(lsOk){ try { localStorage.setItem(LS_KEY, JSON.stringify(db)); } catch(e){} }
+}
+function salva(){
+  salvaLocale();
+  programmaPush();   // se sei loggato, sincronizza col cloud (debounce)
+}
+
+/* ---------- tema ---------- */
+function applicaTema(t){
+  document.documentElement.dataset.theme = t;
+  const m = document.querySelector('meta[name=theme-color]');
+  if(m) m.content = t==='dark' ? '#000000' : '#f2f2f7';
+}
+let tema = 'light';
+try {
+  tema = (lsOk && localStorage.getItem(THEME_KEY)) ||
+         (typeof matchMedia==='function' && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+} catch(e){}
+applicaTema(tema);
+
+/* ---------- dati iniziali ---------- */
+function seed(){
+  const c1={id:uid(),nome:'ACCA',referente:'',email:'',telefono:'',zona:'Altro',tipo:'Altro',sito:'',note:''};
+  const c2={id:uid(),nome:'OM Consulting',referente:'',email:'',telefono:'',zona:'Altro',tipo:'Studio professionale',sito:'',note:''};
+  const c3={id:uid(),nome:'Donne che parlano di soldi',referente:'',email:'',telefono:'',zona:'Altro',tipo:'Altro',sito:'',note:'Gestione profili social.'};
+
+  const p1={id:uid(),titolo:'Catalogo ACCA',clienteId:c1.id,stato:'In corso',servizi:['Graphic Design'],dataInizio:'',scadenza:'',valore:null,note:'Valore da definire.'};
+  const p2={id:uid(),titolo:'Materiale ADV OMC / CIRCLE',clienteId:c2.id,stato:'In corso',servizi:['Graphic Design','Brand Identity'],dataInizio:'',scadenza:'',valore:1095,
+    note:'Blocchi A5, cartelline A4, penne, brochure 3 ante, company profile, flyer 10 ante, vele, biglietti da visita, template PowerPoint, immagine Teams, carta intestata, calendario, attestato formazione, stock immagini social.'};
+  const p3={id:uid(),titolo:'Social Media Manager',clienteId:c3.id,stato:'Non iniziato',servizi:['Consulenza','Content Creation'],dataInizio:'',scadenza:'',valore:null,note:''};
+
+  const pr1={id:uid(),numero:'PR-1',titolo:'Catalogo ACCA',clienteId:c1.id,progettoId:p1.id,importo:null,stato:'Bozza',dataInvio:'',validoFino:'',servizi:['Graphic Design'],note:'Importo da definire.'};
+  const pr2={id:uid(),numero:'PR-2',titolo:'Materiale ADV OMC / CIRCLE',clienteId:c2.id,progettoId:p2.id,importo:1095,stato:'Inviato',dataInvio:'',validoFino:'',servizi:['Graphic Design','Brand Identity'],
+    note:'885€ base / 1.095€ con revisioni. Regime forfettario, senza IVA.'};
+  const pr3={id:uid(),numero:'PR-3',titolo:'Social Media Manager',clienteId:c3.id,progettoId:p3.id,importo:null,stato:'Bozza',dataInvio:'',validoFino:'',servizi:['Consulenza','Content Creation'],note:''};
+
+  return { clienti:[c1,c2,c3], preventivi:[pr1,pr2,pr3], progetti:[p1,p2,p3], fatture:[], counters:{pr:3,ft:0} };
+}
+
+let db = caricaDB() || seed();
+db.counters = db.counters || {pr:0,ft:0};
+salvaLocale();
+
+/* ---------- lookup ---------- */
+const getCliente  = id => db.clienti.find(c=>c.id===id);
+const getProgetto = id => db.progetti.find(p=>p.id===id);
+function nomeCliente(id){ const c=getCliente(id); return c ? c.nome : '—'; }
+
+/* ---------- previsione tasse ---------- */
+function accantonare(f){
+  return f.statoPagamento==='Pagata' ? arrot((parseFloat(f.totale)||0) * ALIQUOTA_ACC) : 0;
+}
+
+/* ---------- stato UI ---------- */
+const ui = { view:'dashboard', clienteId:null };
+
+/* ============================================================
+   NAVIGAZIONE (segmented desktop + tab bar mobile)
+   ============================================================ */
+function costruisciNav(){
+  $('#segnav').innerHTML = VIEWS.map(v=>`<button data-view="${v.id}" onclick="vai('${v.id}')">${v.label}</button>`).join('');
+  $('#tabrow').innerHTML = VIEWS.map(v=>`<button data-view="${v.id}" onclick="vai('${v.id}')">${ICONS[v.id]}<span>${v.label}</span></button>`).join('');
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function render(){
+  document.querySelectorAll('[data-view]').forEach(b=>{
+    b.classList.toggle('active', b.dataset.view===ui.view || (ui.view==='cliente' && b.dataset.view==='clienti'));
+  });
+  const app = $('#app');
+  if(ui.view==='dashboard')  app.innerHTML = vDashboard();
+  if(ui.view==='clienti')    app.innerHTML = vClienti();
+  if(ui.view==='preventivi') app.innerHTML = vPreventivi();
+  if(ui.view==='progetti')   app.innerHTML = vProgetti();
+  if(ui.view==='fatture')    app.innerHTML = vFatture();
+  if(ui.view==='cliente')    app.innerHTML = vClienteDettaglio();
+  bindDnD(app);
+  try{ window.scrollTo(0,0); }catch(e){}
+}
+function vai(view, clienteId){ ui.view=view; ui.clienteId=clienteId||null; render(); }
+window.vai = vai;
+
+/* ---------- DASHBOARD ---------- */
+function vDashboard(){
+  const inviati = db.preventivi.filter(p=>p.stato==='Inviato');
+  const bozze   = db.preventivi.filter(p=>p.stato==='Bozza');
+  const inCorso = db.progetti.filter(p=>p.stato==='In corso');
+  const daIncassare = db.fatture.filter(f=>f.statoPagamento==='Emessa'||f.statoPagamento==='Scaduta');
+  const scadute = db.fatture.filter(f=>f.statoPagamento==='Scaduta');
+  const pagate  = db.fatture.filter(f=>f.statoPagamento==='Pagata');
+  const daEmettere = db.fatture.filter(f=>f.statoPagamento==='Da emettere');
+  const totAcc = arrot(somma(pagate, accantonare));
+
+  return `
+  <div class="sec-head"><h2>Dashboard</h2><span class="sub">${fmtData(oggi())}</span></div>
+  <div class="cards">
+    <div class="stat">
+      <div class="lbl">Preventivi in trattativa</div>
+      <div class="big">${inviati.length} · ${eur(somma(inviati,p=>p.importo))}</div>
+      <div class="det">${bozze.length} in bozza da completare</div>
+    </div>
+    <div class="stat">
+      <div class="lbl">Progetti in corso</div>
+      <div class="big">${inCorso.length}</div>
+      <div class="det">valore stimato ${eur(somma(inCorso,p=>p.valore))}</div>
+    </div>
+    <div class="stat">
+      <div class="lbl">Fatture da incassare</div>
+      <div class="big">${eur(somma(daIncassare,f=>f.totale))}</div>
+      <div class="det">${daIncassare.length} fatture${scadute.length?' · <b style="color:var(--danger)">'+scadute.length+' scadute</b>':''}${daEmettere.length?' · '+daEmettere.length+' da emettere':''}</div>
+    </div>
+    <div class="stat">
+      <div class="lbl">Incassato</div>
+      <div class="big">${eur(somma(pagate,f=>f.totale))}</div>
+      <div class="det">${pagate.length} fatture pagate</div>
+    </div>
+    <div class="stat acc">
+      <div class="lbl">Da accantonare per le tasse</div>
+      <div class="big">${eur(totAcc)}</div>
+      <div class="det">~23,22% di ogni incasso</div>
+    </div>
+  </div>
+
+  <div class="taxbox">
+    <h3>Come stimo le tasse (regime forfettario)</h3>
+    <p>Su ogni fattura <b>pagata</b> metto da parte circa il <b>23%</b> dell'incasso. Il conto, in parole semplici: lo Stato considera "reddito" solo il 78% di quello che incassi (coefficiente di redditività), e su quel 78% paghi l'imposta sostitutiva e i contributi INPS.</p>
+    <div class="taxrow">
+      <div class="taxpill">Coefficiente di redditività<b>78%</b></div>
+      <div class="taxpill">Imposta sostitutiva (primi 5 anni)<b>5%</b></div>
+      <div class="taxpill">INPS Gestione Separata<b>~26%</b></div>
+      <div class="taxpill">Accantonamento consigliato<b>~23% dell'incasso</b></div>
+    </div>
+    <div class="avviso">⚠ <b>Stima indicativa per pianificare i versamenti, non un calcolo ufficiale:</b> aliquota e INPS da confermare con il commercialista.</div>
+  </div>
+
+  ${scadenzarioHTML(true)}
+  `;
+}
+
+/* ---------- CLIENTI ---------- */
+function vClienti(){
+  const cards = db.clienti.map(c=>{
+    const nPr = db.preventivi.filter(p=>p.clienteId===c.id).length;
+    const nPg = db.progetti.filter(p=>p.clienteId===c.id).length;
+    const nFt = db.fatture.filter(f=>f.clienteId===c.id).length;
+    return `<div class="ccard" onclick="vai('cliente','${c.id}')">
+      <div class="avatar">${esc(iniziali(c.nome))}</div>
+      <h3>${esc(c.nome)}</h3>
+      <div class="meta">${esc(c.tipo)} · ${esc(c.zona)}${c.referente?' · '+esc(c.referente):''}</div>
+      ${c.email?'<div class="meta">'+esc(c.email)+'</div>':''}
+      <div class="conta"><span><b>${nPr}</b> preventivi</span><span><b>${nPg}</b> progetti</span><span><b>${nFt}</b> fatture</span></div>
+    </div>`;
+  }).join('');
+  return `
+  <div class="sec-head"><h2>Clienti</h2><button class="btn primary" onclick="apriFormCliente()">＋ Nuovo</button></div>
+  ${db.clienti.length ? '<div class="cgrid">'+cards+'</div>' : '<div class="twrap"><div class="vuoto">Nessun cliente. Crea il primo!</div></div>'}
+  `;
+}
+
+function vClienteDettaglio(){
+  const c = getCliente(ui.clienteId);
+  if(!c) return '<div class="twrap"><div class="vuoto">Cliente non trovato.</div></div>';
+  const prev = db.preventivi.filter(p=>p.clienteId===c.id);
+  const prog = db.progetti.filter(p=>p.clienteId===c.id);
+  const fatt = db.fatture.filter(f=>f.clienteId===c.id);
+
+  const listaPrev = prev.map(p=>`<div class="mini-item">
+      <span class="num">${esc(p.numero)}</span>
+      <span class="tt">${esc(p.titolo)}</span>${badge(p.stato)}<span class="euro">${eur(p.importo)}</span>
+      <button class="icon" onclick="apriFormPreventivo('${p.id}')" title="Modifica">✎</button>
+    </div>`).join('') || '<div class="mini-item" style="color:var(--muted)">Nessun preventivo</div>';
+
+  const listaProg = prog.map(p=>`<div class="mini-item">
+      <span class="tt">${esc(p.titolo)}</span>${badge(p.stato)}<span class="euro">${eur(p.valore)}</span>
+      <button class="icon" onclick="apriFormProgetto('${p.id}')" title="Modifica">✎</button>
+    </div>`).join('') || '<div class="mini-item" style="color:var(--muted)">Nessun progetto</div>';
+
+  const listaFatt = fatt.map(f=>`<div class="mini-item">
+      <span class="num">${esc(f.numero)}</span>
+      <span class="tt">${esc(f.titolo)}</span>${badge(f.statoPagamento)}<span class="euro">${eur(f.totale)}</span>
+      <button class="icon" onclick="apriFormFattura('${f.id}')" title="Modifica">✎</button>
+    </div>`).join('') || '<div class="mini-item" style="color:var(--muted)">Nessuna fattura</div>';
+
+  return `
+  <div class="sec-head"><button class="btn neutro" onclick="vai('clienti')">← Clienti</button></div>
+  <div class="dettaglio-info">
+    <div class="avatar">${esc(iniziali(c.nome))}</div>
+    <h2>${esc(c.nome)}</h2>
+    <div class="riga">${esc(c.tipo)} · zona <b>${esc(c.zona)}</b></div>
+    ${c.referente?'<div class="riga">Referente: <b>'+esc(c.referente)+'</b></div>':''}
+    ${c.email?'<div class="riga">Email: <b>'+esc(c.email)+'</b></div>':''}
+    ${c.telefono?'<div class="riga">Tel: <b>'+esc(c.telefono)+'</b></div>':''}
+    ${c.sito?'<div class="riga">Sito: <b>'+esc(c.sito)+'</b></div>':''}
+    ${c.note?'<div class="riga">Note: '+esc(c.note)+'</div>':''}
+    <div class="dettaglio-azioni">
+      <button class="btn" onclick="apriFormCliente('${c.id}')">✎ Modifica</button>
+      <button class="btn" onclick="apriFormPreventivo(null,{clienteId:'${c.id}'})">＋ Preventivo</button>
+      <button class="btn" onclick="apriFormProgetto(null,{clienteId:'${c.id}'})">＋ Progetto</button>
+      <button class="btn" onclick="apriFormFattura(null,{clienteId:'${c.id}'})">＋ Fattura</button>
+      <button class="btn danger" onclick="eliminaCliente('${c.id}')">Elimina</button>
+    </div>
+  </div>
+  <div class="sec-head"><h2>Preventivi</h2></div><div class="mini-list">${listaPrev}</div>
+  <div class="sec-head"><h2>Progetti</h2></div><div class="mini-list">${listaProg}</div>
+  <div class="sec-head"><h2>Fatture</h2></div><div class="mini-list">${listaFatt}</div>
+  `;
+}
+
+/* ---------- frecce sposta-stato (touch friendly) ---------- */
+function frecce(entity, statiArr, stato, id){
+  const i = statiArr.indexOf(stato);
+  return `<span class="mover">
+    <button class="mv" ${i<=0?'disabled':''} onclick="muovi('${entity}','${id}',-1)" aria-label="Sposta indietro">‹</button>
+    <button class="mv" ${i>=statiArr.length-1?'disabled':''} onclick="muovi('${entity}','${id}',1)" aria-label="Sposta avanti">›</button>
+  </span>`;
+}
+window.muovi = function(entity, id, dir){
+  const cfg = {
+    preventivo:{arr:db.preventivi, stati:STATI_PREVENTIVO, campo:'stato'},
+    progetto:{arr:db.progetti, stati:STATI_PROGETTO, campo:'stato'},
+    fattura:{arr:db.fatture, stati:STATI_FATTURA, campo:'statoPagamento'}
+  }[entity];
+  if(!cfg) return;
+  const r = cfg.arr.find(x=>x.id===id); if(!r) return;
+  const i = cfg.stati.indexOf(r[cfg.campo]) + dir;
+  if(i<0 || i>=cfg.stati.length) return;
+  spostaStato(entity, id, cfg.stati[i]);
+};
+
+/* ---------- PREVENTIVI ---------- */
+function cardPreventivo(p){
+  const azione = p.stato==='Accettato'
+    ? (p.progettoId && getProgetto(p.progettoId)
+        ? '<span class="linkino">✓ progetto collegato</span>'
+        : `<button class="btn mini primary" onclick="creaProgettoDaPreventivo('${p.id}')">＋ Crea progetto</button>`)
+    : '';
+  const date = [];
+  if(p.dataInvio) date.push('inviato '+fmtData(p.dataInvio));
+  if(p.validoFino) date.push('valido fino '+fmtData(p.validoFino));
+  return `<div class="kcard" draggable="true" data-id="${p.id}" data-entity="preventivo">
+    <div class="kcard-top"><span class="num">${esc(p.numero)}</span><span class="kcard-val">${eur(p.importo)}</span></div>
+    <div class="kcard-title">${esc(p.titolo)}</div>
+    <div class="kcard-sub">${esc(nomeCliente(p.clienteId))}</div>
+    ${chips(p.servizi)}
+    ${date.length?'<div class="kcard-date">'+date.join(' · ')+'</div>':''}
+    <div class="kcard-actions">${frecce('preventivo',STATI_PREVENTIVO,p.stato,p.id)}${azione}<span class="spacer"></span>
+      <button class="icon" onclick="apriFormPreventivo('${p.id}')" title="Modifica">✎</button>
+      <button class="icon" onclick="eliminaPreventivo('${p.id}')" title="Elimina">🗑</button>
+    </div>
+  </div>`;
+}
+function vPreventivi(){
+  return `
+  <div class="sec-head"><h2>Preventivi</h2><button class="btn primary" onclick="apriFormPreventivo()">＋ Nuovo</button></div>
+  ${kanban('preventivo', STATI_PREVENTIVO, db.preventivi, 'stato', cardPreventivo)}
+  `;
+}
+
+/* ---------- PROGETTI ---------- */
+function cardProgetto(p){
+  const azione = p.stato==='Fatto'
+    ? (db.fatture.some(f=>f.progettoId===p.id)
+        ? '<span class="linkino">✓ fattura collegata</span>'
+        : `<button class="btn mini primary" onclick="creaFatturaDaProgetto('${p.id}')">＋ Crea fattura</button>`)
+    : '';
+  const inRitardo = p.scadenza && p.scadenza < oggi() && p.stato!=='Fatto';
+  return `<div class="kcard" draggable="true" data-id="${p.id}" data-entity="progetto">
+    <div class="kcard-top"><span></span><span class="kcard-val">${eur(p.valore)}</span></div>
+    <div class="kcard-title" style="margin-top:0">${esc(p.titolo)}</div>
+    <div class="kcard-sub">${esc(nomeCliente(p.clienteId))}</div>
+    ${chips(p.servizi)}
+    ${p.scadenza?'<div class="kcard-date '+(inRitardo?'rossa':'')+'">scadenza '+fmtData(p.scadenza)+(inRitardo?' ⚠':'')+'</div>':''}
+    <div class="kcard-actions">${frecce('progetto',STATI_PROGETTO,p.stato,p.id)}${azione}<span class="spacer"></span>
+      <button class="icon" onclick="apriFormProgetto('${p.id}')" title="Modifica">✎</button>
+      <button class="icon" onclick="eliminaProgetto('${p.id}')" title="Elimina">🗑</button>
+    </div>
+  </div>`;
+}
+function vProgetti(){
+  return `
+  <div class="sec-head"><h2>Progetti</h2><button class="btn primary" onclick="apriFormProgetto()">＋ Nuovo</button></div>
+  ${kanban('progetto', STATI_PROGETTO, db.progetti, 'stato', cardProgetto)}
+  `;
+}
+
+/* ---------- FATTURE ---------- */
+function fatturaScaduta(f){
+  return f.statoPagamento==='Scaduta' || (f.statoPagamento!=='Pagata' && f.statoPagamento!=='Da emettere' && f.scadenzaPagamento && f.scadenzaPagamento < oggi());
+}
+function cardFattura(f){
+  const acc = accantonare(f);
+  const bolloMancante = !f.bollo && (parseFloat(f.totale)||0) > SOGLIA_BOLLO && f.tipoDoc!=='Nota di credito';
+  return `<div class="kcard" draggable="true" data-id="${f.id}" data-entity="fattura">
+    <div class="kcard-top"><span class="num">${esc(f.numero)}</span><span class="kcard-val">${eur(f.totale)}</span></div>
+    <div class="kcard-title">${esc(f.titolo)}</div>
+    <div class="kcard-sub">${esc(nomeCliente(f.clienteId))} · ${esc(f.tipoDoc)}</div>
+    ${f.scadenzaPagamento?'<div class="kcard-date '+(fatturaScaduta(f)?'rossa':'')+'">scad. pagamento '+fmtData(f.scadenzaPagamento)+(fatturaScaduta(f)?' ⚠':'')+'</div>':''}
+    ${acc?'<div class="kcard-date" style="color:var(--accent);font-weight:600">accantona '+eur(acc)+'</div>':''}
+    ${bolloMancante?'<div class="warn-bollo">⚠ marca da bollo? (>77,47€)</div>':''}
+    <div class="kcard-actions">${frecce('fattura',STATI_FATTURA,f.statoPagamento,f.id)}<span class="spacer"></span>
+      <button class="icon" onclick="apriFormFattura('${f.id}')" title="Modifica">✎</button>
+      <button class="icon" onclick="eliminaFattura('${f.id}')" title="Elimina">🗑</button>
+    </div>
+  </div>`;
+}
+function scadenzarioHTML(soloAperte){
+  let list = [...db.fatture];
+  if(soloAperte) list = list.filter(f=>f.statoPagamento!=='Pagata');
+  list.sort((a,b)=>{
+    const x=a.scadenzaPagamento||'9999-12-31', y=b.scadenzaPagamento||'9999-12-31';
+    return x<y?-1:x>y?1:0;
+  });
+  if(!list.length) return soloAperte ? '' : '<div class="twrap"><div class="vuoto">Nessuna fattura.</div></div>';
+  const righe = list.map(f=>`<tr class="${fatturaScaduta(f)?'scaduta':''}">
+      <td><b>${esc(f.numero)}</b></td>
+      <td>${esc(f.titolo)}</td>
+      <td>${esc(nomeCliente(f.clienteId))}</td>
+      <td class="euro">${eur(f.totale)}</td>
+      <td>${badge(f.statoPagamento)}</td>
+      <td>${fmtData(f.scadenzaPagamento)}${fatturaScaduta(f)?' ⚠':''}</td>
+      <td>${fmtData(f.dataIncasso)}</td>
+      <td class="euro">${accantonare(f)?eur(accantonare(f)):'—'}</td>
+      <td><button class="icon" onclick="apriFormFattura('${f.id}')" title="Modifica">✎</button></td>
+    </tr>`).join('');
+  return `
+  <div class="sec-head"><h2>${soloAperte?'Scadenzario — da incassare':'Scadenzario fatture'}</h2><span class="sub">per scadenza di pagamento</span></div>
+  <div class="twrap"><table>
+    <thead><tr><th>N°</th><th>Titolo</th><th>Cliente</th><th>Totale</th><th>Stato</th><th>Scad. pagamento</th><th>Incasso</th><th>Da accantonare</th><th></th></tr></thead>
+    <tbody>${righe}</tbody>
+  </table></div>`;
+}
+function vFatture(){
+  return `
+  <div class="sec-head"><h2>Fatture</h2><button class="btn primary" onclick="apriFormFattura()">＋ Nuova</button></div>
+  ${kanban('fattura', STATI_FATTURA, db.fatture, 'statoPagamento', cardFattura)}
+  ${scadenzarioHTML(false)}
+  `;
+}
+
+/* ---------- kanban + drag & drop (desktop) ---------- */
+function kanban(entity, stati, records, campo, cardFn){
+  return '<div class="kb">' + stati.map(st=>{
+    const recs = records.filter(r=>r[campo]===st);
+    return `<div class="kb-col" data-entity="${entity}" data-stato="${esc(st)}">
+      <div class="kb-head">${badge(st)}<span class="kb-count">${recs.length}</span></div>
+      <div class="kb-cards">${recs.map(cardFn).join('') || '<div class="kb-empty">sposta qui</div>'}</div>
+    </div>`;
+  }).join('') + '</div>';
+}
+function bindDnD(root){
+  root.querySelectorAll('.kcard[draggable=true]').forEach(el=>{
+    el.addEventListener('dragstart', e=>{
+      e.dataTransfer.setData('text/plain', JSON.stringify({id:el.dataset.id, entity:el.dataset.entity}));
+      e.dataTransfer.effectAllowed='move';
+      el.classList.add('dragging');
+    });
+    el.addEventListener('dragend', ()=>el.classList.remove('dragging'));
+  });
+  root.querySelectorAll('.kb-col').forEach(col=>{
+    col.addEventListener('dragover', e=>{ e.preventDefault(); e.dataTransfer.dropEffect='move'; col.classList.add('over'); });
+    col.addEventListener('dragleave', ()=>col.classList.remove('over'));
+    col.addEventListener('drop', e=>{
+      e.preventDefault(); col.classList.remove('over');
+      let data; try{ data=JSON.parse(e.dataTransfer.getData('text/plain')); }catch(_){ return; }
+      if(!data || data.entity!==col.dataset.entity) return;
+      spostaStato(data.entity, data.id, col.dataset.stato);
+    });
+  });
+}
+function spostaStato(entity, id, stato){
+  if(entity==='preventivo'){ const r=db.preventivi.find(x=>x.id===id); if(r) r.stato=stato; }
+  else if(entity==='progetto'){ const r=db.progetti.find(x=>x.id===id); if(r) r.stato=stato; }
+  else if(entity==='fattura'){
+    const r=db.fatture.find(x=>x.id===id);
+    if(r){ r.statoPagamento=stato; if(stato==='Pagata' && !r.dataIncasso) r.dataIncasso=oggi(); }
+  }
+  salva(); render();
+}
+window.spostaStato = spostaStato;
+
+/* ============================================================
+   FORM / MODALI (sheet su mobile)
+   ============================================================ */
+function apriModal(html){
+  const m=$('#modal'); m.innerHTML='<div class="modal-box"><div class="handle"></div>'+html+'</div>'; m.classList.add('open');
+}
+function chiudiModal(){ const m=$('#modal'); m.classList.remove('open'); m.innerHTML=''; }
+window.chiudiModal = chiudiModal;
+$('#modal').addEventListener('click', e=>{ if(e.target.id==='modal') chiudiModal(); });
+
+function opzioni(arr, sel){ return arr.map(v=>`<option value="${esc(v)}" ${v===sel?'selected':''}>${esc(v)}</option>`).join(''); }
+function opzioniClienti(sel){
+  return '<option value="">— nessuno —</option>' + db.clienti.map(c=>`<option value="${c.id}" ${c.id===sel?'selected':''}>${esc(c.nome)}</option>`).join('');
+}
+function opzioniProgetti(sel, clienteId){
+  let ps = db.progetti;
+  if(clienteId) ps = ps.filter(p=>p.clienteId===clienteId || p.id===sel);
+  return '<option value="">— nessuno —</option>' + ps.map(p=>`<option value="${p.id}" ${p.id===sel?'selected':''}>${esc(p.titolo)}</option>`).join('');
+}
+function boxServizi(selez){
+  selez = selez||[];
+  return '<div class="chkgrid">' + SERVIZI.map(s=>`<label class="chk"><input type="checkbox" name="servizi" value="${esc(s)}" ${selez.includes(s)?'checked':''}> ${esc(s)}</label>`).join('') + '</div>';
+}
+window.filtraProgetti = function(sel){
+  const form = sel.form;
+  const attuale = form.elements.progettoId.value;
+  form.elements.progettoId.innerHTML = opzioniProgetti(attuale, sel.value);
+};
+
+/* ---------- form CLIENTE ---------- */
+window.apriFormCliente = function(id){
+  const c = id ? getCliente(id) : {};
+  apriModal(`<h3>${id?'Modifica cliente':'Nuovo cliente'}</h3>
+  <form class="frm" onsubmit="salvaCliente(event)">
+    <input type="hidden" name="_id" value="${id||''}">
+    <div class="full"><label>Nome / Ragione sociale *</label><input type="text" name="nome" required value="${esc(c.nome)}"></div>
+    <div><label>Referente</label><input type="text" name="referente" value="${esc(c.referente)}"></div>
+    <div><label>Telefono</label><input type="tel" name="telefono" value="${esc(c.telefono)}"></div>
+    <div><label>Email</label><input type="email" name="email" value="${esc(c.email)}"></div>
+    <div><label>Sito web</label><input type="text" name="sito" value="${esc(c.sito)}"></div>
+    <div><label>Zona</label><select name="zona">${opzioni(ZONE, c.zona||'Vicenza')}</select></div>
+    <div><label>Tipo attività</label><select name="tipo">${opzioni(TIPI_ATTIVITA, c.tipo||'Altro')}</select></div>
+    <div class="full"><label>Note</label><textarea name="note">${esc(c.note)}</textarea></div>
+    <div class="frm-foot"><button type="button" class="btn neutro" onclick="chiudiModal()">Annulla</button><button type="submit" class="btn primary">Salva</button></div>
+  </form>`);
+};
+window.salvaCliente = function(ev){
+  ev.preventDefault();
+  const f=ev.target, v=n=>f.elements[n].value.trim();
+  const id=v('_id');
+  const dati={nome:v('nome'),referente:v('referente'),email:v('email'),telefono:v('telefono'),sito:v('sito'),zona:v('zona'),tipo:v('tipo'),note:v('note')};
+  if(id){ Object.assign(getCliente(id)||{}, dati); }
+  else { db.clienti.push(Object.assign({id:uid()}, dati)); }
+  salva(); chiudiModal(); toast('Cliente salvato'); render();
+};
+window.eliminaCliente = function(id){
+  const c=getCliente(id); if(!c) return;
+  if(!confirm('Eliminare "'+c.nome+'"? Preventivi, progetti e fatture collegati resteranno senza cliente.')) return;
+  db.clienti = db.clienti.filter(x=>x.id!==id);
+  db.preventivi.forEach(p=>{ if(p.clienteId===id) p.clienteId=null; });
+  db.progetti.forEach(p=>{ if(p.clienteId===id) p.clienteId=null; });
+  db.fatture.forEach(f=>{ if(f.clienteId===id) f.clienteId=null; });
+  salva(); toast('Cliente eliminato'); vai('clienti');
+};
+
+/* ---------- form PREVENTIVO ---------- */
+window.apriFormPreventivo = function(id, preset){
+  const p = id ? db.preventivi.find(x=>x.id===id) : (preset||{});
+  apriModal(`<h3>${id?'Modifica '+esc(p.numero):'Nuovo preventivo'}</h3>
+  <form class="frm" onsubmit="salvaPreventivo(event)">
+    <input type="hidden" name="_id" value="${id||''}">
+    <div class="full"><label>Titolo *</label><input type="text" name="titolo" required value="${esc(p.titolo)}"></div>
+    <div><label>Cliente</label><select name="clienteId" onchange="filtraProgetti(this)">${opzioniClienti(p.clienteId)}</select></div>
+    <div><label>Progetto collegato</label><select name="progettoId">${opzioniProgetti(p.progettoId, p.clienteId)}</select></div>
+    <div><label>Importo (€)</label><input type="number" name="importo" step="0.01" min="0" inputmode="decimal" value="${p.importo!=null?p.importo:''}"></div>
+    <div><label>Stato</label><select name="stato">${opzioni(STATI_PREVENTIVO, p.stato||'Bozza')}</select></div>
+    <div><label>Data invio</label><input type="date" name="dataInvio" value="${esc(p.dataInvio)}"></div>
+    <div><label>Valido fino</label><input type="date" name="validoFino" value="${esc(p.validoFino)}"></div>
+    <div class="full"><label>Tipo servizio</label>${boxServizi(p.servizi)}</div>
+    <div class="full"><label>Note</label><textarea name="note">${esc(p.note)}</textarea></div>
+    <div class="frm-foot"><button type="button" class="btn neutro" onclick="chiudiModal()">Annulla</button><button type="submit" class="btn primary">Salva</button></div>
+  </form>`);
+};
+window.salvaPreventivo = function(ev){
+  ev.preventDefault();
+  const f=ev.target, v=n=>f.elements[n].value.trim();
+  const id=v('_id');
+  const servizi=[...f.querySelectorAll('input[name=servizi]:checked')].map(i=>i.value);
+  const imp=f.elements.importo.value;
+  const dati={titolo:v('titolo'),clienteId:v('clienteId')||null,progettoId:v('progettoId')||null,
+    importo:imp===''?null:parseFloat(imp),stato:v('stato'),dataInvio:v('dataInvio'),validoFino:v('validoFino'),servizi,note:v('note')};
+  if(id){ Object.assign(db.preventivi.find(x=>x.id===id)||{}, dati); }
+  else {
+    db.counters.pr++;
+    db.preventivi.push(Object.assign({id:uid(), numero:'PR-'+db.counters.pr}, dati));
+  }
+  salva(); chiudiModal(); toast('Preventivo salvato'); render();
+};
+window.eliminaPreventivo = function(id){
+  const p=db.preventivi.find(x=>x.id===id); if(!p) return;
+  if(!confirm('Eliminare il preventivo '+p.numero+'?')) return;
+  db.preventivi = db.preventivi.filter(x=>x.id!==id);
+  salva(); toast('Preventivo eliminato'); render();
+};
+
+/* ---------- form PROGETTO ---------- */
+window.apriFormProgetto = function(id, preset){
+  const p = id ? getProgetto(id) : (preset||{});
+  apriModal(`<h3>${id?'Modifica progetto':'Nuovo progetto'}</h3>
+  <form class="frm" onsubmit="salvaProgetto(event)">
+    <input type="hidden" name="_id" value="${id||''}">
+    <div class="full"><label>Titolo *</label><input type="text" name="titolo" required value="${esc(p.titolo)}"></div>
+    <div><label>Cliente</label><select name="clienteId">${opzioniClienti(p.clienteId)}</select></div>
+    <div><label>Stato</label><select name="stato">${opzioni(STATI_PROGETTO, p.stato||'Non iniziato')}</select></div>
+    <div><label>Data inizio</label><input type="date" name="dataInizio" value="${esc(p.dataInizio)}"></div>
+    <div><label>Scadenza</label><input type="date" name="scadenza" value="${esc(p.scadenza)}"></div>
+    <div><label>Valore (€)</label><input type="number" name="valore" step="0.01" min="0" inputmode="decimal" value="${p.valore!=null?p.valore:''}"></div>
+    <div class="full"><label>Tipo servizio</label>${boxServizi(p.servizi)}</div>
+    <div class="full"><label>Note</label><textarea name="note">${esc(p.note)}</textarea></div>
+    <div class="frm-foot"><button type="button" class="btn neutro" onclick="chiudiModal()">Annulla</button><button type="submit" class="btn primary">Salva</button></div>
+  </form>`);
+};
+window.salvaProgetto = function(ev){
+  ev.preventDefault();
+  const f=ev.target, v=n=>f.elements[n].value.trim();
+  const id=v('_id');
+  const servizi=[...f.querySelectorAll('input[name=servizi]:checked')].map(i=>i.value);
+  const val=f.elements.valore.value;
+  const dati={titolo:v('titolo'),clienteId:v('clienteId')||null,stato:v('stato'),dataInizio:v('dataInizio'),
+    scadenza:v('scadenza'),valore:val===''?null:parseFloat(val),servizi,note:v('note')};
+  if(id){ Object.assign(getProgetto(id)||{}, dati); }
+  else { db.progetti.push(Object.assign({id:uid()}, dati)); }
+  salva(); chiudiModal(); toast('Progetto salvato'); render();
+};
+window.eliminaProgetto = function(id){
+  const p=getProgetto(id); if(!p) return;
+  if(!confirm('Eliminare il progetto "'+p.titolo+'"?')) return;
+  db.progetti = db.progetti.filter(x=>x.id!==id);
+  db.preventivi.forEach(pr=>{ if(pr.progettoId===id) pr.progettoId=null; });
+  db.fatture.forEach(ft=>{ if(ft.progettoId===id) ft.progettoId=null; });
+  salva(); toast('Progetto eliminato'); render();
+};
+
+/* ---------- form FATTURA ---------- */
+window.apriFormFattura = function(id, preset){
+  const f = id ? db.fatture.find(x=>x.id===id) : (preset||{});
+  const totIniz = f.totale!=null ? f.totale : '';
+  apriModal(`<h3>${id?'Modifica '+esc(f.numero):'Nuova fattura'}</h3>
+  <form class="frm" onsubmit="salvaFattura(event)">
+    <input type="hidden" name="_id" value="${id||''}">
+    <div class="full"><label>Titolo *</label><input type="text" name="titolo" required value="${esc(f.titolo)}"></div>
+    <div><label>Tipo documento</label><select name="tipoDoc">${opzioni(TIPI_DOC, f.tipoDoc||'Fattura')}</select></div>
+    <div><label>Metodo pagamento</label><select name="metodo">${opzioni(METODI_PAG, f.metodo||'Bonifico')}</select></div>
+    <div><label>Cliente</label><select name="clienteId" onchange="filtraProgetti(this)">${opzioniClienti(f.clienteId)}</select></div>
+    <div><label>Progetto collegato</label><select name="progettoId">${opzioniProgetti(f.progettoId, f.clienteId)}</select></div>
+    <div><label>Imponibile (€)</label><input type="number" name="imponibile" step="0.01" min="0" inputmode="decimal" value="${f.imponibile!=null?f.imponibile:''}"></div>
+    <div><label>Totale (€)</label><input type="number" name="totale" step="0.01" min="0" inputmode="decimal" value="${totIniz}" oninput="aggiornaHintFattura(this.form)"></div>
+    <div><label>Stato pagamento</label><select name="statoPagamento" onchange="aggiornaHintFattura(this.form)">${opzioni(STATI_FATTURA, f.statoPagamento||'Da emettere')}</select></div>
+    <div><label>&nbsp;</label><label class="chk"><input type="checkbox" name="bollo" ${f.bollo?'checked':''} onchange="aggiornaHintFattura(this.form)"> Marca da bollo (2€)</label>
+      <div class="nota-campo">Obbligatoria per importi sopra 77,47€ (forfettario, senza IVA).</div></div>
+    <div><label>Data emissione</label><input type="date" name="dataEmissione" value="${esc(f.dataEmissione)}"></div>
+    <div><label>Scadenza pagamento</label><input type="date" name="scadenzaPagamento" value="${esc(f.scadenzaPagamento)}"></div>
+    <div><label>Data incasso</label><input type="date" name="dataIncasso" value="${esc(f.dataIncasso)}"></div>
+    <div class="hint-acc"></div>
+    <div class="hint-bollo">⚠ Totale sopra 77,47€: ricordati la marca da bollo da 2€.</div>
+    <div class="full"><label>Note</label><textarea name="note">${esc(f.note)}</textarea></div>
+    <div class="frm-foot"><button type="button" class="btn neutro" onclick="chiudiModal()">Annulla</button><button type="submit" class="btn primary">Salva</button></div>
+  </form>`);
+  aggiornaHintFattura($('#modal').querySelector('form'));
+};
+window.aggiornaHintFattura = function(form){
+  if(!form) return;
+  const tot = parseFloat(form.elements.totale.value)||0;
+  const pagata = form.elements.statoPagamento.value==='Pagata';
+  const hintA = form.querySelector('.hint-acc');
+  if(hintA) hintA.textContent = 'Da accantonare per le tasse: ' + eur(pagata ? arrot(tot*ALIQUOTA_ACC) : 0) + (pagata?'':' (si calcola quando la fattura è Pagata)');
+  const hintB = form.querySelector('.hint-bollo');
+  if(hintB) hintB.style.display = (tot > SOGLIA_BOLLO && !form.elements.bollo.checked) ? 'block' : 'none';
+};
+window.salvaFattura = function(ev){
+  ev.preventDefault();
+  const f=ev.target, v=n=>f.elements[n].value.trim();
+  const id=v('_id');
+  const imp=f.elements.imponibile.value, tot=f.elements.totale.value;
+  const dati={titolo:v('titolo'),tipoDoc:v('tipoDoc'),clienteId:v('clienteId')||null,progettoId:v('progettoId')||null,
+    imponibile:imp===''?null:parseFloat(imp), totale:tot===''?null:parseFloat(tot),
+    statoPagamento:v('statoPagamento'), metodo:v('metodo'), bollo:f.elements.bollo.checked,
+    dataEmissione:v('dataEmissione'), scadenzaPagamento:v('scadenzaPagamento'), dataIncasso:v('dataIncasso'), note:v('note')};
+  if(dati.statoPagamento==='Pagata' && !dati.dataIncasso) dati.dataIncasso=oggi();
+  if(id){ Object.assign(db.fatture.find(x=>x.id===id)||{}, dati); }
+  else {
+    db.counters.ft++;
+    db.fatture.push(Object.assign({id:uid(), numero:'FT-'+db.counters.ft}, dati));
+  }
+  salva(); chiudiModal(); toast('Fattura salvata'); render();
+};
+window.eliminaFattura = function(id){
+  const f=db.fatture.find(x=>x.id===id); if(!f) return;
+  if(!confirm('Eliminare la fattura '+f.numero+'?')) return;
+  db.fatture = db.fatture.filter(x=>x.id!==id);
+  salva(); toast('Fattura eliminata'); render();
+};
+
+/* ---------- azioni di flusso ---------- */
+window.creaProgettoDaPreventivo = function(id){
+  const p = db.preventivi.find(x=>x.id===id); if(!p) return;
+  const nuovo = { id:uid(), titolo:p.titolo, clienteId:p.clienteId, stato:'Non iniziato',
+    servizi:[...(p.servizi||[])], dataInizio:'', scadenza:'', valore:p.importo,
+    note:'Creato dal preventivo '+p.numero+'.' };
+  db.progetti.push(nuovo);
+  p.progettoId = nuovo.id;
+  salva(); toast('Progetto creato da '+p.numero); render();
+};
+window.creaFatturaDaProgetto = function(id){
+  const p = getProgetto(id); if(!p) return;
+  apriFormFattura(null, { titolo:p.titolo, clienteId:p.clienteId, progettoId:p.id,
+    imponibile:p.valore, totale:p.valore, statoPagamento:'Da emettere',
+    bollo:(parseFloat(p.valore)||0) > SOGLIA_BOLLO });
+};
+
+/* ---------- export / import ---------- */
+$('#btnExport').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(db,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'gestionale-piva-backup-'+oggi()+'.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 500);
+  toast('Backup esportato');
+});
+$('#btnImport').addEventListener('click', ()=>$('#importFile').click());
+$('#importFile').addEventListener('change', e=>{
+  const file = e.target.files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    try{
+      const d = JSON.parse(r.result);
+      if(!Array.isArray(d.clienti)||!Array.isArray(d.preventivi)||!Array.isArray(d.progetti)||!Array.isArray(d.fatture)) throw new Error('struttura');
+      if(!confirm('Importare il backup? I dati attuali verranno sostituiti.')) return;
+      db = d; db.counters = db.counters || {pr:0,ft:0};
+      salva(); render(); toast('Backup importato');
+    }catch(_){ alert('File non valido: deve essere un backup JSON di questo gestionale.'); }
+  };
+  r.readAsText(file);
+  e.target.value='';
+});
+
+/* ---------- tema toggle ---------- */
+$('#btnTheme').addEventListener('click', ()=>{
+  tema = tema==='dark' ? 'light' : 'dark';
+  if(lsOk){ try{ localStorage.setItem(THEME_KEY, tema); }catch(e){} }
+  applicaTema(tema);
+});
+
+/* ============================================================
+   SINCRONIZZAZIONE CLOUD (Supabase)
+   - I dati restano anche in localStorage (cache offline).
+   - Con il login, ogni salvataggio viene spinto sul cloud e
+     all'apertura l'app scarica la versione più recente.
+   ============================================================ */
+function setSync(stato, titolo){
+  const b = $('#btnCloud'); if(!b) return;
+  b.className = 'iconbtn c-' + stato;
+  b.title = titolo || {
+    off:'Cloud non attivo — clicca per accedere',
+    ok:'Sincronizzato' + (utente ? ' — ' + utente.email : ''),
+    sync:'Sincronizzazione…',
+    err:'Errore di sincronizzazione — dati salvati in locale'
+  }[stato];
+}
+function programmaPush(){
+  if(!supa || !utente) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(pushCloud, 900);
+}
+async function pushCloud(){
+  if(!supa || !utente) return;
+  setSync('sync');
+  try{
+    const { data, error } = await supa.from('gestionale')
+      .upsert({ user_id: utente.id, dati: db, updated_at: new Date().toISOString() })
+      .select('updated_at').single();
+    if(error) throw error;
+    cloudStamp = data.updated_at;
+    setSync('ok');
+  }catch(e){ setSync('err'); }
+}
+async function pullCloud(){
+  if(!supa || !utente) return;
+  setSync('sync');
+  try{
+    const { data, error } = await supa.from('gestionale')
+      .select('dati,updated_at').eq('user_id', utente.id).maybeSingle();
+    if(error) throw error;
+    if(data){
+      if(data.updated_at !== cloudStamp){
+        db = data.dati || db;
+        db.counters = db.counters || {pr:0,ft:0};
+        cloudStamp = data.updated_at;
+        salvaLocale();
+        render();
+      }
+      setSync('ok');
+    } else {
+      await pushCloud();   // primo dispositivo: carica i dati locali sul cloud
+    }
+  }catch(e){ setSync('err'); }
+}
+function aggiornaCloudUI(){ setSync(utente ? 'ok' : 'off'); }
+
+/* ---------- sheet login / account ---------- */
+window.apriLoginSheet = function(){
+  if(!supa){
+    apriModal(`<h3>Cloud non disponibile</h3>
+      <p class="cloud-desc">La libreria di sincronizzazione non si è caricata (sei offline?). I dati vengono comunque salvati su questo dispositivo.</p>
+      <div class="frm"><div class="frm-foot"><button class="btn primary" onclick="chiudiModal()">Ok</button></div></div>`);
+    return;
+  }
+  if(utente){
+    apriModal(`<h3>Account cloud</h3>
+      <p class="cloud-desc">Connesso come</p>
+      <p class="cloud-mail">${esc(utente.email)}</p>
+      <p class="cloud-desc" style="margin-top:12px">I dati si sincronizzano automaticamente su tutti i dispositivi dove accedi con questo account.</p>
+      <div class="frm">
+        <div class="frm-foot">
+          <button class="btn danger" onclick="esciCloud()">Esci</button>
+          <button class="btn primary" onclick="chiudiModal()">Chiudi</button>
+        </div>
+      </div>`);
+    return;
+  }
+  apriModal(`<h3>Sincronizza sul cloud</h3>
+    <p class="cloud-desc">Accedi per avere gli stessi dati su computer e telefono. I dati sono privati: solo il tuo account può leggerli.</p>
+    <form class="frm" onsubmit="accedi(event)">
+      <div class="full"><label>Email</label><input type="email" name="email" required autocomplete="email"></div>
+      <div class="full"><label>Password</label><input type="password" name="password" required minlength="6" autocomplete="current-password"></div>
+      <div class="auth-err" id="authErr"></div>
+      <div class="frm-foot">
+        <button type="button" class="btn" onclick="registrati(this.form)">Registrati</button>
+        <button type="submit" class="btn primary">Accedi</button>
+      </div>
+      <div class="auth-link"><button type="button" onclick="soloLocale()">Continua senza account (solo questo dispositivo)</button></div>
+    </form>`);
+};
+function mostraAuthErr(msg){
+  const e = $('#authErr'); if(!e) return;
+  e.textContent = msg; e.style.display = 'block';
+}
+window.accedi = async function(ev){
+  ev.preventDefault();
+  const f = ev.target;
+  const { error } = await supa.auth.signInWithPassword({ email:f.elements.email.value.trim(), password:f.elements.password.value });
+  if(error){
+    mostraAuthErr(error.message==='Invalid login credentials' ? 'Email o password errati. Se è la prima volta, usa "Registrati".' : 'Errore: '+error.message);
+    return;
+  }
+  chiudiModal(); toast('Connesso al cloud');
+};
+window.registrati = async function(f){
+  const email = f.elements.email.value.trim(), password = f.elements.password.value;
+  if(!email || password.length<6){ mostraAuthErr('Inserisci email e una password di almeno 6 caratteri.'); return; }
+  const { data, error } = await supa.auth.signUp({ email, password });
+  if(error){ mostraAuthErr('Errore: '+error.message); return; }
+  if(data.session){ chiudiModal(); toast('Account creato e connesso'); }
+  else mostraAuthErr('Quasi fatto: controlla la mail "'+email+'" e clicca il link di conferma, poi torna qui e premi Accedi.');
+};
+window.esciCloud = async function(){
+  if(!confirm('Uscire dall\'account? I dati restano salvati su questo dispositivo e sul cloud.')) return;
+  await supa.auth.signOut();
+  utente = null; cloudStamp = null;
+  aggiornaCloudUI(); chiudiModal(); toast('Disconnesso');
+};
+window.soloLocale = function(){
+  if(lsOk){ try{ localStorage.setItem(CLOUD_DISMISS_KEY,'1'); }catch(e){} }
+  chiudiModal();
+};
+
+function initCloud(){
+  if(!(window.supabase && window.supabase.createClient)){ setSync('off','Cloud non disponibile (offline)'); return; }
+  supa = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+  supa.auth.onAuthStateChange((evento, sessione)=>{
+    const prima = !!utente;
+    utente = sessione ? sessione.user : null;
+    aggiornaCloudUI();
+    if(utente && !prima) pullCloud();
+  });
+  supa.auth.getSession().then(({data})=>{
+    utente = data.session ? data.session.user : null;
+    aggiornaCloudUI();
+    if(utente) pullCloud();
+    else {
+      let dism = false;
+      if(lsOk){ try{ dism = localStorage.getItem(CLOUD_DISMISS_KEY)==='1'; }catch(e){} }
+      if(!dism) apriLoginSheet();
+    }
+  });
+  // quando torni sull'app (es. riapri dal telefono), ricontrolla il cloud
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && utente) pullCloud(); });
+}
+$('#btnCloud').addEventListener('click', ()=>apriLoginSheet());
+
+/* ---------- PWA ---------- */
+if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost')){
+  window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+}
+
+/* ---------- avvio ---------- */
+if(!lsOk) $('#bannerMem').style.display='block';
+costruisciNav();
+render();
+initCloud();
+</script>
+</body>
+</html>
