@@ -334,7 +334,7 @@ const CLOUD_DISMISS_KEY = 'gestionale_piva_nb_cloud_dismiss';
 /* ---------- Supabase (sincronizzazione cloud) ---------- */
 const SUPA_URL = 'https://xibxqkoroxjjiuwittlr.supabase.co';
 const SUPA_KEY = 'sb_publishable_Ja5U_9l4Wo-wyCOOYixbqw_lkoig2fo';
-let supa = null, utente = null, cloudStamp = null, pushTimer = null, modifichePendenti = false;
+let supa = null, utente = null, cloudStamp = null, pushTimer = null, modifichePendenti = false, canaleRealtime = null;
 const ZONE = ['Zanè','Vicenza','Brescia','Milano','Altro'];
 const TIPI_ATTIVITA = ['Ristorante','Bar','Pizzeria','Hotel/B&B','Palestra','Studio professionale','Artigiano/Edile','Negozio','Altro'];
 const SERVIZI = ['Graphic Design','Brand Identity','Web Design','Sito web','Automazioni AI','Consulenza','Content Creation','Foto/Video'];
@@ -1099,6 +1099,30 @@ async function pullCloud(){
 }
 function aggiornaCloudUI(){ setSync(utente ? 'ok' : 'off'); }
 
+/* ---------- realtime: il cloud avvisa i dispositivi all'istante ---------- */
+function attivaRealtime(){
+  if(!supa || !utente || canaleRealtime) return;
+  try{
+    canaleRealtime = supa.channel('gestionale-sync')
+      .on('postgres_changes',
+        { event:'*', schema:'public', table:'gestionale', filter:'user_id=eq.'+utente.id },
+        payload => {
+          const nuovo = payload.new;
+          // ignora l'eco dei propri salvataggi e non toccare modifiche locali in corso
+          if(!nuovo || nuovo.updated_at === cloudStamp || modifichePendenti) return;
+          db = nuovo.dati || db;
+          db.counters = db.counters || {pr:0,ft:0};
+          cloudStamp = nuovo.updated_at;
+          salvaLocale(); render(); setSync('ok');
+        })
+      .subscribe();
+  }catch(e){ /* se il canale non parte, restano il polling e la rotellina */ }
+}
+function disattivaRealtime(){
+  if(supa && canaleRealtime){ try{ supa.removeChannel(canaleRealtime); }catch(e){} }
+  canaleRealtime = null;
+}
+
 /* ---------- sheet login / account ---------- */
 window.apriLoginSheet = function(){
   if(!supa){
@@ -1174,12 +1198,13 @@ function initCloud(){
     const prima = !!utente;
     utente = sessione ? sessione.user : null;
     aggiornaCloudUI();
-    if(utente && !prima) pullCloud();
+    if(utente && !prima){ pullCloud(); attivaRealtime(); }
+    if(!utente) disattivaRealtime();
   });
   supa.auth.getSession().then(({data})=>{
     utente = data.session ? data.session.user : null;
     aggiornaCloudUI();
-    if(utente) pullCloud();
+    if(utente){ pullCloud(); attivaRealtime(); }
     else {
       let dism = false;
       if(lsOk){ try{ dism = localStorage.getItem(CLOUD_DISMISS_KEY)==='1'; }catch(e){} }
