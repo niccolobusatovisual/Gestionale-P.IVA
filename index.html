@@ -127,6 +127,9 @@ main{max-width:1240px;margin:0 auto;padding:20px 16px 60px}
   display:flex;align-items:center;justify-content:center;font-style:italic;font-family:Georgia,serif;
 }
 .stat.acc .info-i{background:rgba(255,255,255,.25);color:#fff}
+.stat.hl{background:var(--accent-soft);box-shadow:none}
+.stat.hl .big{color:var(--accent)}
+.stat.hl .lbl{color:var(--accent)}
 .stat.acc{background:linear-gradient(135deg,var(--accent) 0%,var(--accent-2) 100%);box-shadow:0 10px 30px rgba(255,199,120,.35)}
 [data-theme=dark] .stat.acc{box-shadow:0 10px 30px rgba(255,107,26,.25)}
 .stat.acc .lbl,.stat.acc .det{color:rgba(255,255,255,.85)}
@@ -509,11 +512,17 @@ function vDashboard(){
   const scadute = db.fatture.filter(f=>f.statoPagamento==='Scaduta');
   const pagate  = db.fatture.filter(f=>f.statoPagamento==='Pagata');
   const daEmettere = db.fatture.filter(f=>f.statoPagamento==='Da emettere');
+  const emesse = db.fatture.filter(f=>f.statoPagamento!=='Da emettere');
   const totAcc = arrot(somma(pagate, accantonare));
 
   return `
   <div class="sec-head"><h2>Dashboard</h2><span class="sub">${fmtData(oggi())}</span></div>
   <div class="cards">
+    <div class="stat acc">
+      <div class="lbl">Fatturato emesso</div>
+      <div class="big">${eur(somma(emesse,f=>f.totale))}</div>
+      <div class="det">${emesse.length} ${emesse.length===1?'fattura emessa':'fatture emesse'}${daIncassare.length?' · '+daIncassare.length+' da incassare':''}</div>
+    </div>
     <div class="stat acc">
       <div class="lbl">Incassato</div>
       <div class="big">${eur(somma(pagate,f=>f.totale))}</div>
@@ -585,6 +594,9 @@ function vClienteDettaglio(){
   const prev = db.preventivi.filter(p=>p.clienteId===c.id);
   const prog = db.progetti.filter(p=>p.clienteId===c.id);
   const fatt = db.fatture.filter(f=>f.clienteId===c.id);
+  const incassato = somma(fatt.filter(f=>f.statoPagamento==='Pagata'), f=>f.totale);
+  const daIncassareC = fatt.filter(f=>f.statoPagamento==='Emessa'||f.statoPagamento==='Scaduta');
+  const daEmettereC = fatt.filter(f=>f.statoPagamento==='Da emettere');
 
   const listaPrev = prev.map(p=>`<div class="mini-item">
       <span class="num">${esc(p.numero)}</span>
@@ -620,6 +632,18 @@ function vClienteDettaglio(){
       <button class="btn" onclick="apriFormProgetto(null,{clienteId:'${c.id}'})">＋ Progetto</button>
       <button class="btn" onclick="apriFormFattura(null,{clienteId:'${c.id}'})">＋ Fattura</button>
       <button class="btn danger" onclick="eliminaCliente('${c.id}')">Elimina</button>
+    </div>
+  </div>
+  <div class="cards" style="margin-top:12px">
+    <div class="stat hl">
+      <div class="lbl">Da incassare</div>
+      <div class="big">${eur(somma(daIncassareC, f=>f.totale))}</div>
+      <div class="det">${daIncassareC.length} ${daIncassareC.length===1?'fattura emessa non incassata':'fatture emesse non incassate'}${daEmettereC.length?' · '+daEmettereC.length+' da emettere':''}</div>
+    </div>
+    <div class="stat">
+      <div class="lbl">Incassato</div>
+      <div class="big">${eur(incassato)}</div>
+      <div class="det">${fatt.filter(f=>f.statoPagamento==='Pagata').length} ${fatt.filter(f=>f.statoPagamento==='Pagata').length===1?'fattura pagata':'fatture pagate'}</div>
     </div>
   </div>
   <div class="sec-head"><h2>Preventivi</h2></div><div class="mini-list">${listaPrev}</div>
