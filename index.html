@@ -467,6 +467,17 @@ const getCliente  = id => db.clienti.find(c=>c.id===id);
 const getProgetto = id => db.progetti.find(p=>p.id===id);
 function nomeCliente(id){ const c=getCliente(id); return c ? c.nome : '—'; }
 
+/* ---------- numerazione fatture: progressivo a 3 cifre per anno (001-2026) ---------- */
+function prossimoNumeroFattura(anno){
+  anno = anno || new Date().getFullYear();
+  let max = 0;
+  db.fatture.forEach(f=>{
+    const m = /^(\d+)-(\d{4})$/.exec(f.numero||'');
+    if(m && parseInt(m[2],10)===anno) max = Math.max(max, parseInt(m[1],10));
+  });
+  return String(max+1).padStart(3,'0') + '-' + anno;
+}
+
 /* ---------- previsione tasse ---------- */
 function accantonare(f){
   return f.statoPagamento==='Pagata' ? arrot((parseFloat(f.totale)||0) * ALIQUOTA_ACC) : 0;
@@ -977,6 +988,8 @@ window.apriFormFattura = function(id, preset){
   <form class="frm" onsubmit="salvaFattura(event)">
     <input type="hidden" name="_id" value="${id||''}">
     <div class="full"><label>Titolo *</label><input type="text" name="titolo" required value="${esc(f.titolo)}"></div>
+    <div><label>Numero fattura</label><input type="text" name="numero" value="${esc(id ? f.numero : prossimoNumeroFattura())}">
+      <div class="nota-campo">Progressivo per anno, es. 001-2026. Riparte da 001 a ogni anno nuovo.</div></div>
     <div><label>Tipo documento</label><select name="tipoDoc">${opzioni(TIPI_DOC, f.tipoDoc||'Fattura')}</select></div>
     <div><label>Metodo pagamento</label><select name="metodo">${opzioni(METODI_PAG, f.metodo||'Bonifico')}</select></div>
     <div><label>Cliente</label><select name="clienteId" onchange="filtraProgetti(this)">${opzioniClienti(f.clienteId)}</select></div>
@@ -1010,15 +1023,14 @@ window.salvaFattura = function(ev){
   const f=ev.target, v=n=>f.elements[n].value.trim();
   const id=v('_id');
   const imp=f.elements.imponibile.value, tot=f.elements.totale.value;
-  const dati={titolo:v('titolo'),tipoDoc:v('tipoDoc'),clienteId:v('clienteId')||null,progettoId:v('progettoId')||null,
+  const dati={titolo:v('titolo'),numero:v('numero')||prossimoNumeroFattura(),tipoDoc:v('tipoDoc'),clienteId:v('clienteId')||null,progettoId:v('progettoId')||null,
     imponibile:imp===''?null:parseFloat(imp), totale:tot===''?null:parseFloat(tot),
     statoPagamento:v('statoPagamento'), metodo:v('metodo'), bollo:f.elements.bollo.checked,
     dataEmissione:v('dataEmissione'), scadenzaPagamento:v('scadenzaPagamento'), dataIncasso:v('dataIncasso'), note:v('note')};
   if(dati.statoPagamento==='Pagata' && !dati.dataIncasso) dati.dataIncasso=oggi();
   if(id){ Object.assign(db.fatture.find(x=>x.id===id)||{}, dati); }
   else {
-    db.counters.ft++;
-    db.fatture.push(Object.assign({id:uid(), numero:'FT-'+db.counters.ft}, dati));
+    db.fatture.push(Object.assign({id:uid()}, dati));
   }
   salva(); chiudiModal(); toast('Fattura salvata'); render();
 };
