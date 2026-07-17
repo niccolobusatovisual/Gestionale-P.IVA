@@ -242,6 +242,8 @@ td.euro{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
 .mini-item .tt{font-weight:600;flex:1;min-width:130px;font-size:14px}
 .mini-item .euro{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
 .mini-item .num{font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:7px;padding:2px 8px}
+.mini-item.ritardo{background:var(--warn-soft)}
+.chip.mensile{background:var(--accent-soft);color:var(--accent);font-weight:600}
 
 /* ============ MODAL / SHEET ============ */
 #modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:100;overflow-y:auto}
@@ -478,6 +480,37 @@ function prossimoNumeroFattura(anno){
   return String(max+1).padStart(3,'0') + '-' + anno;
 }
 
+/* ---------- progetti mensili ricorrenti ---------- */
+const MESI = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+function meseKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function nomeMese(key){ const p=key.split('-'); return MESI[parseInt(p[1],10)-1]+' '+p[0]; }
+function fatturaDelMese(prog, key){
+  return db.fatture.some(f=>f.progettoId===prog.id && (f.mese===key || (f.dataEmissione||'').slice(0,7)===key));
+}
+/* promemoria: ultimi 7 giorni del mese per il mese corrente,
+   primi 7 giorni del mese nuovo per un eventuale mese scorso dimenticato */
+function promemoriaMensili(){
+  const d=new Date(), y=d.getFullYear(), m=d.getMonth(), g=d.getDate();
+  const giorniMese=new Date(y,m+1,0).getDate();
+  const corrente=meseKey(d);
+  const prevKey=meseKey(new Date(y,m-1,1));
+  const out=[];
+  db.progetti.filter(p=>p.mensile && p.stato!=='Fatto').forEach(p=>{
+    if(g<=7 && !fatturaDelMese(p,prevKey) && (!p.dataInizio || p.dataInizio.slice(0,7)<=prevKey))
+      out.push({p, key:prevKey, ritardo:true});
+    if((giorniMese-g)<7 && !fatturaDelMese(p,corrente))
+      out.push({p, key:corrente, ritardo:false});
+  });
+  return out;
+}
+window.creaFatturaMensile = function(idProgetto, key){
+  const p=getProgetto(idProgetto); if(!p) return;
+  key = key || meseKey(new Date());
+  apriFormFattura(null, { titolo:p.titolo+' — '+nomeMese(key), clienteId:p.clienteId, progettoId:p.id,
+    imponibile:p.valore, totale:p.valore, statoPagamento:'Da emettere',
+    bollo:(parseFloat(p.valore)||0) > SOGLIA_BOLLO, mese:key });
+};
+
 /* ---------- previsione tasse ---------- */
 function accantonare(f){
   return f.statoPagamento==='Pagata' ? arrot((parseFloat(f.totale)||0) * ALIQUOTA_ACC) : 0;
@@ -561,8 +594,23 @@ function vDashboard(){
     </div>
   </div>
 
+  ${promemoriaHTML()}
   ${scadenzarioHTML(true)}
   `;
+}
+
+/* lista "da fatturare questo mese" per i progetti mensili */
+function promemoriaHTML(){
+  const prom = promemoriaMensili();
+  if(!prom.length) return '';
+  const righe = prom.map(x=>`<div class="mini-item ${x.ritardo?'ritardo':''}">
+    <span class="tt">${esc(x.p.titolo)}</span>
+    <span style="font-size:12.5px;color:var(--muted)">${esc(nomeCliente(x.p.clienteId))} · ${nomeMese(x.key)}${x.ritardo?' <b style="color:var(--warn)">in ritardo ⚠</b>':''}</span>
+    <span class="euro">${eur(x.p.valore)}</span>
+    <button class="btn mini primary" onclick="creaFatturaMensile('${x.p.id}','${x.key}')">＋ Fattura ${nomeMese(x.key).split(' ')[0]}</button>
+  </div>`).join('');
+  return `<div class="sec-head"><h2>Da fatturare</h2><span class="sub">progetti mensili ricorrenti</span></div>
+  <div class="mini-list">${righe}</div>`;
 }
 
 /* overlay con la spiegazione del calcolo tasse */
@@ -686,11 +734,10 @@ window.muovi = function(entity, id, dir){
 
 /* ---------- PREVENTIVI ---------- */
 function cardPreventivo(p){
-  const azione = p.stato==='Accettato'
-    ? (p.progettoId && getProgetto(p.progettoId)
-        ? '<span class="linkino">✓ progetto collegato</span>'
-        : `<button class="btn mini primary" onclick="creaProgettoDaPreventivo('${p.id}')">＋ Crea progetto</button>`)
-    : '';
+  // "Crea progetto" sempre disponibile, qualunque sia lo stato del preventivo
+  const azione = p.progettoId && getProgetto(p.progettoId)
+    ? '<span class="linkino">✓ progetto collegato</span>'
+    : `<button class="btn mini primary" onclick="creaProgettoDaPreventivo('${p.id}')">＋ Crea progetto</button>`;
   const date = [];
   if(p.dataInvio) date.push('inviato '+fmtData(p.dataInvio));
   if(p.validoFino) date.push('valido fino '+fmtData(p.validoFino));
@@ -715,15 +762,21 @@ function vPreventivi(){
 
 /* ---------- PROGETTI ---------- */
 function cardProgetto(p){
-  const azione = p.stato==='Fatto'
-    ? (db.fatture.some(f=>f.progettoId===p.id)
-        ? '<span class="linkino">✓ fattura collegata</span>'
-        : `<button class="btn mini primary" onclick="creaFatturaDaProgetto('${p.id}')">＋ Crea fattura</button>`)
-    : '';
+  let azione = '';
+  if(p.mensile && p.stato!=='Fatto'){
+    // progetto ricorrente: fattura del mese corrente
+    azione = fatturaDelMese(p, meseKey(new Date()))
+      ? '<span class="linkino">✓ mese fatturato</span>'
+      : `<button class="btn mini primary" onclick="creaFatturaMensile('${p.id}')">＋ Fattura del mese</button>`;
+  } else if(p.stato==='Fatto'){
+    azione = db.fatture.some(f=>f.progettoId===p.id)
+      ? '<span class="linkino">✓ fattura collegata</span>'
+      : `<button class="btn mini primary" onclick="creaFatturaDaProgetto('${p.id}')">＋ Crea fattura</button>`;
+  }
   const inRitardo = p.scadenza && p.scadenza < oggi() && p.stato!=='Fatto';
   return `<div class="kcard" draggable="true" data-id="${p.id}" data-entity="progetto">
-    <div class="kcard-top"><span></span><span class="kcard-val">${eur(p.valore)}</span></div>
-    <div class="kcard-title" style="margin-top:0">${esc(p.titolo)}</div>
+    <div class="kcard-top"><span>${p.mensile?'<span class="chip mensile">↻ Mensile</span>':''}</span><span class="kcard-val">${eur(p.valore)}${p.mensile?'<span style="font-size:11px;color:var(--muted)">/mese</span>':''}</span></div>
+    <div class="kcard-title" style="margin-top:${p.mensile?'7px':'0'}">${esc(p.titolo)}</div>
     <div class="kcard-sub">${esc(nomeCliente(p.clienteId))}</div>
     ${chips(p.servizi)}
     ${p.scadenza?'<div class="kcard-date '+(inRitardo?'rossa':'')+'">scadenza '+fmtData(p.scadenza)+(inRitardo?' ⚠':'')+'</div>':''}
@@ -954,6 +1007,8 @@ window.apriFormProgetto = function(id, preset){
     <div><label>Data inizio</label><input type="date" name="dataInizio" value="${esc(p.dataInizio)}"></div>
     <div><label>Scadenza</label><input type="date" name="scadenza" value="${esc(p.scadenza)}"></div>
     <div><label>Valore (€)</label><input type="number" name="valore" step="0.01" min="0" inputmode="decimal" value="${p.valore!=null?p.valore:''}"></div>
+    <div><label>&nbsp;</label><label class="chk"><input type="checkbox" name="mensile" ${p.mensile?'checked':''}> ↻ Ricorrente mensile</label>
+      <div class="nota-campo">Il valore diventa il canone mensile: a fine mese ti ricorda di fatturarlo con un tocco.</div></div>
     <div class="full"><label>Tipo servizio</label>${boxServizi(p.servizi)}</div>
     <div class="full"><label>Note</label><textarea name="note">${esc(p.note)}</textarea></div>
     <div class="frm-foot"><button type="button" class="btn neutro" onclick="chiudiModal()">Annulla</button><button type="submit" class="btn primary">Salva</button></div>
@@ -966,7 +1021,7 @@ window.salvaProgetto = function(ev){
   const servizi=[...f.querySelectorAll('input[name=servizi]:checked')].map(i=>i.value);
   const val=f.elements.valore.value;
   const dati={titolo:v('titolo'),clienteId:v('clienteId')||null,stato:v('stato'),dataInizio:v('dataInizio'),
-    scadenza:v('scadenza'),valore:val===''?null:parseFloat(val),servizi,note:v('note')};
+    scadenza:v('scadenza'),valore:val===''?null:parseFloat(val),mensile:f.elements.mensile.checked,servizi,note:v('note')};
   if(id){ Object.assign(getProgetto(id)||{}, dati); }
   else { db.progetti.push(Object.assign({id:uid()}, dati)); }
   salva(); chiudiModal(); toast('Progetto salvato'); render();
@@ -987,6 +1042,7 @@ window.apriFormFattura = function(id, preset){
   apriModal(`<h3>${id?'Modifica '+esc(f.numero):'Nuova fattura'}</h3>
   <form class="frm" onsubmit="salvaFattura(event)">
     <input type="hidden" name="_id" value="${id||''}">
+    <input type="hidden" name="mese" value="${esc(f.mese||'')}">
     <div class="full"><label>Titolo *</label><input type="text" name="titolo" required value="${esc(f.titolo)}"></div>
     <div><label>Numero fattura</label><input type="text" name="numero" value="${esc(id ? f.numero : prossimoNumeroFattura())}">
       <div class="nota-campo">Progressivo per anno, es. 001-2026. Riparte da 001 a ogni anno nuovo.</div></div>
@@ -1023,7 +1079,7 @@ window.salvaFattura = function(ev){
   const f=ev.target, v=n=>f.elements[n].value.trim();
   const id=v('_id');
   const imp=f.elements.imponibile.value, tot=f.elements.totale.value;
-  const dati={titolo:v('titolo'),numero:v('numero')||prossimoNumeroFattura(),tipoDoc:v('tipoDoc'),clienteId:v('clienteId')||null,progettoId:v('progettoId')||null,
+  const dati={titolo:v('titolo'),numero:v('numero')||prossimoNumeroFattura(),mese:v('mese')||'',tipoDoc:v('tipoDoc'),clienteId:v('clienteId')||null,progettoId:v('progettoId')||null,
     imponibile:imp===''?null:parseFloat(imp), totale:tot===''?null:parseFloat(tot),
     statoPagamento:v('statoPagamento'), metodo:v('metodo'), bollo:f.elements.bollo.checked,
     dataEmissione:v('dataEmissione'), scadenzaPagamento:v('scadenzaPagamento'), dataIncasso:v('dataIncasso'), note:v('note')};
