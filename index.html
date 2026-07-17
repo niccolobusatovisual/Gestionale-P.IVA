@@ -196,6 +196,12 @@ main{max-width:1240px;margin:0 auto;padding:20px 16px 60px}
 .mv:not(:disabled):active{transform:scale(.9)}
 .icon{background:none;border:none;color:var(--muted);font-size:14px;padding:4px 6px;border-radius:8px}
 .icon:active{background:var(--grigio-soft)}
+.icon.clip{position:relative}
+.clip-n{
+  position:absolute;top:-2px;right:-3px;background:var(--accent);color:#fff;
+  border-radius:99px;font-size:9.5px;font-weight:700;min-width:15px;height:15px;
+  display:flex;align-items:center;justify-content:center;padding:0 3px;
+}
 .linkino{font-size:12px;color:var(--ok);font-weight:600}
 .warn-bollo{font-size:11.5px;color:var(--warn);font-weight:600}
 
@@ -511,6 +517,79 @@ window.creaFatturaMensile = function(idProgetto, key){
     bollo:(parseFloat(p.valore)||0) > SOGLIA_BOLLO, mese:key });
 };
 
+/* ============================================================
+   ALLEGATI (Supabase Storage): PDF di preventivi e fatture
+   ============================================================ */
+const BUCKET = 'documenti';
+function trovaRecord(entity, id){
+  return entity==='preventivo' ? db.preventivi.find(x=>x.id===id) : db.fatture.find(x=>x.id===id);
+}
+function bottoneAllegati(entity, rec){
+  const n = (rec.allegati||[]).length;
+  return `<button class="icon clip" onclick="apriAllegati('${entity}','${rec.id}')" title="Allegati">📎${n?'<span class="clip-n">'+n+'</span>':''}</button>`;
+}
+window.apriAllegati = function(entity, id){
+  const rec = trovaRecord(entity, id); if(!rec) return;
+  const files = rec.allegati||[];
+  const etichetta = entity==='preventivo' ? 'preventivo '+(rec.numero||'') : 'fattura '+(rec.numero||'');
+  const lista = files.length
+    ? files.map((a,i)=>`<div class="mini-item">
+        <span class="tt" style="word-break:break-all">${esc(a.nome)}</span>
+        <button class="btn mini" onclick="apriAllegato('${entity}','${id}',${i})">Apri</button>
+        <button class="icon" onclick="eliminaAllegato('${entity}','${id}',${i})" title="Elimina">🗑</button>
+      </div>`).join('')
+    : '<div class="mini-item" style="color:var(--muted)">Nessun file allegato</div>';
+  const avvisoLogin = (!supa || !utente) ? '<div class="avviso" style="margin-bottom:12px">Per gli allegati serve l\'accesso cloud: tocca la nuvoletta ed entra col tuo account.</div>' : '';
+  apriModal(`<h3>Allegati — ${esc(etichetta)}</h3>
+    <p class="cloud-desc">${esc(rec.titolo)}</p>
+    ${avvisoLogin}
+    <div class="mini-list" id="listaAllegati">${lista}</div>
+    <div class="frm" style="margin-top:14px">
+      <div class="frm-foot">
+        <button class="btn neutro" onclick="chiudiModal()">Chiudi</button>
+        <button class="btn primary" ${(!supa||!utente)?'disabled':''} onclick="document.getElementById('fileAllegato').click()">＋ Aggiungi file</button>
+      </div>
+    </div>
+    <input type="file" id="fileAllegato" hidden onchange="caricaAllegato('${entity}','${id}',this)">`);
+};
+window.caricaAllegato = async function(entity, id, input){
+  const file = input.files[0]; if(!file) return;
+  input.value='';
+  if(!supa || !utente){ alert('Accedi al cloud per caricare i file.'); return; }
+  if(file.size > 20*1024*1024){ alert('File troppo grande (max 20 MB).'); return; }
+  const rec = trovaRecord(entity, id); if(!rec) return;
+  toast('Caricamento in corso…');
+  const pulito = file.name.replace(/[^\w.\- ]/g,'_');
+  const path = utente.id+'/'+entity+'/'+id+'/'+Date.now()+'_'+pulito;
+  try{
+    const { error } = await supa.storage.from(BUCKET).upload(path, file);
+    if(error) throw error;
+    rec.allegati = rec.allegati||[];
+    rec.allegati.push({ nome:file.name, path });
+    salva(); toast('File caricato');
+    apriAllegati(entity, id); render();
+  }catch(e){ alert('Caricamento non riuscito: '+(e.message||'errore di rete')); }
+};
+window.apriAllegato = async function(entity, id, idx){
+  const rec = trovaRecord(entity, id); if(!rec || !rec.allegati || !rec.allegati[idx]) return;
+  if(!supa || !utente){ alert('Accedi al cloud per aprire i file.'); return; }
+  try{
+    const { data, error } = await supa.storage.from(BUCKET).createSignedUrl(rec.allegati[idx].path, 3600);
+    if(error) throw error;
+    window.open(data.signedUrl, '_blank');
+  }catch(e){ alert('Non riesco ad aprire il file: '+(e.message||'errore di rete')); }
+};
+window.eliminaAllegato = async function(entity, id, idx){
+  const rec = trovaRecord(entity, id); if(!rec || !rec.allegati || !rec.allegati[idx]) return;
+  if(!confirm('Eliminare "'+rec.allegati[idx].nome+'"?')) return;
+  try{
+    if(supa && utente) await supa.storage.from(BUCKET).remove([rec.allegati[idx].path]);
+  }catch(e){}
+  rec.allegati.splice(idx,1);
+  salva(); toast('File eliminato');
+  apriAllegati(entity, id); render();
+};
+
 /* ---------- previsione tasse ---------- */
 function accantonare(f){
   return f.statoPagamento==='Pagata' ? arrot((parseFloat(f.totale)||0) * ALIQUOTA_ACC) : 0;
@@ -748,6 +827,7 @@ function cardPreventivo(p){
     ${chips(p.servizi)}
     ${date.length?'<div class="kcard-date">'+date.join(' · ')+'</div>':''}
     <div class="kcard-actions">${frecce('preventivo',STATI_PREVENTIVO,p.stato,p.id)}${azione}<span class="spacer"></span>
+      ${bottoneAllegati('preventivo', p)}
       <button class="icon" onclick="apriFormPreventivo('${p.id}')" title="Modifica">✎</button>
       <button class="icon" onclick="eliminaPreventivo('${p.id}')" title="Elimina">🗑</button>
     </div>
@@ -808,6 +888,7 @@ function cardFattura(f){
     ${acc?'<div class="kcard-date" style="color:var(--accent);font-weight:600">accantona '+eur(acc)+'</div>':''}
     ${bolloMancante?'<div class="warn-bollo">⚠ marca da bollo? (>77,47€)</div>':''}
     <div class="kcard-actions">${frecce('fattura',STATI_FATTURA,f.statoPagamento,f.id)}<span class="spacer"></span>
+      ${bottoneAllegati('fattura', f)}
       <button class="icon" onclick="apriFormFattura('${f.id}')" title="Modifica">✎</button>
       <button class="icon" onclick="eliminaFattura('${f.id}')" title="Elimina">🗑</button>
     </div>
@@ -830,7 +911,7 @@ function scadenzarioHTML(soloAperte){
       <td>${fmtData(f.scadenzaPagamento)}${fatturaScaduta(f)?' ⚠':''}</td>
       <td>${fmtData(f.dataIncasso)}</td>
       <td class="euro">${accantonare(f)?eur(accantonare(f)):'—'}</td>
-      <td><button class="icon" onclick="apriFormFattura('${f.id}')" title="Modifica">✎</button></td>
+      <td style="white-space:nowrap">${bottoneAllegati('fattura', f)}<button class="icon" onclick="apriFormFattura('${f.id}')" title="Modifica">✎</button></td>
     </tr>`).join('');
   return `
   <div class="sec-head"><h2>${soloAperte?'Scadenzario — da incassare':'Scadenzario fatture'}</h2><span class="sub">per scadenza di pagamento</span></div>
