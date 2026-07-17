@@ -111,6 +111,10 @@ main{max-width:1240px;margin:0 auto;padding:20px 16px 60px}
 .btn:active{transform:scale(.96)}
 .btn.primary{background:var(--accent);color:#fff}
 .btn.mini{padding:6px 12px;font-size:12.5px}
+.ico{width:13px;height:13px;display:inline-block;vertical-align:-2px;margin-right:6px}
+.icon .ico{width:15px;height:15px;margin-right:0;vertical-align:middle}
+.iconbtn .ico-gear{width:17px;height:17px;fill:currentColor;stroke:none}
+.btn.mini .ico{width:11px;height:11px;margin-right:5px;vertical-align:-1px}
 .btn.danger{color:var(--danger);background:var(--danger-soft)}
 .btn.neutro{color:var(--ink)}
 
@@ -337,7 +341,7 @@ td.euro{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
     <div class="seg" id="segnav"></div>
     <div class="top-actions">
       <button class="iconbtn" id="btnCloud" title="Sincronizzazione cloud"><svg viewBox="0 0 24 24"><path d="M7 18.5a4.6 4.6 0 1 1 .8-9.1A6.2 6.2 0 0 1 19.6 11.4 3.9 3.9 0 0 1 18.2 18.5z"/></svg></button>
-      <button class="iconbtn" id="btnSync" title="Sincronizza adesso"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 3v5h-5"/></svg></button>
+      <button class="iconbtn" id="btnSync" title="Sincronizza adesso"><svg class="ico-gear" viewBox="0 0 16 16" fill="currentColor" stroke="none"><path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872zM8 10.93a2.93 2.93 0 1 1 0-5.86 2.93 2.93 0 0 1 0 5.86z"/><circle cx="8" cy="8" r="1.5"/></svg></button>
       <button class="iconbtn" id="btnExport" title="Esporta backup JSON"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 19h16"/></svg></button>
       <button class="iconbtn" id="btnImport" title="Importa backup JSON"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 19h16"/></svg></button>
     </div>
@@ -398,6 +402,14 @@ const ICONS = {
   preventivi:'<svg viewBox="0 0 24 24"><path d="M6 2.8h7.5L18.5 7.8v13.4H6z"/><path d="M13.5 2.8v5h5"/><path d="M9 13h6M9 16.5h6"/></svg>',
   progetti:'<svg viewBox="0 0 24 24"><path d="M3 7c0-1.1.9-2 2-2h4.2l2 2.4H19c1.1 0 2 .9 2 2V17c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2z"/></svg>',
   fatture:'<svg viewBox="0 0 24 24"><path d="M6.2 2.8h11.6v18.4l-1.9-1.5-1.9 1.5-2-1.5-2 1.5-1.9-1.5-1.9 1.5z"/><path d="M9.3 8h5.4M9.3 11.8h5.4"/></svg>'
+};
+
+/* ---------- icone personalizzate (SVG, ereditano il colore del contesto) ---------- */
+const ICO = {
+  plus: '<svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zm6.5 4.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3a.5.5 0 0 1 .5-.5z"/></svg>',
+  trash: '<svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/></svg>',
+  pen: '<svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M13.498.795l.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001z"/></svg>',
+  clip: '<svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0z"/></svg>'
 };
 
 /* ---------- helper ---------- */
@@ -526,7 +538,7 @@ function trovaRecord(entity, id){
 }
 function bottoneAllegati(entity, rec){
   const n = (rec.allegati||[]).length;
-  return `<button class="icon clip" onclick="apriAllegati('${entity}','${rec.id}')" title="Allegati">📎${n?'<span class="clip-n">'+n+'</span>':''}</button>`;
+  return `<button class="icon clip" onclick="apriAllegati('${entity}','${rec.id}')" title="Allegati">${ICO.clip}${n?'<span class="clip-n">'+n+'</span>':''}</button>`;
 }
 window.apriAllegati = function(entity, id){
   const rec = trovaRecord(entity, id); if(!rec) return;
@@ -536,7 +548,7 @@ window.apriAllegati = function(entity, id){
     ? files.map((a,i)=>`<div class="mini-item">
         <span class="tt" style="word-break:break-all">${esc(a.nome)}</span>
         <button class="btn mini" onclick="apriAllegato('${entity}','${id}',${i})">Apri</button>
-        <button class="icon" onclick="eliminaAllegato('${entity}','${id}',${i})" title="Elimina">🗑</button>
+        <button class="icon" onclick="eliminaAllegato('${entity}','${id}',${i})" title="Elimina">${ICO.trash}</button>
       </div>`).join('')
     : '<div class="mini-item" style="color:var(--muted)">Nessun file allegato</div>';
   const avvisoLogin = (!supa || !utente) ? '<div class="avviso" style="margin-bottom:12px">Per gli allegati serve l\'accesso cloud: tocca la nuvoletta ed entra col tuo account.</div>' : '';
@@ -547,7 +559,7 @@ window.apriAllegati = function(entity, id){
     <div class="frm" style="margin-top:14px">
       <div class="frm-foot">
         <button class="btn neutro" onclick="chiudiModal()">Chiudi</button>
-        <button class="btn primary" ${(!supa||!utente)?'disabled':''} onclick="document.getElementById('fileAllegato').click()">＋ Aggiungi file</button>
+        <button class="btn primary" ${(!supa||!utente)?'disabled':''} onclick="document.getElementById('fileAllegato').click()">${ICO.plus}Aggiungi file</button>
       </div>
     </div>
     <input type="file" id="fileAllegato" hidden onchange="caricaAllegato('${entity}','${id}',this)">`);
@@ -686,7 +698,7 @@ function promemoriaHTML(){
     <span class="tt">${esc(x.p.titolo)}</span>
     <span style="font-size:12.5px;color:var(--muted)">${esc(nomeCliente(x.p.clienteId))} · ${nomeMese(x.key)}${x.ritardo?' <b style="color:var(--warn)">in ritardo ⚠</b>':''}</span>
     <span class="euro">${eur(x.p.valore)}</span>
-    <button class="btn mini primary" onclick="creaFatturaMensile('${x.p.id}','${x.key}')">＋ Fattura ${nomeMese(x.key).split(' ')[0]}</button>
+    <button class="btn mini primary" onclick="creaFatturaMensile('${x.p.id}','${x.key}')">${ICO.plus}Fattura ${nomeMese(x.key).split(' ')[0]}</button>
   </div>`).join('');
   return `<div class="sec-head"><h2>Da fatturare</h2><span class="sub">progetti mensili ricorrenti</span></div>
   <div class="mini-list">${righe}</div>`;
@@ -721,7 +733,7 @@ function vClienti(){
     </div>`;
   }).join('');
   return `
-  <div class="sec-head"><h2>Clienti</h2><button class="btn primary" onclick="apriFormCliente()">＋ Nuovo</button></div>
+  <div class="sec-head"><h2>Clienti</h2><button class="btn primary" onclick="apriFormCliente()">${ICO.plus}Nuovo</button></div>
   ${db.clienti.length ? '<div class="cgrid">'+cards+'</div>' : '<div class="twrap"><div class="vuoto">Nessun cliente. Crea il primo!</div></div>'}
   `;
 }
@@ -739,18 +751,18 @@ function vClienteDettaglio(){
   const listaPrev = prev.map(p=>`<div class="mini-item">
       <span class="num">${esc(p.numero)}</span>
       <span class="tt">${esc(p.titolo)}</span>${badge(p.stato)}<span class="euro">${eur(p.importo)}</span>
-      <button class="icon" onclick="apriFormPreventivo('${p.id}')" title="Modifica">✎</button>
+      <button class="icon" onclick="apriFormPreventivo('${p.id}')" title="Modifica">${ICO.pen}</button>
     </div>`).join('') || '<div class="mini-item" style="color:var(--muted)">Nessun preventivo</div>';
 
   const listaProg = prog.map(p=>`<div class="mini-item">
       <span class="tt">${esc(p.titolo)}</span>${badge(p.stato)}<span class="euro">${eur(p.valore)}</span>
-      <button class="icon" onclick="apriFormProgetto('${p.id}')" title="Modifica">✎</button>
+      <button class="icon" onclick="apriFormProgetto('${p.id}')" title="Modifica">${ICO.pen}</button>
     </div>`).join('') || '<div class="mini-item" style="color:var(--muted)">Nessun progetto</div>';
 
   const listaFatt = fatt.map(f=>`<div class="mini-item">
       <span class="num">${esc(f.numero)}</span>
       <span class="tt">${esc(f.titolo)}</span>${badge(f.statoPagamento)}<span class="euro">${eur(f.totale)}</span>
-      <button class="icon" onclick="apriFormFattura('${f.id}')" title="Modifica">✎</button>
+      <button class="icon" onclick="apriFormFattura('${f.id}')" title="Modifica">${ICO.pen}</button>
     </div>`).join('') || '<div class="mini-item" style="color:var(--muted)">Nessuna fattura</div>';
 
   return `
@@ -765,10 +777,10 @@ function vClienteDettaglio(){
     ${c.sito?'<div class="riga">Sito: <b>'+esc(c.sito)+'</b></div>':''}
     ${c.note?'<div class="riga">Note: '+esc(c.note)+'</div>':''}
     <div class="dettaglio-azioni">
-      <button class="btn" onclick="apriFormCliente('${c.id}')">✎ Modifica</button>
-      <button class="btn" onclick="apriFormPreventivo(null,{clienteId:'${c.id}'})">＋ Preventivo</button>
-      <button class="btn" onclick="apriFormProgetto(null,{clienteId:'${c.id}'})">＋ Progetto</button>
-      <button class="btn" onclick="apriFormFattura(null,{clienteId:'${c.id}'})">＋ Fattura</button>
+      <button class="btn" onclick="apriFormCliente('${c.id}')">${ICO.pen}Modifica</button>
+      <button class="btn" onclick="apriFormPreventivo(null,{clienteId:'${c.id}'})">${ICO.plus}Preventivo</button>
+      <button class="btn" onclick="apriFormProgetto(null,{clienteId:'${c.id}'})">${ICO.plus}Progetto</button>
+      <button class="btn" onclick="apriFormFattura(null,{clienteId:'${c.id}'})">${ICO.plus}Fattura</button>
       <button class="btn danger" onclick="eliminaCliente('${c.id}')">Elimina</button>
     </div>
   </div>
@@ -816,7 +828,7 @@ function cardPreventivo(p){
   // "Crea progetto" sempre disponibile, qualunque sia lo stato del preventivo
   const azione = p.progettoId && getProgetto(p.progettoId)
     ? '<span class="linkino">✓ progetto collegato</span>'
-    : `<button class="btn mini primary" onclick="creaProgettoDaPreventivo('${p.id}')">＋ Crea progetto</button>`;
+    : `<button class="btn mini primary" onclick="creaProgettoDaPreventivo('${p.id}')">${ICO.plus}Crea progetto</button>`;
   const date = [];
   if(p.dataInvio) date.push('inviato '+fmtData(p.dataInvio));
   if(p.validoFino) date.push('valido fino '+fmtData(p.validoFino));
@@ -828,14 +840,14 @@ function cardPreventivo(p){
     ${date.length?'<div class="kcard-date">'+date.join(' · ')+'</div>':''}
     <div class="kcard-actions">${frecce('preventivo',STATI_PREVENTIVO,p.stato,p.id)}${azione}<span class="spacer"></span>
       ${bottoneAllegati('preventivo', p)}
-      <button class="icon" onclick="apriFormPreventivo('${p.id}')" title="Modifica">✎</button>
-      <button class="icon" onclick="eliminaPreventivo('${p.id}')" title="Elimina">🗑</button>
+      <button class="icon" onclick="apriFormPreventivo('${p.id}')" title="Modifica">${ICO.pen}</button>
+      <button class="icon" onclick="eliminaPreventivo('${p.id}')" title="Elimina">${ICO.trash}</button>
     </div>
   </div>`;
 }
 function vPreventivi(){
   return `
-  <div class="sec-head"><h2>Preventivi</h2><button class="btn primary" onclick="apriFormPreventivo()">＋ Nuovo</button></div>
+  <div class="sec-head"><h2>Preventivi</h2><button class="btn primary" onclick="apriFormPreventivo()">${ICO.plus}Nuovo</button></div>
   ${kanban('preventivo', STATI_PREVENTIVO, db.preventivi, 'stato', cardPreventivo)}
   `;
 }
@@ -847,11 +859,11 @@ function cardProgetto(p){
     // progetto ricorrente: fattura del mese corrente
     azione = fatturaDelMese(p, meseKey(new Date()))
       ? '<span class="linkino">✓ mese fatturato</span>'
-      : `<button class="btn mini primary" onclick="creaFatturaMensile('${p.id}')">＋ Fattura del mese</button>`;
+      : `<button class="btn mini primary" onclick="creaFatturaMensile('${p.id}')">${ICO.plus}Fattura del mese</button>`;
   } else if(p.stato==='Fatto'){
     azione = db.fatture.some(f=>f.progettoId===p.id)
       ? '<span class="linkino">✓ fattura collegata</span>'
-      : `<button class="btn mini primary" onclick="creaFatturaDaProgetto('${p.id}')">＋ Crea fattura</button>`;
+      : `<button class="btn mini primary" onclick="creaFatturaDaProgetto('${p.id}')">${ICO.plus}Crea fattura</button>`;
   }
   const inRitardo = p.scadenza && p.scadenza < oggi() && p.stato!=='Fatto';
   return `<div class="kcard" draggable="true" data-id="${p.id}" data-entity="progetto">
@@ -861,14 +873,14 @@ function cardProgetto(p){
     ${chips(p.servizi)}
     ${p.scadenza?'<div class="kcard-date '+(inRitardo?'rossa':'')+'">scadenza '+fmtData(p.scadenza)+(inRitardo?' ⚠':'')+'</div>':''}
     <div class="kcard-actions">${frecce('progetto',STATI_PROGETTO,p.stato,p.id)}${azione}<span class="spacer"></span>
-      <button class="icon" onclick="apriFormProgetto('${p.id}')" title="Modifica">✎</button>
-      <button class="icon" onclick="eliminaProgetto('${p.id}')" title="Elimina">🗑</button>
+      <button class="icon" onclick="apriFormProgetto('${p.id}')" title="Modifica">${ICO.pen}</button>
+      <button class="icon" onclick="eliminaProgetto('${p.id}')" title="Elimina">${ICO.trash}</button>
     </div>
   </div>`;
 }
 function vProgetti(){
   return `
-  <div class="sec-head"><h2>Progetti</h2><button class="btn primary" onclick="apriFormProgetto()">＋ Nuovo</button></div>
+  <div class="sec-head"><h2>Progetti</h2><button class="btn primary" onclick="apriFormProgetto()">${ICO.plus}Nuovo</button></div>
   ${kanban('progetto', STATI_PROGETTO, db.progetti, 'stato', cardProgetto)}
   `;
 }
@@ -889,8 +901,8 @@ function cardFattura(f){
     ${bolloMancante?'<div class="warn-bollo">⚠ marca da bollo? (>77,47€)</div>':''}
     <div class="kcard-actions">${frecce('fattura',STATI_FATTURA,f.statoPagamento,f.id)}<span class="spacer"></span>
       ${bottoneAllegati('fattura', f)}
-      <button class="icon" onclick="apriFormFattura('${f.id}')" title="Modifica">✎</button>
-      <button class="icon" onclick="eliminaFattura('${f.id}')" title="Elimina">🗑</button>
+      <button class="icon" onclick="apriFormFattura('${f.id}')" title="Modifica">${ICO.pen}</button>
+      <button class="icon" onclick="eliminaFattura('${f.id}')" title="Elimina">${ICO.trash}</button>
     </div>
   </div>`;
 }
@@ -911,7 +923,7 @@ function scadenzarioHTML(soloAperte){
       <td>${fmtData(f.scadenzaPagamento)}${fatturaScaduta(f)?' ⚠':''}</td>
       <td>${fmtData(f.dataIncasso)}</td>
       <td class="euro">${accantonare(f)?eur(accantonare(f)):'—'}</td>
-      <td style="white-space:nowrap">${bottoneAllegati('fattura', f)}<button class="icon" onclick="apriFormFattura('${f.id}')" title="Modifica">✎</button></td>
+      <td style="white-space:nowrap">${bottoneAllegati('fattura', f)}<button class="icon" onclick="apriFormFattura('${f.id}')" title="Modifica">${ICO.pen}</button></td>
     </tr>`).join('');
   return `
   <div class="sec-head"><h2>${soloAperte?'Scadenzario — da incassare':'Scadenzario fatture'}</h2><span class="sub">per scadenza di pagamento</span></div>
@@ -922,7 +934,7 @@ function scadenzarioHTML(soloAperte){
 }
 function vFatture(){
   return `
-  <div class="sec-head"><h2>Fatture</h2><button class="btn primary" onclick="apriFormFattura()">＋ Nuova</button></div>
+  <div class="sec-head"><h2>Fatture</h2><button class="btn primary" onclick="apriFormFattura()">${ICO.plus}Nuova</button></div>
   ${kanban('fattura', STATI_FATTURA, db.fatture, 'statoPagamento', cardFattura)}
   ${scadenzarioHTML(false)}
   `;
