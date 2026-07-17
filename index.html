@@ -234,6 +234,20 @@ td.euro{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
 .ccard h3{font-size:16px;font-weight:700;letter-spacing:-.02em;margin-bottom:2px}
 .ccard .meta{font-size:12.5px;color:var(--muted);font-weight:500}
 .ccard .conta{display:flex;gap:12px;margin-top:auto;padding-top:12px;font-size:12px;color:var(--muted);font-weight:500;flex-wrap:wrap}
+.avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+.foto-preview{width:64px;height:64px;border-radius:50%;object-fit:cover;display:none;margin-top:8px}
+input[type=color].colore-cliente{width:100%;height:41px;border:none;border-radius:13px;background:var(--input);padding:6px;cursor:pointer}
+
+/* ---------- consigli & promemoria ---------- */
+.avvisi-list{display:flex;flex-direction:column;gap:8px}
+.avviso-item{
+  display:flex;align-items:center;gap:10px;background:var(--card);border-radius:14px;
+  padding:11px 14px;font-size:13.5px;font-weight:500;cursor:pointer;box-shadow:var(--shadow-sm);
+}
+.avviso-item:active{transform:scale(.99)}
+.dot{width:9px;height:9px;border-radius:99px;flex:0 0 9px}
+.d-r{background:var(--danger)} .d-a{background:var(--warn)} .d-b{background:var(--blu)}
+.d-g{background:var(--grigio)} .d-v{background:var(--ok)}
 .ccard .conta b{color:var(--ink);font-weight:700}
 .dettaglio-info{background:var(--card);border-radius:var(--r-xl);padding:22px;margin-bottom:6px;box-shadow:var(--shadow-sm)}
 .dettaglio-info .avatar{
@@ -424,6 +438,12 @@ function somma(arr, fn){ return arr.reduce((s,x)=>s+(parseFloat(fn(x))||0), 0); 
 function badge(st){ return '<span class="badge '+(STATO_CLASSE[st]||'g')+'">'+esc(st)+'</span>'; }
 function chips(arr){ if(!arr||!arr.length) return ''; return '<div>'+arr.map(s=>'<span class="chip">'+esc(s)+'</span>').join('')+'</div>'; }
 function iniziali(nome){ return (nome||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
+function coloreValido(c){ return /^#[0-9a-fA-F]{6}$/.test(c||'') ? c : ''; }
+function avatarHTML(c){
+  if(c.foto) return '<div class="avatar"><img src="'+c.foto+'" alt=""></div>';
+  const col = coloreValido(c.colore);
+  return '<div class="avatar"'+(col?' style="background:'+col+';color:#fff"':'')+'>'+esc(iniziali(c.nome))+'</div>';
+}
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('show'),2400); }
 
 /* ---------- persistenza (localStorage con fallback in memoria) ---------- */
@@ -687,8 +707,51 @@ function vDashboard(){
 
   ${promemoriaHTML()}
   ${scadenzarioHTML(true)}
+  ${avvisiHTML()}
   `;
 }
+
+/* ---------- consigli & promemoria automatici ---------- */
+function generaAvvisi(){
+  const out=[]; const oggiS=oggi();
+  const lim=new Date(); lim.setDate(lim.getDate()+7);
+  const limS=lim.getFullYear()+'-'+String(lim.getMonth()+1).padStart(2,'0')+'-'+String(lim.getDate()).padStart(2,'0');
+  // fatture
+  const scadute=db.fatture.filter(fatturaScaduta);
+  if(scadute.length) out.push({t:'r',vista:'fatture',testo:scadute.length+(scadute.length===1?' fattura scaduta':' fatture scadute')+' · '+eur(somma(scadute,f=>f.totale))+' — invia un sollecito'});
+  db.fatture.filter(f=>!fatturaScaduta(f)&&f.statoPagamento==='Emessa'&&f.scadenzaPagamento&&f.scadenzaPagamento<=limS)
+    .forEach(f=>out.push({t:'a',vista:'fatture',testo:esc(f.numero)+' scade il '+fmtData(f.scadenzaPagamento)+' · '+eur(f.totale)}));
+  const daEm=db.fatture.filter(f=>f.statoPagamento==='Da emettere');
+  if(daEm.length) out.push({t:'b',vista:'fatture',testo:daEm.length+(daEm.length===1?' fattura da emettere':' fatture da emettere')+' · '+eur(somma(daEm,f=>f.totale))});
+  db.fatture.filter(f=>!f.bollo&&(parseFloat(f.totale)||0)>SOGLIA_BOLLO&&f.tipoDoc!=='Nota di credito'&&f.statoPagamento!=='Da emettere')
+    .forEach(f=>out.push({t:'a',vista:'fatture',testo:'Bollo mancante su '+esc(f.numero)+'? Obbligatorio sopra 77,47€'}));
+  // preventivi
+  db.preventivi.filter(p=>p.stato==='Inviato'&&p.validoFino&&p.validoFino<oggiS)
+    .forEach(p=>out.push({t:'a',vista:'preventivi',testo:esc(p.numero)+' oltre validità ('+fmtData(p.validoFino)+') — rilancia o segna Scaduto'}));
+  db.preventivi.filter(p=>p.stato==='Inviato'&&p.dataInvio&&(!p.validoFino||p.validoFino>=oggiS)).forEach(p=>{
+    const gg=Math.floor((new Date(oggiS)-new Date(p.dataInvio))/86400000);
+    if(gg>=10) out.push({t:'b',vista:'preventivi',testo:esc(p.numero)+' inviato da '+gg+' giorni — fai un follow-up'});
+  });
+  const bozze=db.preventivi.filter(p=>p.stato==='Bozza');
+  if(bozze.length) out.push({t:'g',vista:'preventivi',testo:bozze.length+(bozze.length===1?' preventivo in bozza da completare':' preventivi in bozza da completare')});
+  // progetti
+  db.progetti.filter(p=>p.stato!=='Fatto'&&p.scadenza&&p.scadenza<oggiS)
+    .forEach(p=>out.push({t:'r',vista:'progetti',testo:'"'+esc(p.titolo)+'" oltre la scadenza ('+fmtData(p.scadenza)+')'}));
+  // mensili
+  promemoriaMensili().forEach(x=>out.push({t:x.ritardo?'r':'a',vista:'dashboard',testo:'Fattura '+nomeMese(x.key)+' da creare per "'+esc(x.p.titolo)+'"'}));
+  if(!out.length) out.push({t:'v',vista:'dashboard',testo:'Tutto in ordine: nessuna azione urgente ✓'});
+  return out;
+}
+function avvisiHTML(){
+  const ordine={r:0,a:1,b:2,g:3,v:4};
+  const items=generaAvvisi().sort((x,y)=>ordine[x.t]-ordine[y.t]).slice(0,8);
+  return `<div class="sec-head"><h2>Consigli & promemoria</h2><button class="btn mini" onclick="aggiornaAvvisi()">↻ Aggiorna</button></div>
+  <div class="avvisi-list">${items.map(x=>`<div class="avviso-item" onclick="vai('${x.vista}')"><span class="dot d-${x.t}"></span><span>${x.testo}</span></div>`).join('')}</div>`;
+}
+window.aggiornaAvvisi = function(){
+  if(supa && utente) sincronizzaOra();
+  else { render(); toast('Aggiornato'); }
+};
 
 /* lista "da fatturare questo mese" per i progetti mensili */
 function promemoriaHTML(){
@@ -724,8 +787,9 @@ function vClienti(){
     const nPr = db.preventivi.filter(p=>p.clienteId===c.id).length;
     const nPg = db.progetti.filter(p=>p.clienteId===c.id).length;
     const nFt = db.fatture.filter(f=>f.clienteId===c.id).length;
-    return `<div class="ccard" onclick="vai('cliente','${c.id}')">
-      <div class="avatar">${esc(iniziali(c.nome))}</div>
+    const col = coloreValido(c.colore);
+    return `<div class="ccard" onclick="vai('cliente','${c.id}')" ${col?'style="border-top:4px solid '+col+'"':''}>
+      ${avatarHTML(c)}
       <h3>${esc(c.nome)}</h3>
       <div class="meta">${esc(c.tipo)} · ${esc(c.zona)}${c.referente?' · '+esc(c.referente):''}</div>
       ${c.email?'<div class="meta">'+esc(c.email)+'</div>':''}
@@ -767,8 +831,8 @@ function vClienteDettaglio(){
 
   return `
   <div class="sec-head"><button class="btn neutro" onclick="vai('clienti')">← Clienti</button></div>
-  <div class="dettaglio-info">
-    <div class="avatar">${esc(iniziali(c.nome))}</div>
+  <div class="dettaglio-info" ${coloreValido(c.colore)?'style="border-top:5px solid '+coloreValido(c.colore)+'"':''}>
+    ${avatarHTML(c)}
     <h2>${esc(c.nome)}</h2>
     <div class="riga">${esc(c.tipo)} · zona <b>${esc(c.zona)}</b></div>
     ${c.referente?'<div class="riga">Referente: <b>'+esc(c.referente)+'</b></div>':''}
@@ -1015,6 +1079,7 @@ window.filtraProgetti = function(sel){
 /* ---------- form CLIENTE ---------- */
 window.apriFormCliente = function(id){
   const c = id ? getCliente(id) : {};
+  window._fotoTemp = undefined;   // undefined = non toccata, null = rimossa, stringa = nuova
   apriModal(`<h3>${id?'Modifica cliente':'Nuovo cliente'}</h3>
   <form class="frm" onsubmit="salvaCliente(event)">
     <input type="hidden" name="_id" value="${id||''}">
@@ -1025,15 +1090,56 @@ window.apriFormCliente = function(id){
     <div><label>Sito web</label><input type="text" name="sito" value="${esc(c.sito)}"></div>
     <div><label>Zona</label><select name="zona">${opzioni(ZONE, c.zona||'Vicenza')}</select></div>
     <div><label>Tipo attività</label><select name="tipo">${opzioni(TIPI_ATTIVITA, c.tipo||'Altro')}</select></div>
+    <div><label>Colore cliente</label><input type="color" class="colore-cliente" name="colore" value="${coloreValido(c.colore)||'#ff6b1a'}">
+      <div class="nota-campo">Colora scheda e avatar per riconoscerlo al volo.</div></div>
+    <div><label>Foto / logo</label>
+      <button type="button" class="btn" style="width:100%" onclick="document.getElementById('fotoCliente').click()">Scegli immagine</button>
+      <input type="file" id="fotoCliente" accept="image/*" hidden onchange="selezionaFoto(this)">
+      <img id="fotoPreview" class="foto-preview" src="${c.foto||''}" style="${c.foto?'display:block':''}">
+      ${c.foto?'<div class="nota-campo"><button type="button" class="btn mini danger" style="margin-top:6px" onclick="rimuoviFoto()">Rimuovi foto</button></div>':''}
+    </div>
     <div class="full"><label>Note</label><textarea name="note">${esc(c.note)}</textarea></div>
     <div class="frm-foot"><button type="button" class="btn neutro" onclick="chiudiModal()">Annulla</button><button type="submit" class="btn primary">Salva</button></div>
   </form>`);
+};
+window.selezionaFoto = function(input){
+  const file = input.files[0]; if(!file) return;
+  input.value='';
+  const rd = new FileReader();
+  rd.onload = ()=>{
+    const img = new Image();
+    img.onload = ()=>{
+      try{
+        const cv = document.createElement('canvas'); const s = 128;
+        cv.width = s; cv.height = s;
+        const ctx = cv.getContext('2d');
+        const m = Math.min(img.width, img.height);
+        ctx.drawImage(img, (img.width-m)/2, (img.height-m)/2, m, m, 0, 0, s, s);
+        window._fotoTemp = cv.toDataURL('image/jpeg', 0.78);
+      }catch(e){
+        if(String(rd.result).length > 300000){ alert('Immagine troppo grande: scegline una più piccola.'); return; }
+        window._fotoTemp = rd.result;
+      }
+      const prev = document.getElementById('fotoPreview');
+      if(prev){ prev.src = window._fotoTemp; prev.style.display='block'; }
+    };
+    img.src = rd.result;
+  };
+  rd.readAsDataURL(file);
+};
+window.rimuoviFoto = function(){
+  window._fotoTemp = null;
+  const prev = document.getElementById('fotoPreview');
+  if(prev){ prev.src=''; prev.style.display='none'; }
+  toast('Foto rimossa (salva per confermare)');
 };
 window.salvaCliente = function(ev){
   ev.preventDefault();
   const f=ev.target, v=n=>f.elements[n].value.trim();
   const id=v('_id');
-  const dati={nome:v('nome'),referente:v('referente'),email:v('email'),telefono:v('telefono'),sito:v('sito'),zona:v('zona'),tipo:v('tipo'),note:v('note')};
+  const esistente = id ? (getCliente(id)||{}) : {};
+  const foto = window._fotoTemp===undefined ? (esistente.foto||'') : (window._fotoTemp||'');
+  const dati={nome:v('nome'),referente:v('referente'),email:v('email'),telefono:v('telefono'),sito:v('sito'),zona:v('zona'),tipo:v('tipo'),colore:coloreValido(v('colore')),foto,note:v('note')};
   if(id){ Object.assign(getCliente(id)||{}, dati); }
   else { db.clienti.push(Object.assign({id:uid()}, dati)); }
   salva(); chiudiModal(); toast('Cliente salvato'); render();
