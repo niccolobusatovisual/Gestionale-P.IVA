@@ -245,6 +245,15 @@ input[type=color].colore-cliente{width:100%;height:41px;border:none;border-radiu
   padding:11px 14px;font-size:13.5px;font-weight:500;cursor:pointer;box-shadow:var(--shadow-sm);
 }
 .avviso-item:active{transform:scale(.99)}
+
+/* ---------- riepilogo cliente ---------- */
+.stato-riga{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px}
+.stato-riga .etich{font-size:12px;font-weight:600;color:var(--muted);min-width:72px;text-transform:uppercase;letter-spacing:.04em}
+.badge .cnt{font-weight:800;margin-right:3px}
+.ultimo-box{display:flex;align-items:center;gap:14px;margin-top:4px}
+.ultimo-box .tempo{font-size:24px;font-weight:800;letter-spacing:-.03em;color:var(--accent);white-space:nowrap}
+.ultimo-box .cosa{font-size:13.5px;color:var(--muted);font-weight:500;line-height:1.4}
+.ultimo-box .cosa b{color:var(--ink)}
 .dot{width:9px;height:9px;border-radius:99px;flex:0 0 9px}
 .d-r{background:var(--danger)} .d-a{background:var(--warn)} .d-b{background:var(--blu)}
 .d-g{background:var(--grigio)} .d-v{background:var(--ok)}
@@ -434,6 +443,18 @@ function eur(n){ return (n==null || n==='' || isNaN(n)) ? '—' : new Intl.Numbe
 function arrot(x){ return Math.round(x*100)/100; }
 function oggi(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function fmtData(d){ if(!d) return '—'; const p=d.split('-'); return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : d; }
+function tempoFa(dataS){
+  if(!dataS) return '';
+  const gg = Math.round((new Date(oggi()) - new Date(dataS)) / 86400000);
+  if(gg < -1) return 'tra '+Math.abs(gg)+' giorni';
+  if(gg <= 0) return 'oggi';
+  if(gg === 1) return 'ieri';
+  if(gg < 30) return gg+' giorni fa';
+  const mesi = Math.round(gg/30);
+  if(mesi < 12) return mesi===1 ? '1 mese fa' : mesi+' mesi fa';
+  const anni = Math.floor(gg/365);
+  return anni===1 ? '1 anno fa' : anni+' anni fa';
+}
 function somma(arr, fn){ return arr.reduce((s,x)=>s+(parseFloat(fn(x))||0), 0); }
 function badge(st){ return '<span class="badge '+(STATO_CLASSE[st]||'g')+'">'+esc(st)+'</span>'; }
 function chips(arr){ if(!arr||!arr.length) return ''; return '<div>'+arr.map(s=>'<span class="chip">'+esc(s)+'</span>').join('')+'</div>'; }
@@ -811,6 +832,21 @@ function vClienteDettaglio(){
   const incassato = somma(fatt.filter(f=>f.statoPagamento==='Pagata'), f=>f.totale);
   const daIncassareC = fatt.filter(f=>f.statoPagamento==='Emessa'||f.statoPagamento==='Scaduta');
   const daEmettereC = fatt.filter(f=>f.statoPagamento==='Da emettere');
+  // cifre concordate e ultimo rapporto lavorativo
+  const accettati = prev.filter(p=>p.stato==='Accettato');
+  const concordato = somma(accettati, p=>p.importo) || somma(prog, p=>p.valore);
+  const fatturatoC = somma(fatt.filter(f=>f.statoPagamento!=='Da emettere'), f=>f.totale);
+  let ultimo = null;
+  fatt.forEach(f=>{ const d=f.dataIncasso||f.dataEmissione; if(d && (!ultimo||d>ultimo.data)) ultimo={data:d, cosa:'Fattura '+(f.numero||'')+' · '+f.titolo}; });
+  prog.forEach(p=>{ const d=p.scadenza||p.dataInizio; if(d && (!ultimo||d>ultimo.data)) ultimo={data:d, cosa:'Progetto · '+p.titolo}; });
+  prev.forEach(p=>{ if(p.dataInvio && (!ultimo||p.dataInvio>ultimo.data)) ultimo={data:p.dataInvio, cosa:'Preventivo '+(p.numero||'')+' · '+p.titolo}; });
+  const rigaStati = (etich, statiArr, records, campo) => {
+    const badges = statiArr.map(st=>{
+      const n = records.filter(r=>r[campo]===st).length;
+      return n ? '<span class="badge '+(STATO_CLASSE[st]||'g')+'"><span class="cnt">'+n+'</span>'+esc(st)+'</span>' : '';
+    }).join('');
+    return badges ? '<div class="stato-riga"><span class="etich">'+etich+'</span>'+badges+'</div>' : '';
+  };
 
   const listaPrev = prev.map(p=>`<div class="mini-item">
       <span class="num">${esc(p.numero)}</span>
@@ -859,6 +895,25 @@ function vClienteDettaglio(){
       <div class="big">${eur(incassato)}</div>
       <div class="det">${fatt.filter(f=>f.statoPagamento==='Pagata').length} ${fatt.filter(f=>f.statoPagamento==='Pagata').length===1?'fattura pagata':'fatture pagate'}</div>
     </div>
+    <div class="stat">
+      <div class="lbl">Concordato</div>
+      <div class="big">${eur(concordato)}</div>
+      <div class="det">${accettati.length ? accettati.length+(accettati.length===1?' preventivo accettato':' preventivi accettati')+' su '+prev.length : 'valore dei progetti'}</div>
+    </div>
+    <div class="stat">
+      <div class="lbl">Fatturato totale</div>
+      <div class="big">${eur(fatturatoC)}</div>
+      <div class="det">${fatt.filter(f=>f.statoPagamento!=='Da emettere').length} ${fatt.filter(f=>f.statoPagamento!=='Da emettere').length===1?'fattura emessa':'fatture emesse'}</div>
+    </div>
+  </div>
+  <div class="taxbox" style="margin-top:12px">
+    <h3>Ultimo rapporto lavorativo</h3>
+    ${ultimo
+      ? `<div class="ultimo-box"><span class="tempo">${tempoFa(ultimo.data)}</span><span class="cosa"><b>${esc(ultimo.cosa)}</b><br>${fmtData(ultimo.data)}</span></div>`
+      : '<div class="ultimo-box"><span class="cosa">Nessuna attività con date registrate: aggiungi le date a preventivi, progetti o fatture.</span></div>'}
+    ${rigaStati('Preventivi', STATI_PREVENTIVO, prev, 'stato')}
+    ${rigaStati('Progetti', STATI_PROGETTO, prog, 'stato')}
+    ${rigaStati('Fatture', STATI_FATTURA, fatt, 'statoPagamento')}
   </div>
   <div class="sec-head"><h2>Preventivi</h2></div><div class="mini-list">${listaPrev}</div>
   <div class="sec-head"><h2>Progetti</h2></div><div class="mini-list">${listaProg}</div>
