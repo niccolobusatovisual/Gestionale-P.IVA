@@ -2,6 +2,47 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<!-- ============================================================
+     BLOCCO SICUREZZA — incollare in index.html
+     SUBITO DOPO la riga <meta charset="UTF-8">
+     e PRIMA di qualunque altra riga del <head>.
+     L'ordine è obbligatorio: la CSP protegge solo ciò che viene dopo.
+     ============================================================ -->
+
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  base-uri 'self';
+  object-src 'none';
+  form-action 'self';
+  script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
+  style-src 'self' 'unsafe-inline';
+  img-src 'self' data:;
+  font-src 'self';
+  connect-src 'self' https://xibxqkoroxjjiuwittlr.supabase.co wss://xibxqkoroxjjiuwittlr.supabase.co;
+  manifest-src 'self';
+  worker-src 'self';
+  upgrade-insecure-requests;
+">
+
+<meta name="referrer" content="strict-origin-when-cross-origin">
+
+<script>
+/* Anti-clickjacking.
+   Su GitHub Pages non si può inviare l'header X-Frame-Options, quindi
+   impediamo via JavaScript che il gestionale venga incorniciato in un
+   iframe su un sito di terzi (attacco di tipo clickjacking). */
+(function () {
+  var incorniciato;
+  try { incorniciato = (window.top !== window.self); }
+  catch (e) { incorniciato = true; }          // accesso negato = siamo in un iframe ostile
+  if (!incorniciato) return;
+  document.documentElement.style.display = 'none';
+  try { window.top.location = window.self.location.href; }
+  catch (e) { window.location = 'about:blank'; }
+})();
+</script>
+
+<!-- ============ FINE BLOCCO SICUREZZA ============ -->
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Gestionale P.IVA — Niccolò Busato</title>
 <meta name="theme-color" content="#f2f2f7">
