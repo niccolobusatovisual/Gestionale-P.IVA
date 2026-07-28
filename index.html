@@ -1638,6 +1638,247 @@ if('serviceWorker' in navigator && (location.protocol==='https:' || location.hos
 
 /* ---------- avvio ---------- */
 if(!lsOk) $('#bannerMem').style.display='block';
+/* ============================================================
+   SEZIONE "RESOCONTO" — Gestionale P.IVA
+   Aggiunge una scheda per filtrare fatture/preventivi/progetti per
+   periodo (Mese/Trimestre/Semestre/Anno) con navigazione avanti/indietro.
+   Non modifica nessuna riga esistente. Per rimuoverla, cancella questo blocco.
+   ============================================================ */
+(function(){
+
+  /* 1. voce di menu (dopo Dashboard) + icona */
+  if(!VIEWS.some(v=>v.id==='resoconto')){
+    VIEWS.splice(1, 0, {id:'resoconto', label:'Resoconto'});
+  }
+  ICONS.resoconto = '<svg viewBox="0 0 24 24"><rect x="4" y="12" width="3.4" height="8" rx="1.2"/><rect x="10.3" y="7" width="3.4" height="13" rx="1.2"/><rect x="16.6" y="3.5" width="3.4" height="16.5" rx="1.2"/></svg>';
+
+  /* 2. stato del periodo selezionato */
+  const _oggi = new Date();
+  if(ui.resMode == null) ui.resMode = 'mese';
+  if(ui.resY == null){ ui.resY = _oggi.getFullYear(); ui.resM = _oggi.getMonth(); }
+
+  const MESI = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+  const LEN  = {mese:1, trimestre:3, semestre:6, anno:12};
+
+  function pad2(n){ return String(n).padStart(2,'0'); }
+  function fmtISO(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+
+  function resBounds(mode, anchor){
+    const y = anchor.getFullYear(), m = anchor.getMonth();
+    let sm;
+    if(mode==='mese')           sm = m;
+    else if(mode==='trimestre') sm = Math.floor(m/3)*3;
+    else if(mode==='semestre')  sm = Math.floor(m/6)*6;
+    else                        sm = 0;
+    const len = LEN[mode];
+    const start = new Date(y, sm, 1), end = new Date(y, sm+len, 1);
+    return { from: fmtISO(start), to: fmtISO(end), start: start };
+  }
+  function resLabel(mode, b){
+    const y = b.start.getFullYear(), sm = b.start.getMonth();
+    if(mode==='mese')      return MESI[sm]+' '+y;
+    if(mode==='trimestre') return 'T'+(sm/3+1)+' '+y;
+    if(mode==='semestre')  return (sm===0?'1º':'2º')+' semestre '+y;
+    return ''+y;
+  }
+  function inP(d, b){ return !!d && d>=b.from && d<b.to; }
+
+  function resDelta(cur, prev){
+    if(!prev) return '';
+    const p = Math.round((cur-prev)/prev*100);
+    if(p===0) return ' · = periodo prec.';
+    const su = p>0;
+    return ' · <b style="color:'+(su?'var(--ok)':'var(--danger)')+'">'+(su?'▲':'▼')+' '+Math.abs(p)+'%</b> vs prec.';
+  }
+
+  /* 3. controlli del selettore (globali per gli onclick) */
+  window.resSetMode = function(m){ ui.resMode = m; render(); };
+  window.resNav = function(dir){
+    const len = LEN[ui.resMode];
+    const a = new Date(ui.resY, ui.resM + dir*len, 1);
+    ui.resY = a.getFullYear(); ui.resM = a.getMonth();
+    render();
+  };
+  window.resOggi = function(){
+    const t = new Date(); ui.resY = t.getFullYear(); ui.resM = t.getMonth();
+    render();
+  };
+
+  /* 4. costruttore tabelle (riusa gli stili esistenti) */
+  function tabella(intestazioni, righeHtml, vuotoMsg){
+    if(!righeHtml){
+      return '<div class="twrap"><div class="vuoto" style="padding:14px">'+vuotoMsg+'</div></div>';
+    }
+    return '<div class="twrap"><table><thead><tr>'
+      + intestazioni.map(h=>'<th>'+h+'</th>').join('')
+      + '</tr></thead><tbody>'+righeHtml+'</tbody></table></div>';
+  }
+
+  /* 5. vista Resoconto */
+  window.vResoconto = function(){
+    const mode = ui.resMode;
+    const anchor = new Date(ui.resY, ui.resM, 1);
+    const b     = resBounds(mode, anchor);
+    const len   = LEN[mode];
+    const bPrev = resBounds(mode, new Date(anchor.getFullYear(), anchor.getMonth()-len, 1));
+
+    const emesse      = db.fatture.filter(f=> inP(f.dataEmissione, b));
+    const incassate   = db.fatture.filter(f=> inP(f.dataIncasso,   b));
+    const emessePrev    = db.fatture.filter(f=> inP(f.dataEmissione, bPrev));
+    const incassatePrev = db.fatture.filter(f=> inP(f.dataIncasso,   bPrev));
+    const fattPeriodo = db.fatture.filter(f=> inP(f.dataEmissione,b) || inP(f.dataIncasso,b));
+    const fattSenza   = db.fatture.filter(f=> !f.dataEmissione && !f.dataIncasso);
+
+    const fatturato    = somma(emesse,    f=>f.totale);
+    const incassato    = somma(incassate, f=>f.totale);
+    const accantona    = somma(incassate, accantonare);
+    const fatturatoPrev = somma(emessePrev,    f=>f.totale);
+    const incassatoPrev = somma(incassatePrev, f=>f.totale);
+
+    const prevInviati = db.preventivi.filter(p=> inP(p.dataInvio, b));
+    const prevSenza   = db.preventivi.filter(p=> !p.dataInvio);
+    const valPrev     = somma(prevInviati, p=>p.importo);
+    const nAcc        = prevInviati.filter(p=>p.stato==='Accettato').length;
+
+    const progAvviati = db.progetti.filter(p=> inP(p.dataInizio, b));
+    const progSenza   = db.progetti.filter(p=> !p.dataInizio);
+    const valProg     = somma(progAvviati, p=>p.valore);
+
+    const selMode = ['mese','trimestre','semestre','anno'].map(m=>
+      '<option value="'+m+'"'+(m===mode?' selected':'')+'>'+
+      ({mese:'Mese',trimestre:'Trimestre',semestre:'Semestre',anno:'Anno'}[m])+'</option>').join('');
+
+    const barra = `
+    <div class="res-bar" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 16px">
+      <select onchange="resSetMode(this.value)" style="padding:9px 12px;border-radius:12px;border:1px solid var(--line);background:var(--input);color:var(--ink);font-size:15px;font-weight:600">${selMode}</select>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="btn neutro" onclick="resNav(-1)" aria-label="Periodo precedente" style="min-width:44px">‹</button>
+        <b style="min-width:150px;text-align:center;font-size:16px">${resLabel(mode,b)}</b>
+        <button class="btn neutro" onclick="resNav(1)" aria-label="Periodo successivo" style="min-width:44px">›</button>
+      </div>
+      <button class="btn" onclick="resOggi()">Oggi</button>
+    </div>`;
+
+    const cards = `
+    <div class="cards">
+      <div class="stat">
+        <div class="lbl">Fatturato (emesso)</div>
+        <div class="big">${eur(fatturato)}</div>
+        <div class="det">${emesse.length} fatture emesse${resDelta(fatturato,fatturatoPrev)}</div>
+      </div>
+      <div class="stat">
+        <div class="lbl">Incassato</div>
+        <div class="big">${eur(incassato)}</div>
+        <div class="det">${incassate.length} fatture incassate${resDelta(incassato,incassatoPrev)}</div>
+      </div>
+      <div class="stat acc">
+        <div class="lbl">Da accantonare</div>
+        <div class="big">${eur(arrot(accantona))}</div>
+        <div class="det">~23,22% dell'incassato del periodo</div>
+      </div>
+      <div class="stat">
+        <div class="lbl">Preventivi inviati</div>
+        <div class="big">${prevInviati.length} · ${eur(valPrev)}</div>
+        <div class="det">${nAcc} accettati nel periodo</div>
+      </div>
+      <div class="stat">
+        <div class="lbl">Progetti avviati</div>
+        <div class="big">${progAvviati.length} · ${eur(valProg)}</div>
+        <div class="det">per data di inizio</div>
+      </div>
+    </div>`;
+
+    const fattOrd = [...fattPeriodo].sort((a,c)=>{
+      const x=(a.dataIncasso||a.dataEmissione||''), y=(c.dataIncasso||c.dataEmissione||'');
+      return x<y?1:x>y?-1:0;
+    });
+    const righeFatt = fattOrd.map(f=>`<tr class="${fatturaScaduta(f)?'scaduta':''}">
+        <td><b>${esc(f.numero)}</b></td>
+        <td>${esc(f.titolo)}</td>
+        <td>${esc(nomeCliente(f.clienteId))}</td>
+        <td class="euro">${eur(f.totale)}</td>
+        <td>${badge(f.statoPagamento)}</td>
+        <td>${fmtData(f.dataEmissione)}</td>
+        <td>${fmtData(f.dataIncasso)}</td>
+        <td class="euro">${accantonare(f)?eur(accantonare(f)):'—'}</td>
+      </tr>`).join('');
+    const tabFatt = tabella(
+      ['N°','Titolo','Cliente','Totale','Stato','Emessa','Incassata','Accantona'],
+      righeFatt, 'Nessuna fattura in questo periodo.');
+
+    const righePrev = prevInviati
+      .sort((a,c)=>(c.dataInvio||'').localeCompare(a.dataInvio||''))
+      .map(p=>`<tr>
+        <td><b>${esc(p.numero)}</b></td>
+        <td>${esc(p.titolo)}</td>
+        <td>${esc(nomeCliente(p.clienteId))}</td>
+        <td class="euro">${eur(p.importo)}</td>
+        <td>${badge(p.stato)}</td>
+        <td>${fmtData(p.dataInvio)}</td>
+      </tr>`).join('');
+    const tabPrev = tabella(
+      ['N°','Titolo','Cliente','Importo','Stato','Inviato'],
+      righePrev, 'Nessun preventivo inviato in questo periodo.');
+
+    const righeProg = progAvviati
+      .sort((a,c)=>(c.dataInizio||'').localeCompare(a.dataInizio||''))
+      .map(p=>`<tr>
+        <td>${esc(p.titolo)}</td>
+        <td>${esc(nomeCliente(p.clienteId))}</td>
+        <td class="euro">${eur(p.valore)}</td>
+        <td>${badge(p.stato)}</td>
+        <td>${fmtData(p.dataInizio)}</td>
+      </tr>`).join('');
+    const tabProg = tabella(
+      ['Titolo','Cliente','Valore','Stato','Inizio'],
+      righeProg, 'Nessun progetto avviato in questo periodo.');
+
+    const totSenza = fattSenza.length + prevSenza.length + progSenza.length;
+    let senzaHtml = '';
+    if(totSenza){
+      const rFS = fattSenza.map(f=>`<tr><td><b>${esc(f.numero)}</b></td><td>${esc(f.titolo)}</td><td>${esc(nomeCliente(f.clienteId))}</td><td class="euro">${eur(f.totale)}</td><td>${badge(f.statoPagamento)}</td></tr>`).join('');
+      const rPS = prevSenza.map(p=>`<tr><td><b>${esc(p.numero)}</b></td><td>${esc(p.titolo)}</td><td>${esc(nomeCliente(p.clienteId))}</td><td class="euro">${eur(p.importo)}</td><td>${badge(p.stato)}</td></tr>`).join('');
+      const rGS = progSenza.map(p=>`<tr><td>—</td><td>${esc(p.titolo)}</td><td>${esc(nomeCliente(p.clienteId))}</td><td class="euro">${eur(p.valore)}</td><td>${badge(p.stato)}</td></tr>`).join('');
+      senzaHtml = `
+      <details class="res-senza" style="margin-top:22px;background:var(--card);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);padding:6px 16px 16px">
+        <summary style="cursor:pointer;font-weight:700;padding:12px 0">Senza data · ${totSenza} voci da completare</summary>
+        <p style="color:var(--muted);margin:.2em 0 1em">Queste voci non hanno la data che serve per collocarle in un periodo. Apri la scheda e compila la data (emissione/incasso, invio o inizio) perché rientrino nel resoconto.</p>
+        ${fattSenza.length ? '<h4 style="margin:.6em 0">Fatture</h4>'+tabella(['N°','Titolo','Cliente','Totale','Stato'], rFS, '') : ''}
+        ${prevSenza.length ? '<h4 style="margin:.6em 0">Preventivi</h4>'+tabella(['N°','Titolo','Cliente','Importo','Stato'], rPS, '') : ''}
+        ${progSenza.length ? '<h4 style="margin:.6em 0">Progetti</h4>'+tabella(['','Titolo','Cliente','Valore','Stato'], rGS, '') : ''}
+      </details>`;
+    }
+
+    return `
+    <div class="sec-head"><h2>Resoconto</h2><span class="sub">${resLabel(mode,b)}</span></div>
+    ${barra}
+    ${cards}
+    <div class="sec-head" style="margin-top:24px"><h2>Fatture del periodo</h2><span class="sub">emesse o incassate nel periodo</span></div>
+    ${tabFatt}
+    <div class="sec-head" style="margin-top:24px"><h2>Preventivi inviati</h2></div>
+    ${tabPrev}
+    <div class="sec-head" style="margin-top:24px"><h2>Progetti avviati</h2></div>
+    ${tabProg}
+    ${senzaHtml}
+    `;
+  };
+
+  /* 6. aggancio alla navigazione (senza toccare la render originale) */
+  const _renderBase = render;
+  render = function(){
+    if(ui.view === 'resoconto'){
+      document.querySelectorAll('[data-view]').forEach(bt=>
+        bt.classList.toggle('active', bt.dataset.view === 'resoconto'));
+      $('#app').innerHTML = vResoconto();
+      try{ window.scrollTo(0,0); }catch(e){}
+      return;
+    }
+    _renderBase();
+  };
+
+})();
+/* ============ FINE SEZIONE RESOCONTO ============ */
+
 costruisciNav();
 render();
 initCloud();
