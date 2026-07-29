@@ -426,6 +426,9 @@ body.doc-aperto{overflow:hidden}
 .d-hr{height:1px;background:#CCCCCC;margin:6px 0 10px}
 .d-sp{height:14px}
 .d-par{font-size:12px;line-height:1.65;margin-bottom:8px}
+/* neutralizza la regola globale table{width:100%;min-width:780px}, che nel
+   foglio A4 sfonderebbe il margine destro tagliando gli importi */
+.doc table{min-width:0;font-size:inherit}
 .d-tab{width:100%;border-collapse:collapse}
 .d-tab td{padding:5px 0;font-size:12px;vertical-align:top}
 .d-tab .d-imp{text-align:right;font-weight:700;white-space:nowrap;width:120px;padding-left:16px}
@@ -433,7 +436,7 @@ body.doc-aperto{overflow:hidden}
 .d-vuoto{color:#6B6B6B;font-style:italic}
 .d-nota{color:#6B6B6B;font-style:italic;font-size:10.5px;line-height:1.6;margin:10px 0 0}
 .d-nota-sx{text-align:left}
-.d-tot{margin:14px 0 0 auto;border-collapse:collapse}
+.d-tot{width:auto;margin:14px 0 0 auto;border-collapse:collapse}
 .d-tot td{padding:3px 0;font-size:12px}
 .d-tot-lab{color:#6B6B6B;padding-right:26px;white-space:nowrap}
 .d-tot-val{text-align:right;white-space:nowrap;font-weight:600}
