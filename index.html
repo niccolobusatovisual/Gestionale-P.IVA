@@ -406,7 +406,14 @@ body.doc-aperto{overflow:hidden}
 .doc{background:#FFFFFF;color:#1A1A1A;font-family:Arial,Helvetica,sans-serif;
   font-size:12px;line-height:1.5;max-width:210mm;margin:0 auto;padding:26px 28px 34px;
   border-radius:10px;box-shadow:0 6px 26px rgba(0,0,0,.16)}
-.doc div,.doc td{color:#1A1A1A}
+/* Reset: il foglio è un'isola. Le regole globali dell'app su table/th/td
+   (width:100%, min-width:780px, padding 11px, border-bottom su ogni cella)
+   sfonderebbero il margine A4 e disegnerebbero righe che nel template non
+   esistono. Va tenuto PRIMA delle regole .d-* qui sotto. */
+.doc table{width:auto;min-width:0;border-collapse:collapse;font-size:inherit}
+.doc th,.doc td{padding:0;border:0;background:none;font-size:inherit;font-weight:400;
+  text-transform:none;letter-spacing:normal;text-align:left;vertical-align:top;
+  white-space:normal;color:#1A1A1A}
 .d-hdr{display:flex;justify-content:space-between;gap:26px;align-items:flex-start}
 .d-hdr-l{flex:1;min-width:0}
 .d-hdr-r{text-align:right;flex:0 0 auto;max-width:52%}
@@ -426,22 +433,20 @@ body.doc-aperto{overflow:hidden}
 .d-hr{height:1px;background:#CCCCCC;margin:6px 0 10px}
 .d-sp{height:14px}
 .d-par{font-size:12px;line-height:1.65;margin-bottom:8px}
-/* neutralizza la regola globale table{width:100%;min-width:780px}, che nel
-   foglio A4 sfonderebbe il margine destro tagliando gli importi */
-.doc table{min-width:0;font-size:inherit}
-.d-tab{width:100%;border-collapse:collapse}
-.d-tab td{padding:5px 0;font-size:12px;vertical-align:top}
-.d-tab .d-imp{text-align:right;font-weight:700;white-space:nowrap;width:120px;padding-left:16px}
+/* Tabelle del foglio: selettori a due classi per stare sopra al reset qui sopra */
+.doc .d-tab{width:100%}
+.doc .d-tab td{padding:5px 0;font-size:12px}
+.doc .d-tab .d-imp{text-align:right;font-weight:700;white-space:nowrap;width:120px;padding-left:16px}
 .d-det{color:#6B6B6B;font-size:11px}
 .d-vuoto{color:#6B6B6B;font-style:italic}
 .d-nota{color:#6B6B6B;font-style:italic;font-size:10.5px;line-height:1.6;margin:10px 0 0}
 .d-nota-sx{text-align:left}
-.d-tot{width:auto;margin:14px 0 0 auto;border-collapse:collapse}
-.d-tot td{padding:3px 0;font-size:12px}
-.d-tot-lab{color:#6B6B6B;padding-right:26px;white-space:nowrap}
-.d-tot-val{text-align:right;white-space:nowrap;font-weight:600}
-.d-grande{font-size:17px;font-weight:700;color:#C49A3C}
-.d-nero{color:#1A1A1A;font-size:12px;font-weight:600}
+.doc .d-tot{margin:14px 0 0 auto}
+.doc .d-tot td{padding:3px 0;font-size:12px}
+.doc .d-tot .d-tot-lab{color:#6B6B6B;padding-right:26px;white-space:nowrap}
+.doc .d-tot .d-tot-val{text-align:right;white-space:nowrap;font-weight:600}
+.doc .d-tot .d-grande{font-size:17px;font-weight:700;color:#C49A3C}
+.doc .d-tot .d-nero{color:#1A1A1A;font-size:12px;font-weight:600}
 .d-foot{display:flex;gap:34px;margin-top:16px}
 .d-foot>div{flex:1}
 .d-foot-t{font-weight:700;font-size:12px;margin-bottom:5px}
