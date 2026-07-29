@@ -375,6 +375,90 @@ input[type=color].colore-cliente{width:100%;height:41px;border:none;border-radiu
 .auth-link button{background:none;border:none;color:var(--muted);font-size:13px;font-weight:500;text-decoration:underline}
 .cloud-mail{font-weight:700;font-size:15px;word-break:break-all}
 
+/* ============ EDITOR VOCI (form) ============ */
+.sep-frm{font-weight:700;font-size:14px;margin-top:6px;padding-top:14px;border-top:1px solid var(--bordo)}
+.voci{display:flex;flex-direction:column;gap:8px}
+.voce{display:grid;grid-template-columns:1fr 118px 34px;gap:8px;align-items:center}
+.voci[data-dettaglio="1"] .voce{grid-template-columns:1fr 150px 118px 34px}
+.voce input{width:100%}
+.voci-foot{display:flex;align-items:center;gap:12px;margin-top:10px;flex-wrap:wrap}
+.voci-tot{color:var(--muted);font-size:13px;font-weight:600}
+.icon.danger{color:var(--danger)}
+.lista-errori{margin:0;padding-left:20px;color:var(--testo);font-size:14px;line-height:1.7}
+.lista-errori li{margin-bottom:4px}
+.linkino-btn{background:none;border:none;color:var(--accent);font-size:12px;font-weight:600;text-decoration:underline;padding:0 0 0 8px}
+
+/* ============ ANTEPRIMA DOCUMENTO ============ */
+#docOverlay{display:none;position:fixed;inset:0;z-index:120;background:var(--sfondo);overflow-y:auto;-webkit-overflow-scrolling:touch}
+#docOverlay.open{display:block}
+body.doc-aperto{overflow:hidden}
+.doc-bar{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:12px 16px calc(12px);background:var(--vetro);backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--bordo);
+  padding-top:calc(12px + env(safe-area-inset-top))}
+.doc-bar-t{font-weight:700;font-size:15px}
+.doc-bar .spacer{flex:1}
+.doc-prog{color:var(--muted);font-size:12px;font-weight:600;white-space:nowrap}
+.doc-hint{color:var(--muted);font-size:12.5px;line-height:1.5;padding:10px 16px 0;max-width:900px;margin:0 auto}
+.doc-scroll{padding:16px 12px 60px}
+
+/* Il foglio: colori fissi NB, non seguono il tema chiaro/scuro */
+.doc{background:#FFFFFF;color:#1A1A1A;font-family:Arial,Helvetica,sans-serif;
+  font-size:12px;line-height:1.5;max-width:210mm;margin:0 auto;padding:26px 28px 34px;
+  border-radius:10px;box-shadow:0 6px 26px rgba(0,0,0,.16)}
+.doc div,.doc td{color:#1A1A1A}
+.d-hdr{display:flex;justify-content:space-between;gap:26px;align-items:flex-start}
+.d-hdr-l{flex:1;min-width:0}
+.d-hdr-r{text-align:right;flex:0 0 auto;max-width:52%}
+.d-nome{font-size:23px;font-weight:700;line-height:1.15;margin-bottom:12px}
+.d-meta div{font-size:11px;line-height:1.75}
+.d-meta span{color:#6B6B6B;display:inline-block;min-width:66px}
+.d-tipo{font-size:32px;font-weight:700;line-height:1;margin-bottom:8px}
+.d-num{font-size:14px;font-weight:700;color:#C49A3C;line-height:1.35}
+.d-prev-num{font-size:14px;color:#1A1A1A;line-height:1.35}
+.d-riga{font-size:11px;line-height:1.7}
+.d-label{color:#6B6B6B;font-size:10px;text-transform:uppercase;letter-spacing:.06em;margin-top:14px}
+.d-cli{font-size:13px;font-weight:600;margin-top:2px}
+.d-cli-grande{font-size:16px;font-weight:700;margin-top:14px}
+.d-sottotitolo{font-size:12.5px;font-style:italic;font-weight:700;color:#C49A3C;line-height:1.4;margin-top:4px}
+.d-sec{font-size:13px;font-weight:700;margin-top:26px}
+.d-sec-sp{margin-top:22px}
+.d-hr{height:1px;background:#CCCCCC;margin:6px 0 10px}
+.d-sp{height:14px}
+.d-par{font-size:12px;line-height:1.65;margin-bottom:8px}
+.d-tab{width:100%;border-collapse:collapse}
+.d-tab td{padding:5px 0;font-size:12px;vertical-align:top}
+.d-tab .d-imp{text-align:right;font-weight:700;white-space:nowrap;width:120px;padding-left:16px}
+.d-det{color:#6B6B6B;font-size:11px}
+.d-vuoto{color:#6B6B6B;font-style:italic}
+.d-nota{color:#6B6B6B;font-style:italic;font-size:10.5px;line-height:1.6;margin:10px 0 0}
+.d-nota-sx{text-align:left}
+.d-tot{margin:14px 0 0 auto;border-collapse:collapse}
+.d-tot td{padding:3px 0;font-size:12px}
+.d-tot-lab{color:#6B6B6B;padding-right:26px;white-space:nowrap}
+.d-tot-val{text-align:right;white-space:nowrap;font-weight:600}
+.d-grande{font-size:17px;font-weight:700;color:#C49A3C}
+.d-nero{color:#1A1A1A;font-size:12px;font-weight:600}
+.d-foot{display:flex;gap:34px;margin-top:16px}
+.d-foot>div{flex:1}
+.d-foot-t{font-weight:700;font-size:12px;margin-bottom:5px}
+
+/* ============ STAMPA: esce solo il foglio ============ */
+@media print{
+  html,body{background:#fff !important}
+  body>*{display:none !important}
+  body.doc-aperto{overflow:visible !important}
+  #docOverlay{display:block !important;position:static !important;overflow:visible !important;background:#fff !important;inset:auto}
+  .doc-bar,.doc-hint{display:none !important}
+  .doc-scroll{padding:0 !important}
+  .doc{max-width:none !important;width:auto !important;margin:0 !important;padding:0 !important;
+    border-radius:0 !important;box-shadow:none !important;font-size:10pt !important}
+  .doc .d-hr{background:#CCCCCC !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .doc .d-num,.doc .d-grande,.doc .d-sottotitolo{color:#C49A3C !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .d-foot{page-break-inside:avoid}
+  @page{size:A4;margin:18mm 16mm}
+}
+
 /* ============ RESPONSIVE ============ */
 @media (max-width:768px){
   .seg{display:none}
@@ -391,6 +475,15 @@ input[type=color].colore-cliente{width:100%;height:41px;border:none;border-radiu
   @keyframes sheet{from{transform:translateY(60%)}to{transform:none}}
   .frm{grid-template-columns:1fr}
   table{font-size:13px}
+  .voce{grid-template-columns:1fr 96px 32px}
+  .voci[data-dettaglio="1"] .voce{grid-template-columns:1fr 96px 32px}
+  .voci[data-dettaglio="1"] .v-det{grid-column:1/-1}
+  .doc{padding:18px 16px 26px;font-size:11.5px}
+  .d-hdr{flex-direction:column;gap:16px}
+  .d-hdr-r{text-align:left;max-width:none}
+  .d-tipo{font-size:26px}
+  .d-foot{flex-direction:column;gap:16px}
+  .doc-scroll{padding:12px 8px 60px}
 }
 @media (max-width:400px){
   .brand small{display:none}
@@ -446,6 +539,46 @@ const TIPI_DOC = ['Fattura','Nota di credito','Prestazione occasionale'];
 const METODI_PAG = ['Bonifico','PayPal','Contanti','Altro'];
 const ALIQUOTA_ACC = 0.2322;      // ~23% di ogni incasso da accantonare
 const SOGLIA_BOLLO = 77.47;
+const SOGLIA_SEMPLIFICATA = 400;  // oltre questa soglia la fattura è ordinaria, non semplificata
+const IMPORTO_BOLLO = 2;
+
+/* ---------- profilo fornitore (fonte: skill nick-profile) ---------- */
+const NB = {
+  nome:'Niccolò Busato',
+  piva:'04654140245',
+  cf:'BSTNCL03B17L157M',
+  regime:'RF19',                 // regime forfettario, tracciato FatturaPA
+  via:'Via Lago di Caldonazzo', civico:'38',
+  cap:'36010', comune:'Zanè', provincia:'VI', nazione:'IT',
+  email:'niccolo.busato.visual@gmail.com',
+  pec:'niccolo.busato.visual@pec.it',
+  telefono:'+39 392 730 9373',
+  telefonoXml:'3927309373',
+  iban:'IT83J0306234210000002243330',
+  banca:'Mediolanum'
+};
+
+/* ---------- diciture fiscali (forfettario, nessuna IVA) ---------- */
+const NATURE = {
+  'N2.2': "Operazione senza applicazione dell'IVA ai sensi dell'art. 1, commi 54–89, Legge 190/2014 — Regime Forfettario.",
+  'N2.1': "Operazione non soggetta a IVA ai sensi degli artt. da 7 a 7-septies del DPR 633/72."
+};
+/* Nell'XML il campo RiferimentoNormativo è limitato a 100 caratteri dallo
+   schema ufficiale: le diciture estese qui sopra non ci starebbero e il SdI
+   scarterebbe il file. Nel PDF resta il testo completo. */
+const RIFERIMENTI_XML = {
+  'N2.2': "Art. 1, commi 54-89, L. 190/2014 - Regime Forfettario",
+  'N2.1': "Artt. da 7 a 7-septies DPR 633/72 - operazione non soggetta"
+};
+const ETICHETTE_NATURA = {
+  'N2.2': 'N2.2 — cliente italiano (caso tipico)',
+  'N2.1': 'N2.1 — fuori campo per territorialità (cliente estero)'
+};
+const NOTA_FORFETTARIO = "Operazione effettuata ai sensi dell'art. 1, commi 54–89, Legge 190/2014 — Regime Forfettario.";
+const NOTA_BOLLO = "Imposta di bollo da € 2,00 assolta sull'originale.";
+const CONDIZIONI_FATTURA = 'Pagamento tramite bonifico bancario sul conto indicato a vista fattura.';
+const CONDIZIONI_PREVENTIVO = 'Il pagamento dovrà essere effettuato entro 30 giorni dalla data del preventivo tramite bonifico bancario. Per qualsiasi domanda non esitare a contattarmi.';
+const MODALITA_XML = { 'Bonifico':'MP05', 'PayPal':'MP08', 'Contanti':'MP01', 'Altro':'MP05' };
 
 const STATO_CLASSE = {
   'Bozza':'g','Inviato':'b','Accettato':'v','Rifiutato':'r','Scaduto':'a',
@@ -473,7 +606,8 @@ const ICO = {
   plus: '<svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zm6.5 4.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3a.5.5 0 0 1 .5-.5z"/></svg>',
   trash: '<svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/></svg>',
   pen: '<svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M13.498.795l.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001z"/></svg>',
-  clip: '<svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0z"/></svg>'
+  clip: '<svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0z"/></svg>',
+  doc: '<svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M4 0h5.5L14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm5 1.5V5h3.5zM5 8.5a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1zm0 2.5a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1z"/></svg>'
 };
 
 /* ---------- helper ---------- */
@@ -562,7 +696,39 @@ function seed(){
 
 let db = caricaDB() || seed();
 db.counters = db.counters || {pr:0,ft:0};
+migraDati();
 salvaLocale();
+
+/* ---------- migrazione: aggiunge i campi nuovi ai record già esistenti ----------
+   Retrocompatibile: gira a ogni avvio e anche dopo un pull dal cloud, non
+   sovrascrive mai un dato già presente. */
+function migraDati(){
+  if(db.counters.xml == null) db.counters.xml = 0;   // progressivo di trasmissione SdI
+  (db.clienti||[]).forEach(c=>{
+    ['piva','cf','via','civico','cap','comune','provincia','sdi','pec'].forEach(k=>{
+      if(c[k] === undefined) c[k] = '';
+    });
+  });
+  (db.fatture||[]).forEach(f=>{
+    if(!Array.isArray(f.voci) || !f.voci.length){
+      const imp = f.imponibile != null ? f.imponibile : f.totale;
+      f.voci = [{ descrizione: f.titolo || 'Prestazione professionale', dettaglio:'', importo: imp != null ? imp : null }];
+    }
+    if(!f.natura) f.natura = 'N2.2';
+    if(f.condizioni === undefined) f.condizioni = '';
+    if(f.rivalsaBollo === undefined) f.rivalsaBollo = false;
+    if(f.xmlProgressivo === undefined) f.xmlProgressivo = null;
+  });
+  (db.preventivi||[]).forEach(p=>{
+    if(!Array.isArray(p.voci))
+      p.voci = p.importo != null ? [{ descrizione: p.titolo || '', dettaglio:'', importo: p.importo }] : [];
+    if(!Array.isArray(p.software)) p.software = [];
+    if(p.oggetto === undefined) p.oggetto = '';
+    if(p.etichettaTotale === undefined) p.etichettaTotale = 'Totale progetto';
+    if(p.condizioni === undefined) p.condizioni = '';
+    if(p.sottotitolo === undefined) p.sottotitolo = '';
+  });
+}
 
 /* ---------- lookup ---------- */
 const getCliente  = id => db.clienti.find(c=>c.id===id);
@@ -989,6 +1155,9 @@ function cardPreventivo(p){
   const azione = p.progettoId && getProgetto(p.progettoId)
     ? '<span class="linkino">✓ progetto collegato</span>'
     : `<button class="btn mini primary" onclick="creaProgettoDaPreventivo('${p.id}')">${ICO.plus}Crea progetto</button>`;
+  // da preventivo accettato si passa direttamente alla fattura, riportando le voci
+  const azioneFattura = p.stato==='Accettato'
+    ? `<button class="btn mini" onclick="creaFatturaDaPreventivo('${p.id}')">${ICO.plus}Crea fattura</button>` : '';
   const date = [];
   if(p.dataInvio) date.push('inviato '+fmtData(p.dataInvio));
   if(p.validoFino) date.push('valido fino '+fmtData(p.validoFino));
@@ -998,7 +1167,8 @@ function cardPreventivo(p){
     <div class="kcard-sub">${esc(nomeCliente(p.clienteId))}</div>
     ${chips(p.servizi)}
     ${date.length?'<div class="kcard-date">'+date.join(' · ')+'</div>':''}
-    <div class="kcard-actions">${frecce('preventivo',STATI_PREVENTIVO,p.stato,p.id)}${azione}<span class="spacer"></span>
+    <div class="kcard-actions">${frecce('preventivo',STATI_PREVENTIVO,p.stato,p.id)}${azione}${azioneFattura}<span class="spacer"></span>
+      <button class="icon" onclick="apriDocumento('preventivo','${p.id}')" title="Documento PDF">${ICO.doc}</button>
       ${bottoneAllegati('preventivo', p)}
       <button class="icon" onclick="apriFormPreventivo('${p.id}')" title="Modifica">${ICO.pen}</button>
       <button class="icon" onclick="eliminaPreventivo('${p.id}')" title="Elimina">${ICO.trash}</button>
@@ -1060,6 +1230,7 @@ function cardFattura(f){
     ${acc?'<div class="kcard-date" style="color:var(--accent);font-weight:600">accantona '+eur(acc)+'</div>':''}
     ${bolloMancante?'<div class="warn-bollo">⚠ marca da bollo? (>77,47€)</div>':''}
     <div class="kcard-actions">${frecce('fattura',STATI_FATTURA,f.statoPagamento,f.id)}<span class="spacer"></span>
+      <button class="icon" onclick="apriDocumento('fattura','${f.id}')" title="Documento: PDF e XML">${ICO.doc}</button>
       ${bottoneAllegati('fattura', f)}
       <button class="icon" onclick="apriFormFattura('${f.id}')" title="Modifica">${ICO.pen}</button>
       <button class="icon" onclick="eliminaFattura('${f.id}')" title="Elimina">${ICO.trash}</button>
@@ -1083,7 +1254,7 @@ function scadenzarioHTML(soloAperte){
       <td>${fmtData(f.scadenzaPagamento)}${fatturaScaduta(f)?' ⚠':''}</td>
       <td>${fmtData(f.dataIncasso)}</td>
       <td class="euro">${accantonare(f)?eur(accantonare(f)):'—'}</td>
-      <td style="white-space:nowrap">${bottoneAllegati('fattura', f)}<button class="icon" onclick="apriFormFattura('${f.id}')" title="Modifica">${ICO.pen}</button></td>
+      <td style="white-space:nowrap"><button class="icon" onclick="apriDocumento('fattura','${f.id}')" title="Documento: PDF e XML">${ICO.doc}</button>${bottoneAllegati('fattura', f)}<button class="icon" onclick="apriFormFattura('${f.id}')" title="Modifica">${ICO.pen}</button></td>
     </tr>`).join('');
   return `
   <div class="sec-head"><h2>${soloAperte?'Scadenzario — da incassare':'Scadenzario fatture'}</h2><span class="sub">per scadenza di pagamento</span></div>
@@ -1094,7 +1265,9 @@ function scadenzarioHTML(soloAperte){
 }
 function vFatture(){
   return `
-  <div class="sec-head"><h2>Fatture</h2><button class="btn primary" onclick="apriFormFattura()">${ICO.plus}Nuova</button></div>
+  <div class="sec-head"><h2>Fatture</h2>
+    <span class="sub"><button class="linkino-btn" onclick="apriImpostazioniSdI()">Fatturazione elettronica: invio n. ${prog5(db.counters.xml||0)}</button></span>
+    <button class="btn primary" onclick="apriFormFattura()">${ICO.plus}Nuova</button></div>
   ${kanban('fattura', STATI_FATTURA, db.fatture, 'statoPagamento', cardFattura)}
   ${scadenzarioHTML(false)}
   `;
@@ -1172,6 +1345,84 @@ window.filtraProgetti = function(sel){
   form.elements.progettoId.innerHTML = opzioniProgetti(attuale, sel.value);
 };
 
+/* ---------- editor voci (righe descrizione + importo) ----------
+   Usato sia dalla fattura (una riga per prestazione) sia dal preventivo
+   (con in più il dettaglio ore × tariffa). I dati si rileggono dal DOM
+   con leggiVoci() al momento del salvataggio. */
+function rigaVoceHTML(v, dettaglio){
+  v = v || {};
+  return `<div class="voce">
+    <input type="text" class="v-desc" placeholder="Descrizione" value="${esc(v.descrizione)}">
+    ${dettaglio ? `<input type="text" class="v-det" placeholder="es. 3h × € 20,00" value="${esc(v.dettaglio)}">` : ''}
+    <input type="number" class="v-imp" step="0.01" min="0" inputmode="decimal" placeholder="€" value="${v.importo!=null?v.importo:''}">
+    <button type="button" class="icon danger" onclick="rimuoviVoce(this)" title="Rimuovi voce">${ICO.trash}</button>
+  </div>`;
+}
+function boxVoci(voci, opt){
+  opt = opt || {};
+  const det = !!opt.dettaglio;
+  const righe = (voci && voci.length ? voci : [{}]).map(v=>rigaVoceHTML(v, det)).join('');
+  return `<div class="voci" data-ruolo="${esc(opt.ruolo||'voci')}" data-dettaglio="${det?1:0}" oninput="ricalcolaVoci(this)">${righe}</div>
+    <div class="voci-foot">
+      <button type="button" class="btn mini" onclick="aggiungiVoce(this)">${ICO.plus}Aggiungi voce</button>
+      <span class="voci-tot" data-per="${esc(opt.ruolo||'voci')}"></span>
+    </div>`;
+}
+window.aggiungiVoce = function(btn){
+  const box = btn.closest('.voci-foot').previousElementSibling;
+  box.insertAdjacentHTML('beforeend', rigaVoceHTML({}, box.dataset.dettaglio==='1'));
+  ricalcolaVoci(box);
+};
+window.rimuoviVoce = function(btn){
+  const box = btn.closest('.voci');
+  if(box.querySelectorAll('.voce').length > 1) btn.closest('.voce').remove();
+  else box.querySelectorAll('input').forEach(i=>i.value='');
+  ricalcolaVoci(box);
+};
+function leggiVoci(box){
+  if(!box) return [];
+  return [...box.querySelectorAll('.voce')].map(r=>{
+    const det = r.querySelector('.v-det');
+    const imp = r.querySelector('.v-imp').value;
+    return {
+      descrizione: r.querySelector('.v-desc').value.trim(),
+      dettaglio: det ? det.value.trim() : '',
+      importo: imp==='' ? null : parseFloat(imp)
+    };
+  }).filter(v => v.descrizione || v.importo != null);
+}
+function totaleVoci(voci){ return arrot(somma(voci||[], v=>v.importo)); }
+/* aggiorna solo l'etichetta "Somma voci", senza toccare i campi importo */
+function aggiornaEtichetteVoci(form){
+  if(!form) return;
+  form.querySelectorAll('.voci').forEach(box=>{
+    const eti = form.querySelector('.voci-tot[data-per="'+box.dataset.ruolo+'"]');
+    if(eti) eti.textContent = 'Somma voci: ' + eur(totaleVoci(leggiVoci(box)));
+  });
+}
+window.ricalcolaVoci = function(box){
+  const form = box.closest('form'); if(!form) return;
+  aggiornaEtichetteVoci(form);
+  if(form.dataset.tipo === 'fattura') sincronizzaTotaliFattura(form);
+  if(form.dataset.tipo === 'preventivo') sincronizzaTotalePreventivo(form);
+};
+function sincronizzaTotaliFattura(form){
+  const box = form.querySelector('.voci[data-ruolo="voci"]');
+  if(!box) return;
+  const imponibile = totaleVoci(leggiVoci(box));
+  form.elements.imponibile.value = imponibile ? imponibile : '';
+  const rivalsa = form.elements.rivalsaBollo && form.elements.rivalsaBollo.checked;
+  const totale = arrot(imponibile + (rivalsa && imponibile > SOGLIA_BOLLO ? IMPORTO_BOLLO : 0));
+  form.elements.totale.value = totale ? totale : '';
+  aggiornaHintFattura(form);
+}
+function sincronizzaTotalePreventivo(form){
+  const att = totaleVoci(leggiVoci(form.querySelector('.voci[data-ruolo="voci"]')));
+  const sw  = totaleVoci(leggiVoci(form.querySelector('.voci[data-ruolo="software"]')));
+  const tot = arrot(att + sw);
+  if(form.elements.importo) form.elements.importo.value = tot ? tot : '';
+}
+
 /* ---------- form CLIENTE ---------- */
 window.apriFormCliente = function(id){
   const c = id ? getCliente(id) : {};
@@ -1194,6 +1445,19 @@ window.apriFormCliente = function(id){
       <img id="fotoPreview" class="foto-preview" src="${c.foto||''}" style="${c.foto?'display:block':''}">
       ${c.foto?'<div class="nota-campo"><button type="button" class="btn mini danger" style="margin-top:6px" onclick="rimuoviFoto()">Rimuovi foto</button></div>':''}
     </div>
+    <div class="full sep-frm">Dati per fattura e file XML
+      <div class="nota-campo">Servono solo se emetti fattura a questo cliente. Senza P.IVA o Codice Fiscale il Sistema di Interscambio scarta la fattura elettronica.</div>
+    </div>
+    <div><label>Partita IVA</label><input type="text" name="piva" inputmode="numeric" maxlength="11" placeholder="11 cifre" value="${esc(c.piva)}"></div>
+    <div><label>Codice Fiscale</label><input type="text" name="cf" maxlength="16" placeholder="16 caratteri o = P.IVA" value="${esc(c.cf)}"></div>
+    <div><label>Indirizzo (via)</label><input type="text" name="via" placeholder="Via Roma" value="${esc(c.via)}"></div>
+    <div><label>Numero civico</label><input type="text" name="civico" placeholder="38" value="${esc(c.civico)}"></div>
+    <div><label>CAP</label><input type="text" name="cap" inputmode="numeric" maxlength="5" placeholder="36010" value="${esc(c.cap)}"></div>
+    <div><label>Comune</label><input type="text" name="comune" placeholder="Zanè" value="${esc(c.comune)}"></div>
+    <div><label>Provincia</label><input type="text" name="provincia" maxlength="2" placeholder="VI" style="text-transform:uppercase" value="${esc(c.provincia)}"></div>
+    <div><label>Codice destinatario SdI</label><input type="text" name="sdi" maxlength="7" placeholder="7 caratteri" style="text-transform:uppercase" value="${esc(c.sdi)}">
+      <div class="nota-campo">Se non lo sai lascia vuoto: si usa 0000000 e trasmetti tu dal portale.</div></div>
+    <div class="full"><label>PEC del cliente</label><input type="email" name="pec" placeholder="alternativa al codice destinatario" value="${esc(c.pec)}"></div>
     <div class="full"><label>Note</label><textarea name="note">${esc(c.note)}</textarea></div>
     <div class="frm-foot"><button type="button" class="btn neutro" onclick="chiudiModal()">Annulla</button><button type="submit" class="btn primary">Salva</button></div>
   </form>`);
@@ -1235,7 +1499,10 @@ window.salvaCliente = function(ev){
   const id=v('_id');
   const esistente = id ? (getCliente(id)||{}) : {};
   const foto = window._fotoTemp===undefined ? (esistente.foto||'') : (window._fotoTemp||'');
-  const dati={nome:v('nome'),referente:v('referente'),email:v('email'),telefono:v('telefono'),sito:v('sito'),zona:v('zona'),tipo:v('tipo'),colore:coloreValido(v('colore')),foto,note:v('note')};
+  const dati={nome:v('nome'),referente:v('referente'),email:v('email'),telefono:v('telefono'),sito:v('sito'),zona:v('zona'),tipo:v('tipo'),colore:coloreValido(v('colore')),foto,note:v('note'),
+    piva:v('piva').replace(/\s/g,''), cf:v('cf').replace(/\s/g,'').toUpperCase(),
+    via:v('via'), civico:v('civico'), cap:v('cap').replace(/\s/g,''), comune:v('comune'),
+    provincia:v('provincia').toUpperCase(), sdi:v('sdi').toUpperCase(), pec:v('pec')};
   if(id){ Object.assign(getCliente(id)||{}, dati); }
   else { db.clienti.push(Object.assign({id:uid()}, dati)); }
   salva(); chiudiModal(); toast('Cliente salvato'); render();
@@ -1254,19 +1521,37 @@ window.eliminaCliente = function(id){
 window.apriFormPreventivo = function(id, preset){
   const p = id ? db.preventivi.find(x=>x.id===id) : (preset||{});
   apriModal(`<h3>${id?'Modifica '+esc(p.numero):'Nuovo preventivo'}</h3>
-  <form class="frm" onsubmit="salvaPreventivo(event)">
+  <form class="frm" data-tipo="preventivo" onsubmit="salvaPreventivo(event)">
     <input type="hidden" name="_id" value="${id||''}">
     <div class="full"><label>Titolo *</label><input type="text" name="titolo" required value="${esc(p.titolo)}"></div>
     <div><label>Cliente</label><select name="clienteId" onchange="filtraProgetti(this)">${opzioniClienti(p.clienteId)}</select></div>
     <div><label>Progetto collegato</label><select name="progettoId">${opzioniProgetti(p.progettoId, p.clienteId)}</select></div>
-    <div><label>Importo (€)</label><input type="number" name="importo" step="0.01" min="0" inputmode="decimal" value="${p.importo!=null?p.importo:''}"></div>
+    <div class="full"><label>Sottotitolo del progetto (nel PDF)</label><input type="text" name="sottotitolo" placeholder="es. Contratto mensile ricorrente — Social Media Management" value="${esc(p.sottotitolo)}">
+      <div class="nota-campo">Riga in corsivo ambra sotto il nome del cliente.</div></div>
+    <div class="full"><label>Oggetto e obiettivo del progetto</label><textarea name="oggetto" rows="3" placeholder="Uno o due paragrafi: cosa comprende il lavoro e qual è l'obiettivo.">${esc(p.oggetto)}</textarea></div>
+    <div class="full sep-frm">Attività e compensi
+      <div class="nota-campo">Il dettaglio (es. "3h × € 20,00") compare in grigio accanto alla descrizione. Importo vuoto = voce inclusa, stampata come "—".</div>
+    </div>
+    <div class="full">${boxVoci(p.voci, {ruolo:'voci', dettaglio:true})}</div>
+    <div class="full sep-frm">Software e strumenti (opzionale)
+      <div class="nota-campo">Se lasci vuoto, la sezione non compare nel documento.</div>
+    </div>
+    <div class="full">${boxVoci(p.software, {ruolo:'software'})}</div>
+    <div><label>Etichetta del totale</label><input type="text" name="etichettaTotale" placeholder="Totale progetto" value="${esc(p.etichettaTotale)}">
+      <div class="nota-campo">Es. "Totale mensile da fatturare" per i ricorrenti.</div></div>
+    <div><label>Importo (€)</label><input type="number" name="importo" step="0.01" min="0" inputmode="decimal" value="${p.importo!=null?p.importo:''}">
+      <div class="nota-campo">Si compila da solo con la somma delle voci.</div></div>
     <div><label>Stato</label><select name="stato">${opzioni(STATI_PREVENTIVO, p.stato||'Bozza')}</select></div>
     <div><label>Data invio</label><input type="date" name="dataInvio" value="${esc(p.dataInvio)}"></div>
     <div><label>Valido fino</label><input type="date" name="validoFino" value="${esc(p.validoFino)}"></div>
     <div class="full"><label>Tipo servizio</label>${boxServizi(p.servizi)}</div>
-    <div class="full"><label>Note</label><textarea name="note">${esc(p.note)}</textarea></div>
+    <div class="full"><label>Condizioni (nel PDF)</label><textarea name="condizioni" rows="3" placeholder="${esc(CONDIZIONI_PREVENTIVO)}">${esc(p.condizioni)}</textarea>
+      <div class="nota-campo">Lascia vuoto per usare il testo standard.</div></div>
+    <div class="full"><label>Note interne</label><textarea name="note">${esc(p.note)}</textarea>
+      <div class="nota-campo">Non compaiono nel documento.</div></div>
     <div class="frm-foot"><button type="button" class="btn neutro" onclick="chiudiModal()">Annulla</button><button type="submit" class="btn primary">Salva</button></div>
   </form>`);
+  aggiornaEtichetteVoci($('#modal').querySelector('form'));
 };
 window.salvaPreventivo = function(ev){
   ev.preventDefault();
@@ -1275,7 +1560,10 @@ window.salvaPreventivo = function(ev){
   const servizi=[...f.querySelectorAll('input[name=servizi]:checked')].map(i=>i.value);
   const imp=f.elements.importo.value;
   const dati={titolo:v('titolo'),clienteId:v('clienteId')||null,progettoId:v('progettoId')||null,
-    importo:imp===''?null:parseFloat(imp),stato:v('stato'),dataInvio:v('dataInvio'),validoFino:v('validoFino'),servizi,note:v('note')};
+    importo:imp===''?null:parseFloat(imp),stato:v('stato'),dataInvio:v('dataInvio'),validoFino:v('validoFino'),servizi,note:v('note'),
+    sottotitolo:v('sottotitolo'), oggetto:v('oggetto'), etichettaTotale:v('etichettaTotale')||'Totale progetto', condizioni:v('condizioni'),
+    voci: leggiVoci(f.querySelector('.voci[data-ruolo="voci"]')),
+    software: leggiVoci(f.querySelector('.voci[data-ruolo="software"]'))};
   if(id){ Object.assign(db.preventivi.find(x=>x.id===id)||{}, dati); }
   else {
     db.counters.pr++;
@@ -1335,7 +1623,7 @@ window.apriFormFattura = function(id, preset){
   const f = id ? db.fatture.find(x=>x.id===id) : (preset||{});
   const totIniz = f.totale!=null ? f.totale : '';
   apriModal(`<h3>${id?'Modifica '+esc(f.numero):'Nuova fattura'}</h3>
-  <form class="frm" onsubmit="salvaFattura(event)">
+  <form class="frm" data-tipo="fattura" onsubmit="salvaFattura(event)">
     <input type="hidden" name="_id" value="${id||''}">
     <input type="hidden" name="mese" value="${esc(f.mese||'')}">
     <div class="full"><label>Titolo *</label><input type="text" name="titolo" required value="${esc(f.titolo)}"></div>
@@ -1345,20 +1633,34 @@ window.apriFormFattura = function(id, preset){
     <div><label>Metodo pagamento</label><select name="metodo">${opzioni(METODI_PAG, f.metodo||'Bonifico')}</select></div>
     <div><label>Cliente</label><select name="clienteId" onchange="filtraProgetti(this)">${opzioniClienti(f.clienteId)}</select></div>
     <div><label>Progetto collegato</label><select name="progettoId">${opzioniProgetti(f.progettoId, f.clienteId)}</select></div>
-    <div><label>Imponibile (€)</label><input type="number" name="imponibile" step="0.01" min="0" inputmode="decimal" value="${f.imponibile!=null?f.imponibile:''}"></div>
+    <div class="full sep-frm">Voci della fattura
+      <div class="nota-campo">Una riga per prestazione: finiscono così nella sezione DESCRIZIONE del PDF e in una riga DettaglioLinee dell'XML.</div>
+    </div>
+    <div class="full">${boxVoci(f.voci, {ruolo:'voci'})}</div>
+    <div><label>Imponibile (€)</label><input type="number" name="imponibile" step="0.01" min="0" inputmode="decimal" value="${f.imponibile!=null?f.imponibile:''}">
+      <div class="nota-campo">Si compila da solo con la somma delle voci.</div></div>
     <div><label>Totale (€)</label><input type="number" name="totale" step="0.01" min="0" inputmode="decimal" value="${totIniz}" oninput="aggiornaHintFattura(this.form)"></div>
     <div><label>Stato pagamento</label><select name="statoPagamento" onchange="aggiornaHintFattura(this.form)">${opzioni(STATI_FATTURA, f.statoPagamento||'Da emettere')}</select></div>
+    <div><label>Regime IVA (codice Natura)</label><select name="natura">${Object.keys(NATURE).map(k=>`<option value="${k}" ${(f.natura||'N2.2')===k?'selected':''}>${esc(ETICHETTE_NATURA[k])}</option>`).join('')}</select>
+      <div class="nota-campo">In dubbio lascia N2.2 e conferma col commercialista.</div></div>
     <div><label>&nbsp;</label><label class="chk"><input type="checkbox" name="bollo" ${f.bollo?'checked':''} onchange="aggiornaHintFattura(this.form)"> Marca da bollo (2€)</label>
       <div class="nota-campo">Obbligatoria per importi sopra 77,47€ (forfettario, senza IVA).</div></div>
+    <div><label>&nbsp;</label><label class="chk"><input type="checkbox" name="rivalsaBollo" ${f.rivalsaBollo?'checked':''} onchange="sincronizzaTotaliFattura(this.form)"> Addebita il bollo al cliente</label>
+      <div class="nota-campo">Di norma resta a tuo carico e non entra nel totale.</div></div>
     <div><label>Data emissione</label><input type="date" name="dataEmissione" value="${esc(f.dataEmissione)}"></div>
     <div><label>Scadenza pagamento</label><input type="date" name="scadenzaPagamento" value="${esc(f.scadenzaPagamento)}"></div>
     <div><label>Data incasso</label><input type="date" name="dataIncasso" value="${esc(f.dataIncasso)}"></div>
     <div class="hint-acc"></div>
     <div class="hint-bollo">⚠ Totale sopra 77,47€: ricordati la marca da bollo da 2€.</div>
-    <div class="full"><label>Note</label><textarea name="note">${esc(f.note)}</textarea></div>
+    <div class="full"><label>Condizioni di pagamento (nel PDF)</label><textarea name="condizioni" placeholder="${esc(CONDIZIONI_FATTURA)}">${esc(f.condizioni)}</textarea>
+      <div class="nota-campo">Lascia vuoto per usare il testo standard.</div></div>
+    <div class="full"><label>Note interne</label><textarea name="note">${esc(f.note)}</textarea>
+      <div class="nota-campo">Non compaiono nel documento.</div></div>
     <div class="frm-foot"><button type="button" class="btn neutro" onclick="chiudiModal()">Annulla</button><button type="submit" class="btn primary">Salva</button></div>
   </form>`);
-  aggiornaHintFattura($('#modal').querySelector('form'));
+  const frm = $('#modal').querySelector('form');
+  aggiornaHintFattura(frm);
+  aggiornaEtichetteVoci(frm);
 };
 window.aggiornaHintFattura = function(form){
   if(!form) return;
@@ -1374,10 +1676,13 @@ window.salvaFattura = function(ev){
   const f=ev.target, v=n=>f.elements[n].value.trim();
   const id=v('_id');
   const imp=f.elements.imponibile.value, tot=f.elements.totale.value;
+  const voci = leggiVoci(f.querySelector('.voci[data-ruolo="voci"]'));
   const dati={titolo:v('titolo'),numero:v('numero')||prossimoNumeroFattura(),mese:v('mese')||'',tipoDoc:v('tipoDoc'),clienteId:v('clienteId')||null,progettoId:v('progettoId')||null,
+    voci, natura:v('natura')||'N2.2', condizioni:v('condizioni'), rivalsaBollo:f.elements.rivalsaBollo.checked,
     imponibile:imp===''?null:parseFloat(imp), totale:tot===''?null:parseFloat(tot),
     statoPagamento:v('statoPagamento'), metodo:v('metodo'), bollo:f.elements.bollo.checked,
     dataEmissione:v('dataEmissione'), scadenzaPagamento:v('scadenzaPagamento'), dataIncasso:v('dataIncasso'), note:v('note')};
+  if(!dati.voci.length) dati.voci = [{descrizione:dati.titolo, dettaglio:'', importo:dati.imponibile!=null?dati.imponibile:dati.totale}];
   if(dati.statoPagamento==='Pagata' && !dati.dataIncasso) dati.dataIncasso=oggi();
   if(id){ Object.assign(db.fatture.find(x=>x.id===id)||{}, dati); }
   else {
@@ -1402,11 +1707,424 @@ window.creaProgettoDaPreventivo = function(id){
   p.progettoId = nuovo.id;
   salva(); toast('Progetto creato da '+p.numero); render();
 };
+window.creaFatturaDaPreventivo = function(id){
+  const p = db.preventivi.find(x=>x.id===id); if(!p) return;
+  const voci = [...(p.voci||[]), ...(p.software||[])]
+    .filter(v=>v.descrizione || v.importo!=null)
+    .map(v=>({descrizione: v.descrizione + (v.dettaglio ? ' ('+v.dettaglio+')' : ''), dettaglio:'', importo: v.importo}));
+  const imponibile = p.importo != null ? p.importo : totaleVoci(voci);
+  apriFormFattura(null, { titolo:p.titolo, clienteId:p.clienteId, progettoId:p.progettoId,
+    voci: voci.length ? voci : [{descrizione:p.titolo, dettaglio:'', importo:imponibile}],
+    imponibile, totale:imponibile, statoPagamento:'Da emettere', natura:'N2.2',
+    dataEmissione: oggi(), bollo:(parseFloat(imponibile)||0) > SOGLIA_BOLLO });
+};
 window.creaFatturaDaProgetto = function(id){
   const p = getProgetto(id); if(!p) return;
   apriFormFattura(null, { titolo:p.titolo, clienteId:p.clienteId, progettoId:p.id,
     imponibile:p.valore, totale:p.valore, statoPagamento:'Da emettere',
     bollo:(parseFloat(p.valore)||0) > SOGLIA_BOLLO });
+};
+
+/* ============================================================
+   DOCUMENTI — PDF di cortesia (stampa del browser) + XML FatturaPA
+   Il layout replica i template definitivi NB (skill "fattura" e
+   "preventivo"). I colori del foglio sono fissi: il documento resta
+   bianco anche quando l'app è in tema scuro.
+   ============================================================ */
+
+function eurDoc(n){
+  if(n == null || n === '' || isNaN(n)) return '—';
+  return '€ ' + new Intl.NumberFormat('it-IT',{minimumFractionDigits:2, maximumFractionDigits:2}).format(parseFloat(n));
+}
+function num2(n){ return (Math.round((parseFloat(n)||0)*100)/100).toFixed(2); }   // formato XML: 125.00
+function prog5(n){ return String(n||0).padStart(5,'0'); }
+function indirizzoCliente(c){
+  const r1 = [c.via, c.civico].filter(Boolean).join(' ');
+  const r2 = ([c.cap, c.comune].filter(Boolean).join(' ') + (c.provincia ? ' ('+c.provincia+')' : '')).trim();
+  return { r1, r2 };
+}
+function calcolaFattura(f){
+  const voci = (f.voci||[]).filter(v=>v.descrizione || v.importo!=null);
+  const imponibile = arrot(f.imponibile!=null ? f.imponibile : totaleVoci(voci));
+  const bolloDovuto = imponibile > SOGLIA_BOLLO;
+  const totale = arrot(f.totale!=null ? f.totale : imponibile + (f.rivalsaBollo && bolloDovuto ? IMPORTO_BOLLO : 0));
+  return { voci, imponibile, totale, bolloDovuto,
+           semplificata: totale <= SOGLIA_SEMPLIFICATA,
+           natura: f.natura || 'N2.2' };
+}
+function numeroPreventivoDoc(p){
+  const m = /(\d+)\s*$/.exec(p.numero||'');
+  return m ? String(m[1]).padStart(3,'0') : (p.numero||'001');
+}
+
+/* ---------- blocco intestazione fornitore, comune ai due documenti ---------- */
+function docHeaderNB(righe){
+  return `<div class="d-nome">${esc(NB.nome)}</div>
+    <div class="d-meta">${righe.map(r=>`<div><span>${esc(r[0])}</span>${esc(r[1])}</div>`).join('')}</div>`;
+}
+
+/* ---------- FATTURA (PDF di cortesia) ---------- */
+function docFatturaHTML(f){
+  const c = getCliente(f.clienteId) || {};
+  const t = calcolaFattura(f);
+  const ind = indirizzoCliente(c);
+  const titoloDoc = (t.semplificata ? 'Fattura semplificata' : 'Fattura') + ' n. ' + (f.numero || '—');
+
+  const idFiscale = [];
+  if(c.piva) idFiscale.push('P.IVA ' + c.piva);
+  if(c.cf && c.cf !== c.piva) idFiscale.push('C.F. ' + c.cf);
+
+  const righe = t.voci.length
+    ? t.voci.map(v=>`<tr>
+        <td>${esc(v.descrizione)}${v.dettaglio?' <span class="d-det">('+esc(v.dettaglio)+')</span>':''}</td>
+        <td class="d-imp">${v.importo!=null ? eurDoc(v.importo) : '—'}</td></tr>`).join('')
+    : '<tr><td class="d-vuoto">Nessuna voce inserita.</td><td class="d-imp">—</td></tr>';
+
+  const noteFiscali = [NOTA_FORFETTARIO];
+  if(t.bolloDovuto) noteFiscali.push(f.rivalsaBollo
+    ? 'Imposta di bollo da € 2,00 addebitata in rivalsa al cliente.'
+    : NOTA_BOLLO);
+
+  return `<div class="doc">
+    <div class="d-hdr">
+      <div class="d-hdr-l">
+        ${docHeaderNB([['Email',NB.email],['Tel',NB.telefono],['P.IVA',NB.piva],['C.F.',NB.cf],
+                       ['Indirizzo',NB.via+' '+NB.civico+', '+NB.cap+' '+NB.comune+' ('+NB.provincia+')']])}
+      </div>
+      <div class="d-hdr-r">
+        <div class="d-tipo">FATTURA</div>
+        <div class="d-num">${esc(titoloDoc)}</div>
+        <div class="d-riga">Data: ${fmtData(f.dataEmissione) === '—' ? fmtData(oggi()) : fmtData(f.dataEmissione)}</div>
+        <div class="d-label">Cessionario / Committente</div>
+        <div class="d-cli">${esc(c.nome || '— cliente non collegato —')}</div>
+        ${ind.r1 ? '<div class="d-riga">'+esc(ind.r1)+'</div>' : ''}
+        ${ind.r2 ? '<div class="d-riga">'+esc(ind.r2)+'</div>' : ''}
+        ${idFiscale.map(x=>'<div class="d-riga">'+esc(x)+'</div>').join('')}
+      </div>
+    </div>
+
+    <div class="d-sec">Descrizione</div><div class="d-hr"></div>
+    <table class="d-tab"><tbody>${righe}</tbody></table>
+    <div class="d-nota">${esc(NATURE[t.natura] || NATURE['N2.2'])}</div>
+    <div class="d-hr"></div>
+
+    <table class="d-tot"><tbody>
+      <tr><td class="d-tot-lab">Imponibile</td><td class="d-tot-val">${eurDoc(t.imponibile)}</td></tr>
+      <tr><td class="d-tot-lab">IVA</td><td class="d-tot-val">—</td></tr>
+      <tr><td class="d-tot-lab">Totale</td><td class="d-tot-val d-grande">${eurDoc(t.totale)}</td></tr>
+    </tbody></table>
+
+    <div class="d-nota">${noteFiscali.map(esc).join(' ')}</div>
+    <div class="d-hr"></div>
+
+    <div class="d-foot">
+      <div>
+        <div class="d-foot-t">Coordinate Bancarie</div>
+        <div class="d-riga">IBAN ${esc(NB.iban)}</div>
+        <div class="d-riga">Banca ${esc(NB.banca)}</div>
+        <div class="d-riga">Intestato a ${esc(NB.nome)}</div>
+      </div>
+      <div>
+        <div class="d-foot-t">Condizioni</div>
+        <div class="d-riga">${esc(f.condizioni || CONDIZIONI_FATTURA)}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------- PREVENTIVO (PDF) ---------- */
+function docPreventivoHTML(p){
+  const c = getCliente(p.clienteId) || {};
+  const voci = (p.voci||[]).filter(v=>v.descrizione || v.importo!=null);
+  const software = (p.software||[]).filter(v=>v.descrizione || v.importo!=null);
+  const totale = p.importo!=null ? p.importo : arrot(totaleVoci(voci) + totaleVoci(software));
+  const data = p.dataInvio || oggi();
+
+  const rigaVoce = v=>`<tr>
+      <td>${esc(v.descrizione)}${v.dettaglio?' <span class="d-det">('+esc(v.dettaglio)+')</span>':''}</td>
+      <td class="d-imp">${v.importo!=null && v.importo>0 ? eurDoc(v.importo) : '—'}</td></tr>`;
+
+  return `<div class="doc">
+    <div class="d-hdr">
+      <div class="d-hdr-l">
+        ${docHeaderNB([['Email',NB.email],['Tel',NB.telefono],['P.IVA',NB.piva],
+                       ['Indirizzo',NB.comune+' ('+NB.provincia+')']])}
+      </div>
+      <div class="d-hdr-r">
+        <div class="d-prev-num"><b>PREVENTIVO #${esc(numeroPreventivoDoc(p))}</b> del ${fmtData(data)}</div>
+        <div class="d-cli d-cli-grande">${esc(c.nome || p.titolo || '')}</div>
+        ${p.sottotitolo ? '<div class="d-sottotitolo">'+esc(p.sottotitolo)+'</div>' : ''}
+      </div>
+    </div>
+
+    ${p.oggetto ? `<div class="d-sec">Oggetto e obiettivo del progetto</div><div class="d-hr"></div>
+      <div class="d-par">${esc(p.oggetto).replace(/\n+/g,'</div><div class="d-par">')}</div>` : ''}
+
+    <div class="d-sec">Attività, ore lavoro compenso concordato</div><div class="d-hr"></div>
+    <table class="d-tab"><tbody>${
+      voci.length ? voci.map(rigaVoce).join('') : '<tr><td class="d-vuoto">Nessuna voce inserita.</td><td class="d-imp">—</td></tr>'
+    }</tbody></table>
+
+    ${software.length ? `<div class="d-sec d-sec-sp">Utilizzo software e strumenti</div><div class="d-hr"></div>
+      <table class="d-tab"><tbody>${software.map(rigaVoce).join('')}</tbody></table>
+      <div class="d-hr"></div>` : '<div class="d-sp"></div>'}
+
+    <table class="d-tot"><tbody>
+      <tr><td class="d-tot-lab">${esc(p.etichettaTotale || 'Totale progetto')}</td><td class="d-tot-val d-grande">${eurDoc(totale)}</td></tr>
+      ${p.validoFino ? `<tr><td class="d-tot-lab">Preventivo valido fino a</td><td class="d-tot-val d-nero"><b>${fmtData(p.validoFino)}</b></td></tr>` : ''}
+    </tbody></table>
+
+    <div class="d-nota d-nota-sx">${esc(NOTA_FORFETTARIO)} Imposta di bollo assolta sull'originale.</div>
+    <div class="d-hr"></div>
+
+    <div class="d-sec">Condizioni</div>
+    <div class="d-par">${esc(p.condizioni || CONDIZIONI_PREVENTIVO)}</div>
+  </div>`;
+}
+
+/* ---------- XML FatturaPA ---------- */
+function xesc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[ch]));
+}
+function tg(nome, val){ return '<'+nome+'>'+xesc(val)+'</'+nome+'>'; }
+/* Lo schema FatturaPA impone una lunghezza massima a quasi tutti i campi
+   testuali: se si sfora, il SdI scarta il file. Qui tronchiamo per sicurezza. */
+function tglim(nome, val, max){ return tg(nome, String(val==null?'':val).slice(0, max)); }
+
+/* Controlli preventivi: il SdI scarta la fattura se mancano questi dati. */
+function verificaDatiXML(f){
+  const err = [];
+  const c = getCliente(f.clienteId);
+  if(!c) err.push('La fattura non è collegata a nessun cliente.');
+  else {
+    if(!c.piva && !c.cf) err.push('Il cliente non ha né Partita IVA né Codice Fiscale: senza almeno uno dei due il SdI scarta la fattura.');
+    if(c.piva && !/^\d{11}$/.test(c.piva)) err.push('La Partita IVA del cliente non è di 11 cifre.');
+    if(!c.via) err.push('Manca l\'indirizzo (via) del cliente.');
+    if(!/^\d{5}$/.test(c.cap||'')) err.push('Il CAP del cliente manca o non è di 5 cifre.');
+    if(!c.comune) err.push('Manca il comune del cliente.');
+    if(!/^[A-Za-z]{2}$/.test(c.provincia||'')) err.push('Manca la sigla della provincia del cliente (2 lettere, es. VI).');
+  }
+  if(!f.numero) err.push('Manca il numero della fattura.');
+  if(!f.dataEmissione) err.push('Manca la data di emissione.');
+  const t = calcolaFattura(f);
+  if(!t.voci.length) err.push('La fattura non ha voci di dettaglio.');
+  if(!(t.totale > 0)) err.push('Il totale della fattura è zero.');
+  if(f.tipoDoc === 'Prestazione occasionale') err.push('Le prestazioni occasionali non si trasmettono come fattura elettronica: cambia il tipo documento o non generare l\'XML.');
+  return err;
+}
+
+function costruisciXML(f, progressivo){
+  const c = getCliente(f.clienteId) || {};
+  const t = calcolaFattura(f);
+  const natura = t.natura;
+  const codiceDest = (c.sdi && c.sdi.length === 7) ? c.sdi.toUpperCase() : '0000000';
+  const pecDest = (codiceDest === '0000000' && c.pec) ? c.pec : '';
+  const tipoDoc = f.tipoDoc === 'Nota di credito' ? 'TD04' : 'TD01';
+
+  const linee = t.voci.map((v,i)=>
+    '      <DettaglioLinee>\n' +
+    '        ' + tg('NumeroLinea', i+1) + '\n' +
+    '        ' + tglim('Descrizione', v.descrizione + (v.dettaglio ? ' ('+v.dettaglio+')' : ''), 1000) + '\n' +
+    '        ' + tg('Quantita', '1.00') + '\n' +
+    '        ' + tg('PrezzoUnitario', num2(v.importo)) + '\n' +
+    '        ' + tg('PrezzoTotale', num2(v.importo)) + '\n' +
+    '        ' + tg('AliquotaIVA', '0.00') + '\n' +
+    '        ' + tg('Natura', natura) + '\n' +
+    '      </DettaglioLinee>'
+  ).join('\n');
+
+  const bollo = t.bolloDovuto
+    ? '        <DatiBollo>\n          ' + tg('BolloVirtuale','SI') + '\n          ' + tg('ImportoBollo','2.00') + '\n        </DatiBollo>\n'
+    : '';
+
+  const idIva = c.piva
+    ? '        <IdFiscaleIVA>\n          ' + tg('IdPaese','IT') + '\n          ' + tg('IdCodice', c.piva) + '\n        </IdFiscaleIVA>\n'
+    : '';
+  const cfCli = c.cf ? '        ' + tg('CodiceFiscale', c.cf) + '\n' : '';
+  const civicoCli = c.civico ? '        ' + tglim('NumeroCivico', c.civico, 8) + '\n' : '';
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<p:FatturaElettronica versione="FPR12"
+  xmlns:p="http://ivaservizi.agenziaentrate.gov.it/docs/xsd/fatture/v1.2"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://ivaservizi.agenziaentrate.gov.it/docs/xsd/fatture/v1.2 https://www.fatturapa.gov.it/export/fatturazione/sdi/fatturapa/v1.2.2/Schema_del_file_xml_FatturaPA_versione_1.2.xsd">
+  <FatturaElettronicaHeader>
+    <DatiTrasmissione>
+      <IdTrasmittente>
+        ${tg('IdPaese','IT')}
+        ${tg('IdCodice', NB.piva)}
+      </IdTrasmittente>
+      ${tg('ProgressivoInvio', prog5(progressivo))}
+      ${tg('FormatoTrasmissione','FPR12')}
+      ${tg('CodiceDestinatario', codiceDest)}
+      <ContattiTrasmittente>
+        ${tg('Telefono', NB.telefonoXml)}
+        ${tg('Email', NB.email)}
+      </ContattiTrasmittente>
+${pecDest ? '      ' + tg('PECDestinatario', pecDest) + '\n' : ''}    </DatiTrasmissione>
+    <CedentePrestatore>
+      <DatiAnagrafici>
+        <IdFiscaleIVA>
+          ${tg('IdPaese','IT')}
+          ${tg('IdCodice', NB.piva)}
+        </IdFiscaleIVA>
+        ${tg('CodiceFiscale', NB.cf)}
+        <Anagrafica>
+          ${tg('Denominazione', NB.nome)}
+        </Anagrafica>
+        ${tg('RegimeFiscale', NB.regime)}
+      </DatiAnagrafici>
+      <Sede>
+        ${tg('Indirizzo', NB.via)}
+        ${tg('NumeroCivico', NB.civico)}
+        ${tg('CAP', NB.cap)}
+        ${tg('Comune', NB.comune)}
+        ${tg('Provincia', NB.provincia)}
+        ${tg('Nazione', NB.nazione)}
+      </Sede>
+      <Contatti>
+        ${tg('Telefono', NB.telefonoXml)}
+        ${tg('Email', NB.email)}
+      </Contatti>
+    </CedentePrestatore>
+    <CessionarioCommittente>
+      <DatiAnagrafici>
+${idIva}${cfCli}        <Anagrafica>
+          ${tglim('Denominazione', c.nome, 80)}
+        </Anagrafica>
+      </DatiAnagrafici>
+      <Sede>
+        ${tglim('Indirizzo', c.via, 60)}
+${civicoCli}        ${tg('CAP', c.cap)}
+        ${tglim('Comune', c.comune, 60)}
+        ${tg('Provincia', (c.provincia||'').toUpperCase())}
+        ${tg('Nazione','IT')}
+      </Sede>
+    </CessionarioCommittente>
+  </FatturaElettronicaHeader>
+  <FatturaElettronicaBody>
+    <DatiGenerali>
+      <DatiGeneraliDocumento>
+        ${tg('TipoDocumento', tipoDoc)}
+        ${tg('Divisa','EUR')}
+        ${tg('Data', f.dataEmissione)}
+        ${tglim('Numero', f.numero, 20)}
+        ${tg('ImportoTotaleDocumento', num2(t.totale))}
+${bollo}        ${tglim('Causale', f.titolo, 200)}
+      </DatiGeneraliDocumento>
+    </DatiGenerali>
+    <DatiBeniServizi>
+${linee}
+      <DatiRiepilogo>
+        ${tg('AliquotaIVA','0.00')}
+        ${tg('Natura', natura)}
+        ${tg('ImponibileImporto', num2(t.imponibile))}
+        ${tg('Imposta','0.00')}
+        ${tglim('RiferimentoNormativo', RIFERIMENTI_XML[natura] || RIFERIMENTI_XML['N2.2'], 100)}
+      </DatiRiepilogo>
+    </DatiBeniServizi>
+    <DatiPagamento>
+      ${tg('CondizioniPagamento','TP02')}
+      <DettaglioPagamento>
+        ${tg('ModalitaPagamento', MODALITA_XML[f.metodo] || 'MP05')}
+        ${tg('ImportoPagamento', num2(t.totale))}
+        ${tg('IBAN', NB.iban)}
+      </DettaglioPagamento>
+    </DatiPagamento>
+  </FatturaElettronicaBody>
+</p:FatturaElettronica>`;
+}
+
+/* ---------- download di un file generato ---------- */
+function scaricaFile(nome, contenuto, mime){
+  const blob = new Blob([contenuto], {type: (mime||'text/plain') + ';charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nome;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+}
+
+window.scaricaXML = function(id, nuovoProgressivo){
+  const f = db.fatture.find(x=>x.id===id); if(!f) return;
+  const errori = verificaDatiXML(f);
+  if(errori.length){
+    const c = getCliente(f.clienteId);
+    apriModal(`<h3>Non posso ancora generare l'XML</h3>
+      <p class="cloud-desc">Il Sistema di Interscambio rifiuterebbe il file. Manca questo:</p>
+      <ul class="lista-errori">${errori.map(e=>'<li>'+esc(e)+'</li>').join('')}</ul>
+      <div class="frm-foot" style="margin-top:16px">
+        <button type="button" class="btn neutro" onclick="chiudiModal()">Chiudi</button>
+        ${c?`<button type="button" class="btn primary" onclick="chiudiModal();apriFormCliente('${c.id}')">Completa il cliente</button>`
+           :`<button type="button" class="btn primary" onclick="chiudiModal();apriFormFattura('${f.id}')">Apri la fattura</button>`}
+      </div>`);
+    return;
+  }
+  if(!f.xmlProgressivo || nuovoProgressivo){
+    db.counters.xml = (db.counters.xml||0) + 1;
+    f.xmlProgressivo = db.counters.xml;
+    salva();
+  }
+  scaricaFile('IT' + NB.piva + '_' + prog5(f.xmlProgressivo) + '.xml', costruisciXML(f, f.xmlProgressivo), 'application/xml');
+  toast('XML generato — progressivo ' + prog5(f.xmlProgressivo));
+  if(document.getElementById('docOverlay') && document.getElementById('docOverlay').classList.contains('open')) apriDocumento('fattura', id);
+};
+
+/* ---------- impostazioni fatturazione elettronica ---------- */
+window.apriImpostazioniSdI = function(){
+  const usati = db.fatture.filter(f=>f.xmlProgressivo).length;
+  apriModal(`<h3>Fatturazione elettronica</h3>
+    <p class="cloud-desc">Il <b>progressivo di invio</b> è il contatore delle trasmissioni al Sistema di Interscambio: finisce nel nome del file (<code>IT${esc(NB.piva)}_00001.xml</code>) e dentro il tracciato. È indipendente dal numero della fattura e non riparte a inizio anno.</p>
+    <form class="frm" onsubmit="salvaImpostazioniSdI(event)">
+      <div class="full"><label>Ultimo progressivo già usato</label>
+        <input type="number" name="xml" min="0" step="1" inputmode="numeric" value="${db.counters.xml||0}">
+        <div class="nota-campo">Il prossimo XML userà il numero successivo. Se hai già trasmesso fatture dal portale prima di usare il gestionale, mettici l'ultimo numero che hai usato lì — altrimenti rischi un progressivo duplicato.</div>
+      </div>
+      <div class="full nota-campo">XML generati da questo gestionale finora: <b>${usati}</b>.</div>
+      <div class="frm-foot"><button type="button" class="btn neutro" onclick="chiudiModal()">Annulla</button><button type="submit" class="btn primary">Salva</button></div>
+    </form>`);
+};
+window.salvaImpostazioniSdI = function(ev){
+  ev.preventDefault();
+  const n = parseInt(ev.target.elements.xml.value, 10);
+  db.counters.xml = isNaN(n) || n < 0 ? 0 : n;
+  salva(); chiudiModal(); toast('Progressivo aggiornato'); render();
+};
+
+/* ---------- anteprima a schermo intero + stampa ---------- */
+function apriDocumento(tipo, id){
+  const rec = tipo==='fattura' ? db.fatture.find(x=>x.id===id) : db.preventivi.find(x=>x.id===id);
+  if(!rec) return;
+  const corpo = tipo==='fattura' ? docFatturaHTML(rec) : docPreventivoHTML(rec);
+
+  let ov = document.getElementById('docOverlay');
+  if(!ov){ ov = document.createElement('div'); ov.id = 'docOverlay'; document.body.appendChild(ov); }
+
+  const azioniXml = tipo==='fattura' ? `
+      <button class="btn" onclick="scaricaXML('${rec.id}')">Scarica XML</button>
+      ${rec.xmlProgressivo ? `<span class="doc-prog">invio n. ${prog5(rec.xmlProgressivo)}<button class="linkino-btn" onclick="scaricaXML('${rec.id}', true)">nuovo progressivo</button></span>` : ''}` : '';
+
+  ov.innerHTML = `<div class="doc-bar">
+      <button class="btn neutro" onclick="chiudiDocumento()">Chiudi</button>
+      <span class="doc-bar-t">${tipo==='fattura' ? esc(rec.numero||'Fattura') : esc(rec.numero||'Preventivo')}</span>
+      <span class="spacer"></span>
+      ${azioniXml}
+      <button class="btn primary" onclick="stampaDocumento()">Stampa / Salva PDF</button>
+    </div>
+    <div class="doc-hint">Per il PDF scegli “Salva come PDF” nella finestra di stampa. Su iPhone: Condividi → Stampa → pizzica sull'anteprima.</div>
+    <div class="doc-scroll">${corpo}</div>`;
+  ov.classList.add('open');
+  document.body.classList.add('doc-aperto');
+}
+window.apriDocumento = apriDocumento;
+window.chiudiDocumento = function(){
+  const ov = document.getElementById('docOverlay');
+  if(ov){ ov.classList.remove('open'); ov.innerHTML=''; }
+  document.body.classList.remove('doc-aperto');
+};
+window.stampaDocumento = function(){
+  try { window.print(); }
+  catch(e){ toast('Usa il menù del browser: Condividi → Stampa'); }
 };
 
 /* ---------- export / import ---------- */
@@ -1429,6 +2147,7 @@ $('#importFile').addEventListener('change', e=>{
       if(!Array.isArray(d.clienti)||!Array.isArray(d.preventivi)||!Array.isArray(d.progetti)||!Array.isArray(d.fatture)) throw new Error('struttura');
       if(!confirm('Importare il backup? I dati attuali verranno sostituiti.')) return;
       db = d; db.counters = db.counters || {pr:0,ft:0};
+      migraDati();
       salva(); render(); toast('Backup importato');
     }catch(_){ alert('File non valido: deve essere un backup JSON di questo gestionale.'); }
   };
@@ -1500,6 +2219,7 @@ async function pullCloud(){
       if(data.updated_at !== cloudStamp){
         db = data.dati || db;
         db.counters = db.counters || {pr:0,ft:0};
+        migraDati();
         cloudStamp = data.updated_at;
         salvaLocale();
         render();
@@ -1525,6 +2245,7 @@ function attivaRealtime(){
           if(!nuovo || nuovo.updated_at === cloudStamp || modifichePendenti) return;
           db = nuovo.dati || db;
           db.counters = db.counters || {pr:0,ft:0};
+          migraDati();
           cloudStamp = nuovo.updated_at;
           salvaLocale(); render(); setSync('ok');
         })
