@@ -400,6 +400,10 @@ body.doc-aperto{overflow:hidden}
 .doc-bar .spacer{flex:1}
 .doc-prog{color:var(--muted);font-size:12px;font-weight:600;white-space:nowrap}
 .doc-hint{color:var(--muted);font-size:12.5px;line-height:1.5;padding:10px 16px 0;max-width:900px;margin:0 auto}
+.doc-avviso{display:flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:900px;margin:12px auto 0;
+  background:var(--danger-soft);color:var(--danger);border-radius:13px;padding:12px 15px;
+  font-size:13.5px;line-height:1.5;font-weight:500}
+.doc-avviso .btn{color:var(--testo);font-weight:600}
 .doc-scroll{padding:16px 12px 60px}
 
 /* Il foglio: colori fissi NB, non seguono il tema chiaro/scuro */
@@ -447,9 +451,13 @@ body.doc-aperto{overflow:hidden}
 .doc .d-tot .d-tot-val{text-align:right;white-space:nowrap;font-weight:600}
 .doc .d-tot .d-grande{font-size:17px;font-weight:700;color:#C49A3C}
 .doc .d-tot .d-nero{color:#1A1A1A;font-size:12px;font-weight:600}
+.d-cli-min{color:#6B6B6B;font-size:10.5px}
 .d-foot{display:flex;gap:34px;margin-top:16px}
 .d-foot>div{flex:1}
 .d-foot-t{font-weight:700;font-size:12px;margin-bottom:5px}
+.doc .d-estremi{margin:0 0 7px}
+.doc .d-estremi td{padding:1px 0;font-size:11px;line-height:1.7}
+.doc .d-estremi .d-estremi-lab{color:#6B6B6B;padding-right:14px;white-space:nowrap}
 
 /* ============ STAMPA: esce solo il foglio ============ */
 @media print{
@@ -457,7 +465,7 @@ body.doc-aperto{overflow:hidden}
   body>*{display:none !important}
   body.doc-aperto{overflow:visible !important}
   #docOverlay{display:block !important;position:static !important;overflow:visible !important;background:#fff !important;inset:auto}
-  .doc-bar,.doc-hint{display:none !important}
+  .doc-bar,.doc-hint,.doc-avviso{display:none !important}
   .doc-scroll{padding:0 !important}
   .doc{max-width:none !important;width:auto !important;margin:0 !important;padding:0 !important;
     border-radius:0 !important;box-shadow:none !important;font-size:10pt !important}
@@ -1782,6 +1790,21 @@ function docFatturaHTML(f){
   if(c.piva) idFiscale.push('P.IVA ' + c.piva);
   if(c.cf && c.cf !== c.piva) idFiscale.push('C.F. ' + c.cf);
 
+  /* Contatti del cliente: non sono obbligatori in fattura, ma su una fattura
+     di cortesia aiutano chi la riceve a capire a chi è indirizzata. */
+  const contattiCli = [];
+  if(c.referente) contattiCli.push('Alla c.a. ' + c.referente);
+  if(c.email) contattiCli.push(c.email);
+  if(c.telefono) contattiCli.push(c.telefono);
+
+  /* Estremi del pagamento: erano nel record ma non finivano nel documento. */
+  const estremi = [];
+  if(f.scadenzaPagamento) estremi.push(['Scadenza', fmtData(f.scadenzaPagamento)]);
+  if(f.metodo) estremi.push(['Modalità', f.metodo]);
+  const prog = f.progettoId ? getProgetto(f.progettoId) : null;
+  if(prog) estremi.push(['Riferimento', prog.titolo]);
+  if(f.statoPagamento === 'Pagata' && f.dataIncasso) estremi.push(['Saldata il', fmtData(f.dataIncasso)]);
+
   const righe = t.voci.length
     ? t.voci.map(v=>`<tr>
         <td>${esc(v.descrizione)}${v.dettaglio?' <span class="d-det">('+esc(v.dettaglio)+')</span>':''}</td>
@@ -1804,10 +1827,12 @@ function docFatturaHTML(f){
         <div class="d-num">${esc(titoloDoc)}</div>
         <div class="d-riga">Data: ${fmtData(f.dataEmissione) === '—' ? fmtData(oggi()) : fmtData(f.dataEmissione)}</div>
         <div class="d-label">Cessionario / Committente</div>
+        ${c.nome ? '<div class="d-riga">Spett.le</div>' : ''}
         <div class="d-cli">${esc(c.nome || '— cliente non collegato —')}</div>
         ${ind.r1 ? '<div class="d-riga">'+esc(ind.r1)+'</div>' : ''}
         ${ind.r2 ? '<div class="d-riga">'+esc(ind.r2)+'</div>' : ''}
         ${idFiscale.map(x=>'<div class="d-riga">'+esc(x)+'</div>').join('')}
+        ${contattiCli.map(x=>'<div class="d-riga d-cli-min">'+esc(x)+'</div>').join('')}
       </div>
     </div>
 
@@ -1834,10 +1859,26 @@ function docFatturaHTML(f){
       </div>
       <div>
         <div class="d-foot-t">Condizioni</div>
+        ${estremi.length ? '<table class="d-estremi"><tbody>' + estremi.map(e=>
+          `<tr><td class="d-estremi-lab">${esc(e[0])}</td><td>${esc(e[1])}</td></tr>`).join('') + '</tbody></table>' : ''}
         <div class="d-riga">${esc(f.condizioni || CONDIZIONI_FATTURA)}</div>
       </div>
     </div>
   </div>`;
+}
+
+/* Elenco dei dati cliente mancanti. Serve all'avviso in anteprima (solo a
+   schermo, non stampato): il documento senza indirizzo e P.IVA è incompleto. */
+function datiClienteMancanti(f){
+  const c = getCliente(f.clienteId);
+  if(!c) return ['Nessun cliente collegato alla fattura'];
+  const m = [];
+  if(!c.via) m.push('indirizzo');
+  if(!c.cap) m.push('CAP');
+  if(!c.comune) m.push('comune');
+  if(!c.provincia) m.push('provincia');
+  if(!c.piva && !c.cf) m.push('Partita IVA o Codice Fiscale');
+  return m;
 }
 
 /* ---------- PREVENTIVO (PDF) ---------- */
@@ -2108,6 +2149,19 @@ function apriDocumento(tipo, id){
   let ov = document.getElementById('docOverlay');
   if(!ov){ ov = document.createElement('div'); ov.id = 'docOverlay'; document.body.appendChild(ov); }
 
+  /* Avviso a schermo se il documento uscirebbe senza i dati del cliente:
+     la @media print lo esclude, quindi non finisce nel PDF. */
+  let avviso = '';
+  if(tipo==='fattura'){
+    const manca = datiClienteMancanti(rec);
+    const cl = getCliente(rec.clienteId);
+    if(manca.length) avviso = `<div class="doc-avviso">
+      <b>La fattura esce incompleta:</b> nella scheda cliente manca ${esc(manca.join(', '))}.
+      ${cl ? `<button class="btn mini" onclick="chiudiDocumento();apriFormCliente('${cl.id}')">Completa ${esc(cl.nome)}</button>`
+           : `<button class="btn mini" onclick="chiudiDocumento();apriFormFattura('${rec.id}')">Collega un cliente</button>`}
+    </div>`;
+  }
+
   const azioniXml = tipo==='fattura' ? `
       <button class="btn" onclick="scaricaXML('${rec.id}')">Scarica XML</button>
       ${rec.xmlProgressivo ? `<span class="doc-prog">invio n. ${prog5(rec.xmlProgressivo)}<button class="linkino-btn" onclick="scaricaXML('${rec.id}', true)">nuovo progressivo</button></span>` : ''}` : '';
@@ -2120,6 +2174,7 @@ function apriDocumento(tipo, id){
       <button class="btn primary" onclick="stampaDocumento()">Stampa / Salva PDF</button>
     </div>
     <div class="doc-hint">Per il PDF scegli “Salva come PDF” nella finestra di stampa. Su iPhone: Condividi → Stampa → pizzica sull'anteprima.</div>
+    ${avviso}
     <div class="doc-scroll">${corpo}</div>`;
   ov.classList.add('open');
   document.body.classList.add('doc-aperto');
