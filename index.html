@@ -2666,7 +2666,9 @@ if(!lsOk) $('#bannerMem').style.display='block';
 /* ============================================================
    BOARD COMPATTE + FILTRO PERIODO — Gestionale P.IVA
    - interruttore Compatta/Esteso sulle board (default: compatta)
-   - schede concluse (Accettato/Fatto/Pagata) mostrate ma attenuate e più piccole
+   - in COMPATTA: schede minimali, senza chip, senza date, SENZA ICONE (azioni nascoste)
+   - in ESTESO: schede complete con icone, come in origine
+   - schede concluse (Accettato/Fatto/Pagata) attenuate; piene al passaggio del mouse
    - filtro periodo (Tutto/Mese/Trimestre/Semestre/Anno) su Preventivi, Progetti, Fatture
    Non modifica righe esistenti: sovrascrive a runtime le viste board.
    Per rimuoverlo, cancella questo blocco.
@@ -2680,25 +2682,19 @@ if(!lsOk) $('#bannerMem').style.display='block';
     st.textContent = `
     .kb-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 14px}
     .kb-toolbar select{padding:8px 11px;border-radius:11px;border:1px solid var(--line);background:var(--input);color:var(--ink);font-size:14px;font-weight:600}
-    /* modalità compatta: vale su tutta la board */
+    /* modalità compatta: massima densità (niente chip, date, icone) */
     .kbwrap.compact .kb-cards{gap:6px}
     .kbwrap.compact .kcard{padding:8px 11px;border-radius:12px}
-    .kbwrap.compact .kcard-title{font-size:13px;margin-top:4px;line-height:1.25}
+    .kbwrap.compact .kcard-title{font-size:13px;margin-top:2px;line-height:1.25}
     .kbwrap.compact .kcard-sub{font-size:11.5px;margin-top:1px}
     .kbwrap.compact .kcard-val{font-size:13.5px}
     .kbwrap.compact .kcard .chip{display:none}
     .kbwrap.compact .kcard-date{display:none}
-    .kbwrap.compact .kcard-actions{margin-top:7px;gap:5px}
-    /* schede concluse: sempre più piccole e attenuate (in ogni modalità) */
+    .kbwrap.compact .kcard-actions{display:none}
+    /* schede concluse: attenuate in ogni modalità, piene al passaggio del mouse */
     .kbwrap .kb-col[data-stato="Accettato"] .kcard,
     .kbwrap .kb-col[data-stato="Fatto"] .kcard,
-    .kbwrap .kb-col[data-stato="Pagata"] .kcard{opacity:.6;padding:8px 11px}
-    .kbwrap .kb-col[data-stato="Accettato"] .kcard .chip,
-    .kbwrap .kb-col[data-stato="Fatto"] .kcard .chip,
-    .kbwrap .kb-col[data-stato="Pagata"] .kcard .chip{display:none}
-    .kbwrap .kb-col[data-stato="Accettato"] .kcard .kcard-date,
-    .kbwrap .kb-col[data-stato="Fatto"] .kcard .kcard-date,
-    .kbwrap .kb-col[data-stato="Pagata"] .kcard .kcard-date{display:none}
+    .kbwrap .kb-col[data-stato="Pagata"] .kcard{opacity:.6}
     .kbwrap .kb-col[data-stato="Accettato"] .kcard:hover,
     .kbwrap .kb-col[data-stato="Fatto"] .kcard:hover,
     .kbwrap .kb-col[data-stato="Pagata"] .kcard:hover{opacity:1}
