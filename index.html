@@ -2663,6 +2663,154 @@ if(!lsOk) $('#bannerMem').style.display='block';
 })();
 /* ============ FINE SEZIONE RESOCONTO ============ */
 
+/* ============================================================
+   BOARD COMPATTE + FILTRO PERIODO — Gestionale P.IVA
+   - interruttore Compatta/Esteso sulle board (default: compatta)
+   - schede concluse (Accettato/Fatto/Pagata) mostrate ma attenuate e più piccole
+   - filtro periodo (Tutto/Mese/Trimestre/Semestre/Anno) su Preventivi, Progetti, Fatture
+   Non modifica righe esistenti: sovrascrive a runtime le viste board.
+   Per rimuoverlo, cancella questo blocco.
+   ============================================================ */
+(function(){
+
+  /* --- stile (iniettato a runtime, così non tocchiamo il CSS esistente) --- */
+  if(!document.getElementById('kb-compact-style')){
+    const st = document.createElement('style');
+    st.id = 'kb-compact-style';
+    st.textContent = `
+    .kb-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 14px}
+    .kb-toolbar select{padding:8px 11px;border-radius:11px;border:1px solid var(--line);background:var(--input);color:var(--ink);font-size:14px;font-weight:600}
+    /* modalità compatta: vale su tutta la board */
+    .kbwrap.compact .kb-cards{gap:6px}
+    .kbwrap.compact .kcard{padding:8px 11px;border-radius:12px}
+    .kbwrap.compact .kcard-title{font-size:13px;margin-top:4px;line-height:1.25}
+    .kbwrap.compact .kcard-sub{font-size:11.5px;margin-top:1px}
+    .kbwrap.compact .kcard-val{font-size:13.5px}
+    .kbwrap.compact .kcard .chip{display:none}
+    .kbwrap.compact .kcard-date{display:none}
+    .kbwrap.compact .kcard-actions{margin-top:7px;gap:5px}
+    /* schede concluse: sempre più piccole e attenuate (in ogni modalità) */
+    .kbwrap .kb-col[data-stato="Accettato"] .kcard,
+    .kbwrap .kb-col[data-stato="Fatto"] .kcard,
+    .kbwrap .kb-col[data-stato="Pagata"] .kcard{opacity:.6;padding:8px 11px}
+    .kbwrap .kb-col[data-stato="Accettato"] .kcard .chip,
+    .kbwrap .kb-col[data-stato="Fatto"] .kcard .chip,
+    .kbwrap .kb-col[data-stato="Pagata"] .kcard .chip{display:none}
+    .kbwrap .kb-col[data-stato="Accettato"] .kcard .kcard-date,
+    .kbwrap .kb-col[data-stato="Fatto"] .kcard .kcard-date,
+    .kbwrap .kb-col[data-stato="Pagata"] .kcard .kcard-date{display:none}
+    .kbwrap .kb-col[data-stato="Accettato"] .kcard:hover,
+    .kbwrap .kb-col[data-stato="Fatto"] .kcard:hover,
+    .kbwrap .kb-col[data-stato="Pagata"] .kcard:hover{opacity:1}
+    `;
+    document.head.appendChild(st);
+  }
+
+  /* --- stato UI (default: compatta, nessun filtro periodo) --- */
+  const _t = new Date();
+  if(ui.kbCompact == null) ui.kbCompact = true;
+  if(ui.kbMode == null)    ui.kbMode = 'tutto';
+  if(ui.kbY == null){ ui.kbY = _t.getFullYear(); ui.kbM = _t.getMonth(); }
+
+  const LEN  = {mese:1, trimestre:3, semestre:6, anno:12};
+  const MESI = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+  function pad2(n){ return String(n).padStart(2,'0'); }
+  function isoOf(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+  function bounds(mode, y, m){
+    let sm;
+    if(mode==='mese')           sm = m;
+    else if(mode==='trimestre') sm = Math.floor(m/3)*3;
+    else if(mode==='semestre')  sm = Math.floor(m/6)*6;
+    else                        sm = 0;
+    const len = LEN[mode];
+    const start = new Date(y, sm, 1), end = new Date(y, sm+len, 1);
+    return { from: isoOf(start), to: isoOf(end), start: start };
+  }
+  function labelOf(mode, y, m){
+    const b = bounds(mode, y, m);
+    const sy = b.start.getFullYear(), sm = b.start.getMonth();
+    if(mode==='mese')      return MESI[sm]+' '+sy;
+    if(mode==='trimestre') return 'T'+(sm/3+1)+' '+sy;
+    if(mode==='semestre')  return (sm===0?'1º':'2º')+' semestre '+sy;
+    return ''+sy;
+  }
+  function inPer(d, b){ return !!d && d>=b.from && d<b.to; }
+
+  /* --- filtro record per periodo (mantiene sempre le schede SENZA data) --- */
+  function filtra(records, entity){
+    if(ui.kbMode === 'tutto') return records;
+    const b = bounds(ui.kbMode, ui.kbY, ui.kbM);
+    return records.filter(r=>{
+      if(entity === 'fattura'){
+        if(!r.dataEmissione && !r.dataIncasso) return true;           // senza data: sempre visibile
+        return inPer(r.dataEmissione, b) || inPer(r.dataIncasso, b);
+      }
+      const d = entity === 'preventivo' ? r.dataInvio : r.dataInizio;
+      return d ? inPer(d, b) : true;                                   // senza data: sempre visibile
+    });
+  }
+
+  /* --- controlli (globali per gli onclick) --- */
+  window.kbToggleCompact = function(){ ui.kbCompact = !ui.kbCompact; render(); };
+  window.kbSetMode = function(m){ ui.kbMode = m; render(); };
+  window.kbNav = function(dir){
+    const len = LEN[ui.kbMode] || 1;
+    const a = new Date(ui.kbY, ui.kbM + dir*len, 1);
+    ui.kbY = a.getFullYear(); ui.kbM = a.getMonth();
+    render();
+  };
+  window.kbOggi = function(){ const t=new Date(); ui.kbY=t.getFullYear(); ui.kbM=t.getMonth(); render(); };
+
+  /* --- barra strumenti sopra ogni board --- */
+  function toolbar(){
+    const modes = [['tutto','Tutto'],['mese','Mese'],['trimestre','Trimestre'],['semestre','Semestre'],['anno','Anno']];
+    const sel = modes.map(([v,l])=>'<option value="'+v+'"'+(v===ui.kbMode?' selected':'')+'>'+l+'</option>').join('');
+    const showNav = ui.kbMode !== 'tutto';
+    const navHtml = showNav
+      ? `<span style="display:inline-flex;align-items:center;gap:6px">
+           <button class="btn neutro" onclick="kbNav(-1)" aria-label="Periodo precedente" style="min-width:40px">‹</button>
+           <b style="min-width:120px;text-align:center">${labelOf(ui.kbMode, ui.kbY, ui.kbM)}</b>
+           <button class="btn neutro" onclick="kbNav(1)" aria-label="Periodo successivo" style="min-width:40px">›</button>
+           <button class="btn" onclick="kbOggi()">Oggi</button>
+         </span>`
+      : '';
+    return `<div class="kb-toolbar">
+      <button class="btn" onclick="kbToggleCompact()">${ui.kbCompact ? '▤ Esteso' : '▦ Compatta'}</button>
+      <select onchange="kbSetMode(this.value)" aria-label="Filtro periodo">${sel}</select>
+      ${navHtml}
+    </div>`;
+  }
+  function wrap(kbHtml){
+    return '<div class="kbwrap'+(ui.kbCompact ? ' compact' : '')+'">'+kbHtml+'</div>';
+  }
+
+  /* --- viste board sovrascritte (aggiungono barra + filtro, riusano tutto il resto) --- */
+  window.vPreventivi = function(){
+    return `
+    <div class="sec-head"><h2>Preventivi</h2><button class="btn primary" onclick="apriFormPreventivo()">＋ Nuovo</button></div>
+    ${toolbar()}
+    ${wrap(kanban('preventivo', STATI_PREVENTIVO, filtra(db.preventivi,'preventivo'), 'stato', cardPreventivo))}
+    `;
+  };
+  window.vProgetti = function(){
+    return `
+    <div class="sec-head"><h2>Progetti</h2><button class="btn primary" onclick="apriFormProgetto()">＋ Nuovo</button></div>
+    ${toolbar()}
+    ${wrap(kanban('progetto', STATI_PROGETTO, filtra(db.progetti,'progetto'), 'stato', cardProgetto))}
+    `;
+  };
+  window.vFatture = function(){
+    return `
+    <div class="sec-head"><h2>Fatture</h2><button class="btn primary" onclick="apriFormFattura()">＋ Nuova</button></div>
+    ${toolbar()}
+    ${wrap(kanban('fattura', STATI_FATTURA, filtra(db.fatture,'fattura'), 'statoPagamento', cardFattura))}
+    ${scadenzarioHTML(false)}
+    `;
+  };
+
+})();
+/* ============ FINE BOARD COMPATTE ============ */
+
 costruisciNav();
 render();
 initCloud();
