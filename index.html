@@ -2424,17 +2424,24 @@ if('serviceWorker' in navigator && (location.protocol==='https:' || location.hos
 if(!lsOk) $('#bannerMem').style.display='block';
 /* ============================================================
    SEZIONE "RESOCONTO" — Gestionale P.IVA
-   Aggiunge una scheda per filtrare fatture/preventivi/progetti per
-   periodo (Mese/Trimestre/Semestre/Anno) con navigazione avanti/indietro.
+   Filtra fatture/preventivi/progetti per periodo (Mese/Trimestre/Semestre/
+   Anno) con navigazione avanti/indietro.
+   NON è più una pagina a sé: viene renderizzata IN CODA alla Dashboard,
+   subito sotto "Consigli & promemoria".
    Non modifica nessuna riga esistente. Per rimuoverla, cancella questo blocco.
    ============================================================ */
 (function(){
 
-  /* 1. voce di menu (dopo Dashboard) + icona */
-  if(!VIEWS.some(v=>v.id==='resoconto')){
-    VIEWS.splice(1, 0, {id:'resoconto', label:'Resoconto'});
-  }
-  ICONS.resoconto = '<svg viewBox="0 0 24 24"><rect x="4" y="12" width="3.4" height="8" rx="1.2"/><rect x="10.3" y="7" width="3.4" height="13" rx="1.2"/><rect x="16.6" y="3.5" width="3.4" height="16.5" rx="1.2"/></svg>';
+  /* 1. nessuna voce di menu: il Resoconto vive dentro la Dashboard.
+        Rimuove l'eventuale voce residua e reindirizza la vecchia vista. */
+  const _iRes = VIEWS.findIndex(v=>v.id==='resoconto');
+  if(_iRes > -1) VIEWS.splice(_iRes, 1);
+  if(ui.view === 'resoconto') ui.view = 'dashboard';
+  const _vaiBase = vai;
+  vai = function(view, clienteId){
+    return _vaiBase(view === 'resoconto' ? 'dashboard' : view, clienteId);
+  };
+  window.vai = vai;
 
   /* 2. stato del periodo selezionato */
   const _oggi = new Date();
@@ -2475,17 +2482,24 @@ if(!lsOk) $('#bannerMem').style.display='block';
     return ' · <b style="color:'+(su?'var(--ok)':'var(--danger)')+'">'+(su?'▲':'▼')+' '+Math.abs(p)+'%</b> vs prec.';
   }
 
-  /* 3. controlli del selettore (globali per gli onclick) */
-  window.resSetMode = function(m){ ui.resMode = m; render(); };
+  /* 3. controlli del selettore (globali per gli onclick)
+        resRender mantiene la posizione di scroll: il Resoconto sta in fondo
+        alla Dashboard, un salto in cima a ogni cambio periodo sarebbe fastidioso. */
+  function resRender(){
+    const y = window.scrollY;
+    render();
+    try{ window.scrollTo(0, y); }catch(e){}
+  }
+  window.resSetMode = function(m){ ui.resMode = m; resRender(); };
   window.resNav = function(dir){
     const len = LEN[ui.resMode];
     const a = new Date(ui.resY, ui.resM + dir*len, 1);
     ui.resY = a.getFullYear(); ui.resM = a.getMonth();
-    render();
+    resRender();
   };
   window.resOggi = function(){
     const t = new Date(); ui.resY = t.getFullYear(); ui.resM = t.getMonth();
-    render();
+    resRender();
   };
 
   /* 4. costruttore tabelle (riusa gli stili esistenti) */
@@ -2634,6 +2648,7 @@ if(!lsOk) $('#bannerMem').style.display='block';
     }
 
     return `
+    <div class="res-sep"></div>
     <div class="sec-head"><h2>Resoconto</h2><span class="sub">${resLabel(mode,b)}</span></div>
     ${barra}
     ${cards}
@@ -2647,17 +2662,19 @@ if(!lsOk) $('#bannerMem').style.display='block';
     `;
   };
 
-  /* 6. aggancio alla navigazione (senza toccare la render originale) */
-  const _renderBase = render;
-  render = function(){
-    if(ui.view === 'resoconto'){
-      document.querySelectorAll('[data-view]').forEach(bt=>
-        bt.classList.toggle('active', bt.dataset.view === 'resoconto'));
-      $('#app').innerHTML = vResoconto();
-      try{ window.scrollTo(0,0); }catch(e){}
-      return;
-    }
-    _renderBase();
+  /* 6. separatore visivo fra "Consigli & promemoria" e il Resoconto */
+  if(!document.getElementById('res-embed-style')){
+    const st = document.createElement('style');
+    st.id = 'res-embed-style';
+    st.textContent = '.res-sep{height:1px;background:var(--line);margin:34px 0 26px;border:0}';
+    document.head.appendChild(st);
+  }
+
+  /* 7. aggancio alla Dashboard: il Resoconto viene accodato alla vista
+        dashboard, subito dopo "Consigli & promemoria" (ultima sezione). */
+  const _vDashboardBase = vDashboard;
+  vDashboard = function(){
+    return _vDashboardBase() + vResoconto();
   };
 
 })();
