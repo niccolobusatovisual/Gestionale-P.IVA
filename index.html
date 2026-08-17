@@ -2425,7 +2425,9 @@ if(!lsOk) $('#bannerMem').style.display='block';
 /* ============================================================
    SEZIONE "RESOCONTO" — Gestionale P.IVA
    Filtra fatture/preventivi/progetti per periodo (Mese/Trimestre/Semestre/
-   Anno) con navigazione avanti/indietro.
+   Anno) con navigazione avanti/indietro. In cima, un grafico a barre
+   "Andamento fatturato" (Emesso/Incassato, SVG disegnato a mano) sugli
+   ultimi 12 mesi fissi — non segue il periodo selezionato sotto di lui.
    NON è più una pagina a sé: viene renderizzata IN CODA alla Dashboard,
    subito sotto "Consigli & promemoria".
    Non modifica nessuna riga esistente. Per rimuoverla, cancella questo blocco.
@@ -2510,6 +2512,94 @@ if(!lsOk) $('#bannerMem').style.display='block';
     return '<div class="twrap"><table><thead><tr>'
       + intestazioni.map(h=>'<th>'+h+'</th>').join('')
       + '</tr></thead><tbody>'+righeHtml+'</tbody></table></div>';
+  }
+
+  /* 4b. grafico "Andamento fatturato" — barre Emesso/Incassato, ultimi 12
+        mesi FISSI (non segue il selettore di periodo qui sotto: dà sempre
+        il quadro d'insieme). SVG disegnato a mano, nessuna libreria. */
+  function eur0(n){ return new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n||0); }
+  function niceMax(v){
+    if(v<=0) return 100;
+    const exp = Math.floor(Math.log10(v));
+    const f = v / Math.pow(10, exp);
+    const nf = f<=1?1 : f<=2?2 : f<=5?5 : 10;
+    return nf * Math.pow(10, exp);
+  }
+  function datiAndamento12m(){
+    const oggi = new Date(), out = [];
+    for(let i=11; i>=0; i--){
+      const d = new Date(oggi.getFullYear(), oggi.getMonth()-i, 1);
+      const y = d.getFullYear(), m = d.getMonth();
+      const from = fmtISO(new Date(y,m,1)), to = fmtISO(new Date(y,m+1,1));
+      const dentro = dt => dt>=from && dt<to;
+      out.push({
+        label: MESI[m].slice(0,3),
+        anno: y,
+        emesso:    somma(db.fatture.filter(f=>dentro(f.dataEmissione||'')), f=>f.totale),
+        incassato: somma(db.fatture.filter(f=>dentro(f.dataIncasso  ||'')), f=>f.totale),
+      });
+    }
+    return out;
+  }
+  function svgAndamento(mesi){
+    const max = Math.max(1, ...mesi.map(m=>Math.max(m.emesso, m.incassato)));
+    const top = niceMax(max);
+    const W=900, H=280, ml=54, mr=10, mt=16, mb=28;
+    const pw = W-ml-mr, ph = H-mt-mb, y0 = mt+ph;
+    const y = v => mt + ph - (v/top)*ph;
+    const gw = pw/mesi.length, bw = Math.min(22, gw*0.32), gap = 3;
+
+    const grid = [top/2, top].map(v=>{
+      const yy = y(v);
+      return `<line x1="${ml}" y1="${yy}" x2="${W-mr}" y2="${yy}" class="chart-grid"/>`
+           + `<text x="${ml-8}" y="${yy+4}" text-anchor="end" class="chart-axis">${eur0(v)}</text>`;
+    }).join('');
+
+    function barra(x, yTop, w, h){
+      if(h<=0) return '';
+      const r = Math.min(4, w/2, h);
+      return `M${x},${y0} L${x},${yTop+r} Q${x},${yTop} ${x+r},${yTop} `
+           + `L${x+w-r},${yTop} Q${x+w},${yTop} ${x+w},${yTop+r} L${x+w},${y0} Z`;
+    }
+
+    const gruppi = mesi.map((m,i)=>{
+      const cx = ml + i*gw + gw/2;
+      const x1 = cx - gap/2 - bw, x2 = cx + gap/2;
+      const y1 = y(m.emesso), y2 = y(m.incassato);
+      const ultimo = i===mesi.length-1;
+      const etichetta = (x,yy,val) => ultimo
+        ? `<text x="${x+bw/2}" y="${Math.max(mt+9,yy-6)}" text-anchor="middle" class="chart-val">${eur0(val)}</text>` : '';
+      return `<g>
+        <path d="${barra(x1,y1,bw,y0-y1)}" class="chart-bar-1"><title>${esc(m.label+' '+m.anno)} · Emesso ${eur(m.emesso)}</title></path>
+        <path d="${barra(x2,y2,bw,y0-y2)}" class="chart-bar-2"><title>${esc(m.label+' '+m.anno)} · Incassato ${eur(m.incassato)}</title></path>
+        ${etichetta(x1,y1,m.emesso)}${etichetta(x2,y2,m.incassato)}
+        <text x="${cx}" y="${H-8}" text-anchor="middle" class="chart-axis">${esc(m.label)}</text>
+      </g>`;
+    }).join('');
+
+    return `<svg viewBox="0 0 ${W} ${H}" class="chart-svg" role="img" aria-label="Andamento fatturato emesso e incassato negli ultimi 12 mesi">
+      <line x1="${ml}" y1="${y0}" x2="${W-mr}" y2="${y0}" class="chart-axisline"/>
+      <text x="${ml-8}" y="${y0+4}" text-anchor="end" class="chart-axis">€0</text>
+      ${grid}
+      ${gruppi}
+    </svg>`;
+  }
+  function vChartAndamento(){
+    const mesi = datiAndamento12m();
+    return `
+    <div class="chart-card">
+      <div class="chart-head">
+        <div>
+          <div class="chart-title">Andamento fatturato</div>
+          <div class="chart-sub">Ultimi 12 mesi · non segue il periodo selezionato qui sotto</div>
+        </div>
+        <div class="chart-legend">
+          <span class="lk lk-1">Emesso <b>${eur0(somma(mesi,m=>m.emesso))}</b></span>
+          <span class="lk lk-2">Incassato <b>${eur0(somma(mesi,m=>m.incassato))}</b></span>
+        </div>
+      </div>
+      ${svgAndamento(mesi)}
+    </div>`;
   }
 
   /* 5. vista Resoconto */
@@ -2650,6 +2740,7 @@ if(!lsOk) $('#bannerMem').style.display='block';
     return `
     <div class="res-sep"></div>
     <div class="sec-head"><h2>Resoconto</h2><span class="sub">${resLabel(mode,b)}</span></div>
+    ${vChartAndamento()}
     ${barra}
     ${cards}
     <div class="sec-head" style="margin-top:24px"><h2>Fatture del periodo</h2><span class="sub">emesse o incassate nel periodo</span></div>
@@ -2666,7 +2757,26 @@ if(!lsOk) $('#bannerMem').style.display='block';
   if(!document.getElementById('res-embed-style')){
     const st = document.createElement('style');
     st.id = 'res-embed-style';
-    st.textContent = '.res-sep{height:1px;background:var(--line);margin:34px 0 26px;border:0}';
+    st.textContent = '.res-sep{height:1px;background:var(--line);margin:34px 0 26px;border:0}'
+      + ':root{--chart-1:#ff6b1a;--chart-2:#007aff}'
+      + '[data-theme=dark]{--chart-1:#e8660a;--chart-2:#0a84ff}'
+      + '.chart-card{background:var(--card);border-radius:var(--r-xl);padding:18px 18px 20px;box-shadow:var(--shadow-sm);margin-bottom:22px}'
+      + '.chart-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:8px}'
+      + '.chart-title{font-weight:800;font-size:16px}'
+      + '.chart-sub{color:var(--muted);font-size:12.5px;margin-top:2px}'
+      + '.chart-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted)}'
+      + '.chart-legend b{color:var(--ink);font-weight:700;margin-left:4px}'
+      + '.chart-legend .lk{position:relative;padding-left:15px}'
+      + '.chart-legend .lk::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);width:9px;height:9px;border-radius:3px}'
+      + '.chart-legend .lk-1::before{background:var(--chart-1)}'
+      + '.chart-legend .lk-2::before{background:var(--chart-2)}'
+      + '.chart-svg{width:100%;height:auto;display:block;overflow:visible}'
+      + '.chart-bar-1{fill:var(--chart-1)}'
+      + '.chart-bar-2{fill:var(--chart-2)}'
+      + '.chart-grid{stroke:var(--line);stroke-width:1}'
+      + '.chart-axisline{stroke:var(--line);stroke-width:1}'
+      + '.chart-axis{fill:var(--muted);font-size:11px}'
+      + '.chart-val{fill:var(--ink);font-size:11px;font-weight:700}';
     document.head.appendChild(st);
   }
 
