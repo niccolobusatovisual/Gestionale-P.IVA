@@ -2452,10 +2452,13 @@ if(!lsOk) $('#bannerMem').style.display='block';
    SEZIONE "RESOCONTO" — Gestionale P.IVA
    Filtra fatture/preventivi/progetti per periodo (Mese/Trimestre/Semestre/
    Anno) con navigazione avanti/indietro. In cima, un grafico a barre
-   "Andamento fatturato" (Emesso/Incassato, SVG disegnato a mano) sugli
-   ultimi 12 mesi fissi; il mese in evidenza è sincronizzato con quello
+   "Andamento fatturato" (Emesso/Incassato, SVG disegnato a mano) su una
+   finestra di 12 mesi; il mese in evidenza è sincronizzato con quello
    del Resoconto sotto (cliccare un mese o usare le frecce del grafico
-   imposta anche il periodo del Resoconto, e viceversa).
+   imposta anche il periodo del Resoconto, e viceversa). Di default la
+   finestra mostra gli ultimi 12 mesi da oggi, ma scorre per seguire il
+   mese selezionato quando questo esce dalla finestra corrente (vedi
+   finestraFine più sotto).
    NON è più una pagina a sé: viene renderizzata IN CODA alla Dashboard,
    subito sotto "Consigli & promemoria".
    Non modifica nessuna riga esistente. Per rimuoverla, cancella questo blocco.
@@ -2552,10 +2555,11 @@ if(!lsOk) $('#bannerMem').style.display='block';
   }
 
   /* 4b. grafico "Andamento fatturato" — barre Emesso/Incassato, finestra
-        di 12 mesi FISSA (sempre gli ultimi 12 rispetto a oggi). Il mese
-        evidenziato invece è ui.resY/ui.resM, condiviso col Resoconto:
-        cliccare una colonna o le frecce del grafico chiama chartSelMese/
-        chartNav, che impostano anche il periodo del Resoconto sotto.
+        di 12 mesi che di default mostra gli ultimi 12 rispetto a oggi, ma
+        scorre (finestraFine) per includere sempre il mese selezionato
+        (ui.resY/ui.resM, condiviso col Resoconto): cliccare una colonna o
+        le frecce del grafico chiama chartSelMese/chartNav, che impostano
+        anche il periodo del Resoconto sotto, e viceversa.
         SVG disegnato a mano, nessuna libreria. */
   function eur0(n){ return new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n||0); }
   function niceMax(v){
@@ -2565,10 +2569,18 @@ if(!lsOk) $('#bannerMem').style.display='block';
     const nf = f<=1?1 : f<=2?2 : f<=5?5 : 10;
     return nf * Math.pow(10, exp);
   }
+  function finestraFine(sel){
+    const oggi = new Date(), oggiM = new Date(oggi.getFullYear(), oggi.getMonth(), 1);
+    const inizioDefault = new Date(oggiM.getFullYear(), oggiM.getMonth()-11, 1);
+    if(sel > oggiM) return new Date(sel.getFullYear(), sel.getMonth(), 1);
+    if(sel < inizioDefault) return new Date(sel.getFullYear(), sel.getMonth()+11, 1);
+    return oggiM;
+  }
   function datiAndamento12m(){
-    const oggi = new Date(), out = [];
+    const fine = finestraFine(new Date(ui.resY, ui.resM, 1));
+    const out = [];
     for(let i=11; i>=0; i--){
-      const d = new Date(oggi.getFullYear(), oggi.getMonth()-i, 1);
+      const d = new Date(fine.getFullYear(), fine.getMonth()-i, 1);
       const y = d.getFullYear(), m = d.getMonth();
       const from = fmtISO(new Date(y,m,1)), to = fmtISO(new Date(y,m+1,1));
       const dentro = dt => dt>=from && dt<to;
@@ -2588,7 +2600,7 @@ if(!lsOk) $('#bannerMem').style.display='block';
     const W=900, H=280, ml=54, mr=10, mt=16, mb=28;
     const pw = W-ml-mr, ph = H-mt-mb, y0 = mt+ph;
     const y = v => mt + ph - (v/top)*ph;
-    const gw = pw/mesi.length, bw = Math.min(22, gw*0.32), gap = 3;
+    const gw = pw/mesi.length, bw = Math.min(27, gw*0.38), gap = 2;
     const selIdx = mesi.findIndex(m=>m.anno===ui.resY && m.mese===ui.resM);
 
     const grid = [top/2, top].map(v=>{
@@ -2611,20 +2623,30 @@ if(!lsOk) $('#bannerMem').style.display='block';
       const sel = i===selIdx;
       const dim = selIdx!==-1 && !sel;
       const cls = c => dim ? c+' dim' : c;
-      const etichetta = (x,yy,val) => sel
-        ? `<text x="${x+bw/2}" y="${Math.max(mt+9,yy-6)}" text-anchor="middle" class="chart-val">${eur0(val)}</text>` : '';
+      // Le due cifre (Emesso/Incassato) del mese selezionato vanno in un blocco
+      // fisso a due righe sopra la barra più alta della coppia, invece che sopra
+      // ciascuna barra: quando i due valori coincidono (o sono vicini) le barre
+      // hanno la stessa altezza e le etichette, se ancorate alle barre, si
+      // sovrappongono. Ancorandole al gruppo, non collidono mai.
+      let cifre = '';
+      if(sel){
+        const riga2 = Math.max(mt+22, Math.min(y1,y2)-8);
+        const riga1 = riga2-13;
+        cifre = `<text x="${cx}" y="${riga1}" text-anchor="middle" class="chart-val chart-val-1">${eur0(m.emesso)}</text>`
+              + `<text x="${cx}" y="${riga2}" text-anchor="middle" class="chart-val chart-val-2">${eur0(m.incassato)}</text>`;
+      }
       const hl = sel ? `<rect x="${ml+i*gw+2}" y="${mt}" width="${gw-4}" height="${ph}" rx="8" class="chart-hl"/>` : '';
       return `<g class="chart-mese" onclick="chartSelMese(${m.anno},${m.mese})">
         ${hl}
         <rect x="${ml+i*gw}" y="${mt}" width="${gw}" height="${ph}" fill="transparent"/>
         <path d="${barra(x1,y1,bw,y0-y1)}" class="${cls('chart-bar-1')}"><title>${esc(m.label+' '+m.anno)} · Emesso ${eur(m.emesso)}</title></path>
         <path d="${barra(x2,y2,bw,y0-y2)}" class="${cls('chart-bar-2')}"><title>${esc(m.label+' '+m.anno)} · Incassato ${eur(m.incassato)}</title></path>
-        ${etichetta(x1,y1,m.emesso)}${etichetta(x2,y2,m.incassato)}
+        ${cifre}
         <text x="${cx}" y="${H-8}" text-anchor="middle" class="chart-axis${dim?' dim':''}${sel?' sel':''}">${esc(m.label)}</text>
       </g>`;
     }).join('');
 
-    return `<svg viewBox="0 0 ${W} ${H}" class="chart-svg" role="img" aria-label="Andamento fatturato emesso e incassato negli ultimi 12 mesi">
+    return `<svg viewBox="0 0 ${W} ${H}" class="chart-svg" role="img" aria-label="Andamento fatturato: emesso e incassato su 12 mesi">
       <line x1="${ml}" y1="${y0}" x2="${W-mr}" y2="${y0}" class="chart-axisline"/>
       <text x="${ml-8}" y="${y0+4}" text-anchor="end" class="chart-axis">€0</text>
       ${grid}
@@ -2640,7 +2662,7 @@ if(!lsOk) $('#bannerMem').style.display='block';
       <div class="chart-head">
         <div>
           <div class="chart-title">Andamento fatturato</div>
-          <div class="chart-sub">Ultimi 12 mesi · clicca un mese o usa le frecce</div>
+          <div class="chart-sub">12 mesi · clicca un mese o usa le frecce</div>
         </div>
         <div class="chart-nav">
           <button class="btn neutro mini" onclick="chartNav(-1)" aria-label="Mese precedente">‹</button>
@@ -2834,6 +2856,8 @@ if(!lsOk) $('#bannerMem').style.display='block';
       + '.chart-axis.dim{opacity:.45}'
       + '.chart-axis.sel{fill:var(--ink);font-weight:700}'
       + '.chart-val{fill:var(--ink);font-size:11px;font-weight:700}'
+      + '.chart-val-1{fill:var(--chart-1)}'
+      + '.chart-val-2{fill:var(--chart-2)}'
       + '.chart-mese{cursor:pointer}'
       + '.chart-hl{fill:var(--accent-soft)}'
       + '.chart-nav{display:flex;align-items:center;gap:8px;font-size:14px}'
