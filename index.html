@@ -2623,17 +2623,27 @@ if(!lsOk) $('#bannerMem').style.display='block';
       const sel = i===selIdx;
       const dim = selIdx!==-1 && !sel;
       const cls = c => dim ? c+' dim' : c;
-      // Le due cifre (Emesso/Incassato) del mese selezionato vanno in un blocco
-      // fisso a due righe sopra la barra più alta della coppia, invece che sopra
-      // ciascuna barra: quando i due valori coincidono (o sono vicini) le barre
-      // hanno la stessa altezza e le etichette, se ancorate alle barre, si
-      // sovrappongono. Ancorandole al gruppo, non collidono mai.
+      // Le cifre del mese selezionato vanno in un tooltip scuro (badge colorato +
+      // valore, una riga per serie) ancorato al gruppo, non a ciascuna barra: così
+      // quando i due valori coincidono (o sono vicini) non si sovrappongono mai.
       let cifre = '';
       if(sel){
-        const riga2 = Math.max(mt+22, Math.min(y1,y2)-8);
-        const riga1 = riga2-13;
-        cifre = `<text x="${cx}" y="${riga1}" text-anchor="middle" class="chart-val chart-val-1">${eur0(m.emesso)}</text>`
-              + `<text x="${cx}" y="${riga2}" text-anchor="middle" class="chart-val chart-val-2">${eur0(m.incassato)}</text>`;
+        const testi = [eur0(m.emesso), eur0(m.incassato)];
+        const padX=10, padY=7, sw=9, gap=7, rowH=17;
+        const maxLen = Math.max(testi[0].length, testi[1].length);
+        const boxW = Math.round(Math.max(86, padX*2+sw+gap+maxLen*6.6));
+        const boxH = padY*2+rowH*2;
+        const boxX = cx-boxW/2;
+        const boxY = Math.max(mt-2, Math.min(y1,y2)-10-boxH);
+        const r1y = boxY+padY+12, r2y = r1y+rowH;
+        const swX = boxX+padX, txX = swX+sw+gap;
+        cifre = `<g class="chart-tip">
+          <rect x="${boxX}" y="${boxY}" width="${boxW}" height="${boxH}" rx="12" class="chart-tip-bg" filter="url(#chartTipShadow)"/>
+          <rect x="${swX}" y="${r1y-9}" width="${sw}" height="${sw}" rx="2" class="chart-tip-sw1"/>
+          <text x="${txX}" y="${r1y}" class="chart-tip-txt">${testi[0]}</text>
+          <rect x="${swX}" y="${r2y-9}" width="${sw}" height="${sw}" rx="2" class="chart-tip-sw2"/>
+          <text x="${txX}" y="${r2y}" class="chart-tip-txt">${testi[1]}</text>
+        </g>`;
       }
       const hl = sel ? `<rect x="${ml+i*gw+2}" y="${mt}" width="${gw-4}" height="${ph}" rx="8" class="chart-hl"/>` : '';
       return `<g class="chart-mese" onclick="chartSelMese(${m.anno},${m.mese})">
@@ -2647,6 +2657,9 @@ if(!lsOk) $('#bannerMem').style.display='block';
     }).join('');
 
     return `<svg viewBox="0 0 ${W} ${H}" class="chart-svg" role="img" aria-label="Andamento fatturato: emesso e incassato su 12 mesi">
+      <defs><filter id="chartTipShadow" x="-40%" y="-40%" width="180%" height="180%">
+        <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.22"/>
+      </filter></defs>
       <line x1="${ml}" y1="${y0}" x2="${W-mr}" y2="${y0}" class="chart-axisline"/>
       <text x="${ml-8}" y="${y0+4}" text-anchor="end" class="chart-axis">€0</text>
       ${grid}
@@ -2834,8 +2847,8 @@ if(!lsOk) $('#bannerMem').style.display='block';
     const st = document.createElement('style');
     st.id = 'res-embed-style';
     st.textContent = '.res-sep{height:1px;background:var(--line);margin:34px 0 26px;border:0}'
-      + ':root{--chart-1:#ff6b1a;--chart-2:#007aff}'
-      + '[data-theme=dark]{--chart-1:#e8660a;--chart-2:#0a84ff}'
+      + ':root{--chart-1:#ff6b1a;--chart-2:#007aff;--tooltip-bg:#1c1c1e;--tooltip-ink:#f2f2f7}'
+      + '[data-theme=dark]{--chart-1:#e8660a;--chart-2:#0a84ff;--tooltip-bg:#3a3a3c;--tooltip-ink:#f2f2f7}'
       + '.chart-card{background:var(--card);border-radius:var(--r-xl);padding:18px 18px 20px;box-shadow:var(--shadow-sm);margin-bottom:22px}'
       + '.chart-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:8px}'
       + '.chart-title{font-weight:800;font-size:16px}'
@@ -2855,11 +2868,12 @@ if(!lsOk) $('#bannerMem').style.display='block';
       + '.chart-axis{fill:var(--muted);font-size:11px;transition:opacity .15s}'
       + '.chart-axis.dim{opacity:.45}'
       + '.chart-axis.sel{fill:var(--ink);font-weight:700}'
-      + '.chart-val{fill:var(--ink);font-size:11px;font-weight:700}'
-      + '.chart-val-1{fill:var(--chart-1)}'
-      + '.chart-val-2{fill:var(--chart-2)}'
       + '.chart-mese{cursor:pointer}'
-      + '.chart-hl{fill:var(--accent-soft)}'
+      + '.chart-hl{fill:var(--btn)}'
+      + '.chart-tip-bg{fill:var(--tooltip-bg)}'
+      + '.chart-tip-txt{fill:var(--tooltip-ink);font-size:11px;font-weight:700}'
+      + '.chart-tip-sw1{fill:var(--chart-1)}'
+      + '.chart-tip-sw2{fill:var(--chart-2)}'
       + '.chart-nav{display:flex;align-items:center;gap:8px;font-size:14px}'
       + '.chart-nav b{min-width:112px;text-align:center;font-weight:700}'
       + '.chart-nav .btn{min-width:32px;padding:5px 10px}';
