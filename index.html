@@ -248,7 +248,6 @@ main{max-width:1240px;margin:0 auto;padding:20px 16px 60px}
   display:flex;align-items:center;justify-content:center;padding:0 3px;
 }
 .linkino{font-size:12px;color:var(--ok);font-weight:600}
-.warn-bollo{font-size:11.5px;color:var(--warn);font-weight:600}
 
 /* ============ TABELLE ============ */
 .twrap{background:var(--card);border-radius:var(--r-xl);overflow-x:auto;box-shadow:var(--shadow-sm);-webkit-overflow-scrolling:touch}
@@ -350,7 +349,6 @@ input[type=color].colore-cliente{width:100%;height:41px;border:none;border-radiu
 .chk input{width:17px;height:17px;accent-color:var(--accent)}
 .frm-foot{grid-column:1/-1;display:flex;justify-content:flex-end;gap:9px;margin-top:8px}
 .hint-acc{grid-column:1/-1;font-size:13px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:13px;padding:10px 13px}
-.hint-bollo{grid-column:1/-1;display:none;font-size:12.5px;color:var(--warn);background:var(--warn-soft);border-radius:13px;padding:10px 13px;font-weight:500}
 .nota-campo{font-size:11px;color:var(--muted);font-weight:400;margin-top:3px}
 
 /* ============ TOAST / BANNER ============ */
@@ -558,7 +556,6 @@ const TIPI_DOC = ['Fattura','Nota di credito','Prestazione occasionale'];
 const METODI_PAG = ['Bonifico','PayPal','Contanti','Altro'];
 const ALIQUOTA_ACC = 0.2322;      // ~23% di ogni incasso da accantonare
 const SOGLIA_BOLLO = 77.47;
-const SOGLIA_SEMPLIFICATA = 400;  // oltre questa soglia la fattura è ordinaria, non semplificata
 const IMPORTO_BOLLO = 2;
 
 /* ---------- profilo fornitore (fonte: skill nick-profile) ---------- */
@@ -681,7 +678,15 @@ function caricaDB(){
   try { const raw = localStorage.getItem(LS_KEY); return raw ? JSON.parse(raw) : null; } catch(e){ return null; }
 }
 function salvaLocale(){
-  if(lsOk){ try { localStorage.setItem(LS_KEY, JSON.stringify(db)); } catch(e){} }
+  if(!lsOk) return;
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(db));
+  } catch(e){
+    // Quota piena: senza questo avviso il salvataggio fallisce da qui in poi senza
+    // che l'utente se ne accorga, finché non chiude il browser e perde tutto.
+    const b = document.getElementById('bannerMem');
+    if(b){ b.textContent = '⚠ Spazio di salvataggio locale esaurito: le ultime modifiche potrebbero non essere salvate. Esporta un backup e libera spazio (es. rimuovi qualche foto cliente).'; b.style.display = 'block'; }
+  }
 }
 function salva(){
   salvaLocale();
@@ -733,6 +738,15 @@ salvaLocale();
    Retrocompatibile: gira a ogni avvio e anche dopo un pull dal cloud, non
    sovrascrive mai un dato già presente. */
 function migraDati(){
+  // Un blob cloud/backup parziale non deve mai lasciare db senza una di queste
+  // quattro collezioni: il resto dell'app le usa senza controllo (db.clienti.find,
+  // db.fatture.forEach...) e altrimenti l'app resta bianca, con la corruzione
+  // salvata in locale al primo giro.
+  if(!db.counters || typeof db.counters !== 'object') db.counters = {};
+  db.clienti = Array.isArray(db.clienti) ? db.clienti : [];
+  db.fatture = Array.isArray(db.fatture) ? db.fatture : [];
+  db.preventivi = Array.isArray(db.preventivi) ? db.preventivi : [];
+  db.progetti = Array.isArray(db.progetti) ? db.progetti : [];
   if(db.counters.xml == null) db.counters.xml = 0;   // progressivo di trasmissione SdI
   (db.clienti||[]).forEach(c=>{
     if(!idValido(c.id)) c.id = uid();
@@ -751,6 +765,11 @@ function migraDati(){
     f.voci.forEach(v=>{ if(v.importo != null) v.importo = numOK(v.importo); });
     if(f.imponibile != null) f.imponibile = numOK(f.imponibile);
     if(f.totale != null) f.totale = numOK(f.totale);
+    // stato/tipo mancanti o non validi: senza un default un record del genere non
+    // compare in nessuna colonna kanban (che filtra per uguaglianza esatta) e
+    // sembra sparito, pur restando nei dati e sincronizzandosi normalmente.
+    if(!STATI_FATTURA.includes(f.statoPagamento)) f.statoPagamento = 'Da emettere';
+    if(!TIPI_DOC.includes(f.tipoDoc)) f.tipoDoc = 'Fattura';
     if(!f.natura) f.natura = 'N2.2';
     if(f.condizioni === undefined) f.condizioni = '';
     if(f.rivalsaBollo === undefined) f.rivalsaBollo = false;
@@ -765,6 +784,7 @@ function migraDati(){
     if(!Array.isArray(p.software)) p.software = [];
     p.software.forEach(s=>{ if(s.importo != null) s.importo = numOK(s.importo); });
     if(p.importo != null) p.importo = numOK(p.importo);
+    if(!STATI_PREVENTIVO.includes(p.stato)) p.stato = 'Bozza';
     if(p.oggetto === undefined) p.oggetto = '';
     if(p.etichettaTotale === undefined) p.etichettaTotale = 'Totale progetto';
     if(p.condizioni === undefined) p.condizioni = '';
@@ -773,7 +793,18 @@ function migraDati(){
   (db.progetti||[]).forEach(g=>{
     if(!idValido(g.id)) g.id = uid();
     if(g.valore != null) g.valore = numOK(g.valore);
+    if(!STATI_PROGETTO.includes(g.stato)) g.stato = 'Non iniziato';
   });
+  // Il contatore preventivi (db.counters.pr) non viene ricostruito dai dati: se un
+  // backup/pull cloud arriva con un contatore azzerato o indietro, il prossimo
+  // preventivo duplicherebbe un numero già esistente. Lo riallineiamo sempre al
+  // massimo progressivo trovato nei preventivi stessi.
+  let maxPr = 0;
+  (db.preventivi||[]).forEach(p=>{
+    const m = /^PR-(\d+)$/.exec(p.numero||'');
+    if(m) maxPr = Math.max(maxPr, parseInt(m[1],10));
+  });
+  if((db.counters.pr||0) < maxPr) db.counters.pr = maxPr;
 }
 
 /* ---------- lookup ---------- */
@@ -790,6 +821,10 @@ function prossimoNumeroFattura(anno){
     if(m && parseInt(m[2],10)===anno) max = Math.max(max, parseInt(m[1],10));
   });
   return String(max+1).padStart(3,'0') + '-' + anno;
+}
+function annoDaData(iso){
+  const m = /^(\d{4})-\d{2}-\d{2}$/.exec(iso||'');
+  return m ? parseInt(m[1],10) : new Date().getFullYear();
 }
 
 /* ---------- progetti mensili ricorrenti ---------- */
@@ -818,9 +853,12 @@ function promemoriaMensili(){
 window.creaFatturaMensile = function(idProgetto, key){
   const p=getProgetto(idProgetto); if(!p) return;
   key = key || meseKey(new Date());
+  const [ky,km] = key.split('-').map(Number);
+  const ultimo = new Date(ky, km, 0);   // ultimo giorno del mese fatturato
+  const dataEmissione = ultimo.getFullYear()+'-'+String(ultimo.getMonth()+1).padStart(2,'0')+'-'+String(ultimo.getDate()).padStart(2,'0');
   apriFormFattura(null, { titolo:p.titolo+' — '+nomeMese(key), clienteId:p.clienteId, progettoId:p.id,
     imponibile:p.valore, totale:p.valore, statoPagamento:'Da emettere',
-    bollo:(parseFloat(p.valore)||0) > SOGLIA_BOLLO, mese:key });
+    dataEmissione, mese:key });
 };
 
 /* ============================================================
@@ -899,8 +937,12 @@ window.eliminaAllegato = async function(entity, id, idx){
 };
 
 /* ---------- previsione tasse ---------- */
+// Una nota di credito storna il documento che rettifica: nei totali (fatturato,
+// incassato, accantonamento) va sottratta, non sommata come ricavo positivo.
+function segnoDoc(f){ return f.tipoDoc==='Nota di credito' ? -1 : 1; }
+function valoreDoc(f){ return (parseFloat(f.totale)||0) * segnoDoc(f); }
 function accantonare(f){
-  return f.statoPagamento==='Pagata' ? arrot((parseFloat(f.totale)||0) * ALIQUOTA_ACC) : 0;
+  return f.statoPagamento==='Pagata' ? arrot(valoreDoc(f) * ALIQUOTA_ACC) : 0;
 }
 
 /* ---------- stato UI ---------- */
@@ -939,8 +981,8 @@ function vDashboard(){
   const inviati = db.preventivi.filter(p=>p.stato==='Inviato');
   const bozze   = db.preventivi.filter(p=>p.stato==='Bozza');
   const inCorso = db.progetti.filter(p=>p.stato==='In corso');
-  const daIncassare = db.fatture.filter(f=>f.statoPagamento==='Emessa'||f.statoPagamento==='Scaduta');
-  const scadute = db.fatture.filter(f=>f.statoPagamento==='Scaduta');
+  const daIncassare = db.fatture.filter(f=>f.statoPagamento==='Emessa'||fatturaScaduta(f));
+  const scadute = db.fatture.filter(fatturaScaduta);
   const pagate  = db.fatture.filter(f=>f.statoPagamento==='Pagata');
   const daEmettere = db.fatture.filter(f=>f.statoPagamento==='Da emettere');
   const emesse = db.fatture.filter(f=>f.statoPagamento!=='Da emettere');
@@ -951,17 +993,17 @@ function vDashboard(){
   <div class="cards">
     <div class="stat acc">
       <div class="lbl">Fatturato emesso</div>
-      <div class="big">${eur(somma(emesse,f=>f.totale))}</div>
+      <div class="big">${eur(somma(emesse,valoreDoc))}</div>
       <div class="det">${emesse.length} ${emesse.length===1?'fattura emessa':'fatture emesse'}${daIncassare.length?' · '+daIncassare.length+' da incassare':''}</div>
     </div>
     <div class="stat acc">
       <div class="lbl">Incassato</div>
-      <div class="big">${eur(somma(pagate,f=>f.totale))}</div>
+      <div class="big">${eur(somma(pagate,valoreDoc))}</div>
       <div class="det">${pagate.length} ${pagate.length===1?'fattura pagata':'fatture pagate'}</div>
     </div>
     <div class="stat">
       <div class="lbl">Da incassare</div>
-      <div class="big">${eur(somma(daIncassare,f=>f.totale))}</div>
+      <div class="big">${eur(somma(daIncassare,valoreDoc))}</div>
       <div class="det">${daIncassare.length} ${daIncassare.length===1?'fattura':'fatture'}${scadute.length?' · <b style="color:var(--danger)">'+scadute.length+' scadute</b>':''}${daEmettere.length?' · '+daEmettere.length+' da emettere':''}</div>
     </div>
     <div class="stat">
@@ -996,7 +1038,7 @@ function generaAvvisi(){
   const scadute=db.fatture.filter(fatturaScaduta);
   if(scadute.length) out.push({t:'r',vista:'fatture',
     titolo:scadute.length===1?'1 fattura scaduta':scadute.length+' fatture scadute',
-    testo:'Totale '+eur(somma(scadute,f=>f.totale))+'. Invia un sollecito ai clienti coinvolti.'});
+    testo:'Totale '+eur(somma(scadute,valoreDoc))+'. Invia un sollecito ai clienti coinvolti.'});
   db.fatture.filter(f=>!fatturaScaduta(f)&&f.statoPagamento==='Emessa'&&f.scadenzaPagamento&&f.scadenzaPagamento<=limS)
     .forEach(f=>out.push({t:'a',vista:'fatture',
       titolo:esc(f.numero)+' in scadenza',
@@ -1004,11 +1046,7 @@ function generaAvvisi(){
   const daEm=db.fatture.filter(f=>f.statoPagamento==='Da emettere');
   if(daEm.length) out.push({t:'b',vista:'fatture',
     titolo:daEm.length===1?'1 fattura da emettere':daEm.length+' fatture da emettere',
-    testo:eur(somma(daEm,f=>f.totale))+' da fatturare. Completa e invia appena pronto.'});
-  db.fatture.filter(f=>!f.bollo&&(parseFloat(f.totale)||0)>SOGLIA_BOLLO&&f.tipoDoc!=='Nota di credito'&&f.statoPagamento!=='Da emettere')
-    .forEach(f=>out.push({t:'a',vista:'fatture',
-      titolo:'Bollo mancante',
-      testo:'Manca il bollo su '+esc(f.numero)+', obbligatorio sopra 77,47€.'}));
+    testo:eur(somma(daEm,valoreDoc))+' da fatturare. Completa e invia appena pronto.'});
   // preventivi
   db.preventivi.filter(p=>p.stato==='Inviato'&&p.validoFino&&p.validoFino<oggiS)
     .forEach(p=>out.push({t:'a',vista:'preventivi',
@@ -1105,13 +1143,13 @@ function vClienteDettaglio(){
   const prev = db.preventivi.filter(p=>p.clienteId===c.id);
   const prog = db.progetti.filter(p=>p.clienteId===c.id);
   const fatt = db.fatture.filter(f=>f.clienteId===c.id);
-  const incassato = somma(fatt.filter(f=>f.statoPagamento==='Pagata'), f=>f.totale);
-  const daIncassareC = fatt.filter(f=>f.statoPagamento==='Emessa'||f.statoPagamento==='Scaduta');
+  const incassato = somma(fatt.filter(f=>f.statoPagamento==='Pagata'), valoreDoc);
+  const daIncassareC = fatt.filter(f=>f.statoPagamento==='Emessa'||fatturaScaduta(f));
   const daEmettereC = fatt.filter(f=>f.statoPagamento==='Da emettere');
   // cifre concordate e ultimo rapporto lavorativo
   const accettati = prev.filter(p=>p.stato==='Accettato');
   const concordato = somma(accettati, p=>p.importo) || somma(prog, p=>p.valore);
-  const fatturatoC = somma(fatt.filter(f=>f.statoPagamento!=='Da emettere'), f=>f.totale);
+  const fatturatoC = somma(fatt.filter(f=>f.statoPagamento!=='Da emettere'), valoreDoc);
   let ultimo = null;
   fatt.forEach(f=>{ const d=f.dataIncasso||f.dataEmissione; if(d && (!ultimo||d>ultimo.data)) ultimo={data:d, cosa:'Fattura '+(f.numero||'')+' · '+f.titolo}; });
   prog.forEach(p=>{ const d=p.scadenza||p.dataInizio; if(d && (!ultimo||d>ultimo.data)) ultimo={data:d, cosa:'Progetto · '+p.titolo}; });
@@ -1163,7 +1201,7 @@ function vClienteDettaglio(){
   <div class="cards" style="margin-top:12px">
     <div class="stat hl">
       <div class="lbl">Da incassare</div>
-      <div class="big">${eur(somma(daIncassareC, f=>f.totale))}</div>
+      <div class="big">${eur(somma(daIncassareC, valoreDoc))}</div>
       <div class="det">${daIncassareC.length} ${daIncassareC.length===1?'fattura emessa non incassata':'fatture emesse non incassate'}${daEmettereC.length?' · '+daEmettereC.length+' da emettere':''}</div>
     </div>
     <div class="stat">
@@ -1290,14 +1328,12 @@ function fatturaScaduta(f){
 }
 function cardFattura(f){
   const acc = accantonare(f);
-  const bolloMancante = !f.bollo && (parseFloat(f.totale)||0) > SOGLIA_BOLLO && f.tipoDoc!=='Nota di credito';
   return `<div class="kcard" draggable="true" data-id="${f.id}" data-entity="fattura">
     <div class="kcard-top"><span class="num">${esc(f.numero)}</span><span class="kcard-val">${eur(f.totale)}</span></div>
     <div class="kcard-title">${esc(f.titolo)}</div>
     <div class="kcard-sub">${esc(nomeCliente(f.clienteId))} · ${esc(f.tipoDoc)}</div>
     ${f.scadenzaPagamento?'<div class="kcard-date '+(fatturaScaduta(f)?'rossa':'')+'">scad. pagamento '+fmtData(f.scadenzaPagamento)+(fatturaScaduta(f)?' ⚠':'')+'</div>':''}
     ${acc?'<div class="kcard-date" style="color:var(--accent);font-weight:600">accantona '+eur(acc)+'</div>':''}
-    ${bolloMancante?'<div class="warn-bollo">⚠ marca da bollo? (>77,47€)</div>':''}
     <div class="kcard-actions">${frecce('fattura',STATI_FATTURA,f.statoPagamento,f.id)}<span class="spacer"></span>
       <button class="icon" onclick="apriDocumento('fattura','${f.id}')" title="Documento: PDF e XML">${ICO.doc}</button>
       ${bottoneAllegati('fattura', f)}
@@ -1379,7 +1415,15 @@ function spostaStato(entity, id, stato){
   else if(entity==='progetto'){ const r=db.progetti.find(x=>x.id===id); if(r) r.stato=stato; }
   else if(entity==='fattura'){
     const r=db.fatture.find(x=>x.id===id);
-    if(r){ r.statoPagamento=stato; if(stato==='Pagata' && !r.dataIncasso) r.dataIncasso=oggi(); }
+    if(r){
+      r.statoPagamento=stato;
+      if(stato==='Pagata' && !r.dataIncasso) r.dataIncasso=oggi();
+      // Se esce da "Pagata" la data d'incasso non è più vera: lasciarla lì
+      // disallineava "Incassato" nel Resoconto (guarda dataIncasso) dalla
+      // dashboard (guarda lo stato), mostrando due numeri diversi per la
+      // stessa fattura.
+      else if(stato!=='Pagata') r.dataIncasso='';
+    }
   }
   salva(); render();
 }
@@ -1534,7 +1578,13 @@ window.apriFormCliente = function(id){
 window.selezionaFoto = function(input){
   const file = input.files[0]; if(!file) return;
   input.value='';
+  // Stesso formato che migraDati() accetta: un formato diverso (gif/svg, permesso
+  // da accept="image/*") sembrerebbe salvato oggi ma sparirebbe al prossimo avvio.
+  if(!['image/png','image/jpeg','image/webp'].includes(file.type)){
+    alert('Formato non supportato: scegli un\'immagine PNG, JPEG o WEBP.'); return;
+  }
   const rd = new FileReader();
+  rd.onerror = ()=>{ alert('Non riesco a leggere questo file. Riprova o scegline un altro.'); };
   rd.onload = ()=>{
     const img = new Image();
     img.onload = ()=>{
@@ -1572,7 +1622,11 @@ window.salvaCliente = function(ev){
     piva:v('piva').replace(/\s/g,''), cf:v('cf').replace(/\s/g,'').toUpperCase(),
     via:v('via'), civico:v('civico'), cap:v('cap').replace(/\s/g,''), comune:v('comune'),
     provincia:v('provincia').toUpperCase(), sdi:v('sdi').toUpperCase(), pec:v('pec')};
-  if(id){ Object.assign(getCliente(id)||{}, dati); }
+  if(id){
+    const rec = getCliente(id);
+    if(!rec){ alert('Questo cliente non esiste più (probabilmente modificato da un altro dispositivo). Chiudi e ricontrolla.'); return; }
+    Object.assign(rec, dati);
+  }
   else { db.clienti.push(Object.assign({id:uid()}, dati)); }
   salva(); chiudiModal(); toast('Cliente salvato'); render();
 };
@@ -1633,7 +1687,11 @@ window.salvaPreventivo = function(ev){
     sottotitolo:v('sottotitolo'), oggetto:v('oggetto'), etichettaTotale:v('etichettaTotale')||'Totale progetto', condizioni:v('condizioni'),
     voci: leggiVoci(f.querySelector('.voci[data-ruolo="voci"]')),
     software: leggiVoci(f.querySelector('.voci[data-ruolo="software"]'))};
-  if(id){ Object.assign(db.preventivi.find(x=>x.id===id)||{}, dati); }
+  if(id){
+    const rec = db.preventivi.find(x=>x.id===id);
+    if(!rec){ alert('Questo preventivo non esiste più (probabilmente modificato da un altro dispositivo). Chiudi e ricontrolla.'); return; }
+    Object.assign(rec, dati);
+  }
   else {
     db.counters.pr++;
     db.preventivi.push(Object.assign({id:uid(), numero:'PR-'+db.counters.pr}, dati));
@@ -1674,7 +1732,11 @@ window.salvaProgetto = function(ev){
   const val=f.elements.valore.value;
   const dati={titolo:v('titolo'),clienteId:v('clienteId')||null,stato:v('stato'),dataInizio:v('dataInizio'),
     scadenza:v('scadenza'),valore:val===''?null:parseFloat(val),mensile:f.elements.mensile.checked,servizi,note:v('note')};
-  if(id){ Object.assign(getProgetto(id)||{}, dati); }
+  if(id){
+    const rec = getProgetto(id);
+    if(!rec){ alert('Questo progetto non esiste più (probabilmente modificato da un altro dispositivo). Chiudi e ricontrolla.'); return; }
+    Object.assign(rec, dati);
+  }
   else { db.progetti.push(Object.assign({id:uid()}, dati)); }
   salva(); chiudiModal(); toast('Progetto salvato'); render();
 };
@@ -1691,13 +1753,14 @@ window.eliminaProgetto = function(id){
 window.apriFormFattura = function(id, preset){
   const f = id ? db.fatture.find(x=>x.id===id) : (preset||{});
   const totIniz = f.totale!=null ? f.totale : '';
+  const numeroSuggerito = id ? f.numero : prossimoNumeroFattura(annoDaData(f.dataEmissione));
   apriModal(`<h3>${id?'Modifica '+esc(f.numero):'Nuova fattura'}</h3>
   <form class="frm" data-tipo="fattura" onsubmit="salvaFattura(event)">
     <input type="hidden" name="_id" value="${id||''}">
     <input type="hidden" name="mese" value="${esc(f.mese||'')}">
     <div class="full"><label>Titolo *</label><input type="text" name="titolo" required value="${esc(f.titolo)}"></div>
-    <div><label>Numero fattura</label><input type="text" name="numero" value="${esc(id ? f.numero : prossimoNumeroFattura())}">
-      <div class="nota-campo">Progressivo per anno, es. 001-2026. Riparte da 001 a ogni anno nuovo.</div></div>
+    <div><label>Numero fattura</label><input type="text" name="numero" data-auto="${id?'':esc(numeroSuggerito)}" value="${esc(numeroSuggerito)}">
+      <div class="nota-campo">Progressivo per anno, es. 001-2026. Riparte da 001 a ogni anno nuovo. Se lo lasci come suggerito viene ricalcolato al salvataggio, per evitare doppioni.</div></div>
     <div><label>Tipo documento</label><select name="tipoDoc">${opzioni(TIPI_DOC, f.tipoDoc||'Fattura')}</select></div>
     <div><label>Metodo pagamento</label><select name="metodo">${opzioni(METODI_PAG, f.metodo||'Bonifico')}</select></div>
     <div><label>Cliente</label><select name="clienteId" onchange="filtraProgetti(this)">${opzioniClienti(f.clienteId)}</select></div>
@@ -1712,15 +1775,12 @@ window.apriFormFattura = function(id, preset){
     <div><label>Stato pagamento</label><select name="statoPagamento" onchange="aggiornaHintFattura(this.form)">${opzioni(STATI_FATTURA, f.statoPagamento||'Da emettere')}</select></div>
     <div><label>Regime IVA (codice Natura)</label><select name="natura">${Object.keys(NATURE).map(k=>`<option value="${k}" ${(f.natura||'N2.2')===k?'selected':''}>${esc(ETICHETTE_NATURA[k])}</option>`).join('')}</select>
       <div class="nota-campo">In dubbio lascia N2.2 e conferma col commercialista.</div></div>
-    <div><label>&nbsp;</label><label class="chk"><input type="checkbox" name="bollo" ${f.bollo?'checked':''} onchange="aggiornaHintFattura(this.form)"> Marca da bollo (2€)</label>
-      <div class="nota-campo">Obbligatoria per importi sopra 77,47€ (forfettario, senza IVA).</div></div>
     <div><label>&nbsp;</label><label class="chk"><input type="checkbox" name="rivalsaBollo" ${f.rivalsaBollo?'checked':''} onchange="sincronizzaTotaliFattura(this.form)"> Addebita il bollo al cliente</label>
       <div class="nota-campo">Di norma resta a tuo carico e non entra nel totale.</div></div>
     <div><label>Data emissione</label><input type="date" name="dataEmissione" value="${esc(f.dataEmissione)}"></div>
     <div><label>Scadenza pagamento</label><input type="date" name="scadenzaPagamento" value="${esc(f.scadenzaPagamento)}"></div>
     <div><label>Data incasso</label><input type="date" name="dataIncasso" value="${esc(f.dataIncasso)}"></div>
     <div class="hint-acc"></div>
-    <div class="hint-bollo">⚠ Totale sopra 77,47€: ricordati la marca da bollo da 2€.</div>
     <div class="full"><label>Condizioni di pagamento (nel PDF)</label><textarea name="condizioni" placeholder="${esc(CONDIZIONI_FATTURA)}">${esc(f.condizioni)}</textarea>
       <div class="nota-campo">Lascia vuoto per usare il testo standard.</div></div>
     <div class="full"><label>Note interne</label><textarea name="note">${esc(f.note)}</textarea>
@@ -1737,8 +1797,6 @@ window.aggiornaHintFattura = function(form){
   const pagata = form.elements.statoPagamento.value==='Pagata';
   const hintA = form.querySelector('.hint-acc');
   if(hintA) hintA.textContent = 'Da accantonare per le tasse: ' + eur(pagata ? arrot(tot*ALIQUOTA_ACC) : 0) + (pagata?'':' (si calcola quando la fattura è Pagata)');
-  const hintB = form.querySelector('.hint-bollo');
-  if(hintB) hintB.style.display = (tot > SOGLIA_BOLLO && !form.elements.bollo.checked) ? 'block' : 'none';
 };
 window.salvaFattura = function(ev){
   ev.preventDefault();
@@ -1746,14 +1804,31 @@ window.salvaFattura = function(ev){
   const id=v('_id');
   const imp=f.elements.imponibile.value, tot=f.elements.totale.value;
   const voci = leggiVoci(f.querySelector('.voci[data-ruolo="voci"]'));
-  const dati={titolo:v('titolo'),numero:v('numero')||prossimoNumeroFattura(),mese:v('mese')||'',tipoDoc:v('tipoDoc'),clienteId:v('clienteId')||null,progettoId:v('progettoId')||null,
+  const dataEmissione = v('dataEmissione');
+  let numero = v('numero');
+  const autoSuggerito = f.elements.numero.dataset.auto || '';
+  if(!id && (!numero || numero===autoSuggerito)){
+    // Ricalcolato ora, non a quando il form è stato aperto: se nel frattempo è
+    // stata salvata un'altra fattura (altra scheda, altro dispositivo), il
+    // numero suggerito potrebbe non essere più libero.
+    numero = prossimoNumeroFattura(annoDaData(dataEmissione));
+  }
+  if(db.fatture.some(x=>x.numero===numero && x.id!==id)){
+    alert('Il numero "'+numero+'" è già usato da un\'altra fattura. Scegline uno diverso.');
+    return;
+  }
+  const dati={titolo:v('titolo'),numero,mese:v('mese')||'',tipoDoc:v('tipoDoc'),clienteId:v('clienteId')||null,progettoId:v('progettoId')||null,
     voci, natura:v('natura')||'N2.2', condizioni:v('condizioni'), rivalsaBollo:f.elements.rivalsaBollo.checked,
     imponibile:imp===''?null:parseFloat(imp), totale:tot===''?null:parseFloat(tot),
-    statoPagamento:v('statoPagamento'), metodo:v('metodo'), bollo:f.elements.bollo.checked,
-    dataEmissione:v('dataEmissione'), scadenzaPagamento:v('scadenzaPagamento'), dataIncasso:v('dataIncasso'), note:v('note')};
+    statoPagamento:v('statoPagamento'), metodo:v('metodo'),
+    dataEmissione, scadenzaPagamento:v('scadenzaPagamento'), dataIncasso:v('dataIncasso'), note:v('note')};
   if(!dati.voci.length) dati.voci = [{descrizione:dati.titolo, dettaglio:'', importo:dati.imponibile!=null?dati.imponibile:dati.totale}];
   if(dati.statoPagamento==='Pagata' && !dati.dataIncasso) dati.dataIncasso=oggi();
-  if(id){ Object.assign(db.fatture.find(x=>x.id===id)||{}, dati); }
+  if(id){
+    const rec = db.fatture.find(x=>x.id===id);
+    if(!rec){ alert('Questa fattura non esiste più (probabilmente modificata da un altro dispositivo). Chiudi e ricontrolla.'); return; }
+    Object.assign(rec, dati);
+  }
   else {
     db.fatture.push(Object.assign({id:uid()}, dati));
   }
@@ -1785,13 +1860,13 @@ window.creaFatturaDaPreventivo = function(id){
   apriFormFattura(null, { titolo:p.titolo, clienteId:p.clienteId, progettoId:p.progettoId,
     voci: voci.length ? voci : [{descrizione:p.titolo, dettaglio:'', importo:imponibile}],
     imponibile, totale:imponibile, statoPagamento:'Da emettere', natura:'N2.2',
-    dataEmissione: oggi(), bollo:(parseFloat(imponibile)||0) > SOGLIA_BOLLO });
+    dataEmissione: oggi() });
 };
 window.creaFatturaDaProgetto = function(id){
   const p = getProgetto(id); if(!p) return;
   apriFormFattura(null, { titolo:p.titolo, clienteId:p.clienteId, progettoId:p.id,
     imponibile:p.valore, totale:p.valore, statoPagamento:'Da emettere',
-    bollo:(parseFloat(p.valore)||0) > SOGLIA_BOLLO });
+    dataEmissione: oggi() });
 };
 
 /* ============================================================
@@ -1815,10 +1890,9 @@ function indirizzoCliente(c){
 function calcolaFattura(f){
   const voci = (f.voci||[]).filter(v=>v.descrizione || v.importo!=null);
   const imponibile = arrot(f.imponibile!=null ? f.imponibile : totaleVoci(voci));
-  const bolloDovuto = imponibile > SOGLIA_BOLLO;
+  const bolloDovuto = imponibile > SOGLIA_BOLLO && f.tipoDoc !== 'Nota di credito';
   const totale = arrot(f.totale!=null ? f.totale : imponibile + (f.rivalsaBollo && bolloDovuto ? IMPORTO_BOLLO : 0));
   return { voci, imponibile, totale, bolloDovuto,
-           semplificata: totale <= SOGLIA_SEMPLIFICATA,
            natura: f.natura || 'N2.2' };
 }
 function numeroPreventivoDoc(p){
@@ -1837,7 +1911,7 @@ function docFatturaHTML(f){
   const c = getCliente(f.clienteId) || {};
   const t = calcolaFattura(f);
   const ind = indirizzoCliente(c);
-  const titoloDoc = (t.semplificata ? 'Fattura semplificata' : 'Fattura') + ' n. ' + (f.numero || '—');
+  const titoloDoc = 'Fattura n. ' + (f.numero || '—');
 
   const idFiscale = [];
   if(c.piva) idFiscale.push('P.IVA ' + c.piva);
@@ -2008,8 +2082,10 @@ function verificaDatiXML(f){
   }
   if(!f.numero) err.push('Manca il numero della fattura.');
   if(!f.dataEmissione) err.push('Manca la data di emissione.');
+  if((f.natura||'N2.2')==='N2.1') err.push('Natura N2.1 (cliente estero): questo gestionale genera l\'XML solo con indirizzo italiano (CAP 5 cifre, provincia IT). Non generarlo per un cliente estero senza prima far verificare al commercialista come compilare Nazione e CodiceDestinatario.');
   const t = calcolaFattura(f);
   if(!t.voci.length) err.push('La fattura non ha voci di dettaglio.');
+  else if(t.voci.some(v=>!v.descrizione || !v.descrizione.trim())) err.push('Una voce non ha descrizione: il SdI scarta una riga senza descrizione.');
   if(!(t.totale > 0)) err.push('Il totale della fattura è zero.');
   if(f.tipoDoc === 'Prestazione occasionale') err.push('Le prestazioni occasionali non si trasmettono come fattura elettronica: cambia il tipo documento o non generare l\'XML.');
   return err;
@@ -2023,6 +2099,17 @@ function costruisciXML(f, progressivo){
   const pecDest = (codiceDest === '0000000' && c.pec) ? c.pec : '';
   const tipoDoc = f.tipoDoc === 'Nota di credito' ? 'TD04' : 'TD01';
 
+  // Bollo addebitato al cliente (rivalsaBollo): va anche in DettaglioLinee, altrimenti
+  // ImportoTotaleDocumento (che lo include) non quadra con la somma delle linee e col
+  // riepilogo — è proprio la coerenza che il SdI controlla in fase di accettazione.
+  // L'importo della riga si deriva da totale-imponibile (non si assume sempre 2,00€):
+  // t.totale è il campo che l'utente può aver modificato a mano nel form, e va sempre
+  // trattato come fonte di verità — così ImponibileImporto torna a combaciare con
+  // ImportoTotaleDocumento anche se il totale non è esattamente imponibile+2.
+  const bolloRivalsa = t.bolloDovuto && f.rivalsaBollo && t.totale > t.imponibile;
+  const extraRivalsa = bolloRivalsa ? arrot(t.totale - t.imponibile) : 0;
+  const imponibileXml = bolloRivalsa ? t.totale : t.imponibile;
+
   const linee = t.voci.map((v,i)=>
     '      <DettaglioLinee>\n' +
     '        ' + tg('NumeroLinea', i+1) + '\n' +
@@ -2033,7 +2120,17 @@ function costruisciXML(f, progressivo){
     '        ' + tg('AliquotaIVA', '0.00') + '\n' +
     '        ' + tg('Natura', natura) + '\n' +
     '      </DettaglioLinee>'
-  ).join('\n');
+  ).join('\n') + (bolloRivalsa
+    ? '\n      <DettaglioLinee>\n' +
+      '        ' + tg('NumeroLinea', t.voci.length+1) + '\n' +
+      '        ' + tg('Descrizione', 'Imposta di bollo assolta in modo virtuale ai sensi del DM 17/06/2014') + '\n' +
+      '        ' + tg('Quantita', '1.00') + '\n' +
+      '        ' + tg('PrezzoUnitario', num2(extraRivalsa)) + '\n' +
+      '        ' + tg('PrezzoTotale', num2(extraRivalsa)) + '\n' +
+      '        ' + tg('AliquotaIVA', '0.00') + '\n' +
+      '        ' + tg('Natura', natura) + '\n' +
+      '      </DettaglioLinee>'
+    : '');
 
   const bollo = t.bolloDovuto
     ? '        <DatiBollo>\n          ' + tg('BolloVirtuale','SI') + '\n          ' + tg('ImportoBollo','2.00') + '\n        </DatiBollo>\n'
@@ -2111,8 +2208,8 @@ ${civicoCli}        ${tg('CAP', c.cap)}
         ${tg('Divisa','EUR')}
         ${tg('Data', f.dataEmissione)}
         ${tglim('Numero', f.numero, 20)}
-        ${tg('ImportoTotaleDocumento', num2(t.totale))}
-${bollo}        ${tglim('Causale', f.titolo, 200)}
+${bollo}        ${tg('ImportoTotaleDocumento', num2(t.totale))}
+        ${tglim('Causale', f.titolo, 200)}
       </DatiGeneraliDocumento>
     </DatiGenerali>
     <DatiBeniServizi>
@@ -2120,7 +2217,7 @@ ${linee}
       <DatiRiepilogo>
         ${tg('AliquotaIVA','0.00')}
         ${tg('Natura', natura)}
-        ${tg('ImponibileImporto', num2(t.imponibile))}
+        ${tg('ImponibileImporto', num2(imponibileXml))}
         ${tg('Imposta','0.00')}
         ${tglim('RiferimentoNormativo', RIFERIMENTI_XML[natura] || RIFERIMENTI_XML['N2.2'], 100)}
       </DatiRiepilogo>
@@ -2257,6 +2354,7 @@ $('#btnImport').addEventListener('click', ()=>$('#importFile').click());
 $('#importFile').addEventListener('change', e=>{
   const file = e.target.files[0]; if(!file) return;
   const r = new FileReader();
+  r.onerror = ()=>{ alert('Non riesco a leggere questo file. Riprova o scegline un altro.'); };
   r.onload = ()=>{
     try{
       const d = JSON.parse(r.result);
@@ -2277,14 +2375,13 @@ window.sincronizzaOra = async function(){
   const b = $('#btnSync');
   b.classList.add('girando');
   clearTimeout(pushTimer);
+  let ok = false;
   try{
-    if(modifichePendenti) await pushCloud();   // prima spingi le modifiche locali non ancora inviate
-    else await pullCloud();                    // altrimenti scarica l'ultima versione dal cloud
+    ok = modifichePendenti ? await pushCloud() : await pullCloud();
   } finally {
     b.classList.remove('girando');
   }
-  if(!$('#btnCloud').className.includes('c-err')) toast('Sincronizzato');
-  else toast('Errore di rete: riprova');
+  toast(ok ? 'Sincronizzato' : 'Errore di rete: riprova');
 };
 $('#btnSync').addEventListener('click', ()=>sincronizzaOra());
 
@@ -2310,21 +2407,76 @@ function programmaPush(){
   clearTimeout(pushTimer);
   pushTimer = setTimeout(pushCloud, 900);
 }
+// "impronta" leggera di un db: quanti record per collezione. Basta a distinguere
+// "questo dispositivo ha lavorato offline e ha roba in più" da "sono già allineati"
+// senza un confronto profondo (che con jsonb da Postgres darebbe falsi positivi
+// solo per un diverso ordine delle chiavi).
+function firmaDb(d){
+  if(!d) return '0,0,0,0';
+  return [(d.clienti||[]).length, (d.fatture||[]).length, (d.preventivi||[]).length, (d.progetti||[]).length].join(',');
+}
+function dbHaDatiReali(d){ return !!d && firmaDb(d) !== '0,0,0,0'; }
+function applicaRemoto(remoto){
+  db = remoto.dati || db;
+  db.counters = db.counters || {pr:0,ft:0};
+  migraDati();
+  cloudStamp = remoto.updated_at;
+  salvaLocale();
+  render();
+}
 async function pushCloud(){
-  if(!supa || !utente) return;
+  if(!supa || !utente) return false;
   setSync('sync');
   try{
-    const { data, error } = await supa.from('gestionale')
-      .upsert({ user_id: utente.id, dati: db, updated_at: new Date().toISOString() })
-      .select('updated_at').single();
+    // Scrittura condizionata: se cloudStamp è la versione che avevamo letto
+    // l'ultima volta, aggiorna solo se sul cloud è rimasta quella stessa versione.
+    // Così un dispositivo non cancella in silenzio le modifiche salvate nel
+    // frattempo da un altro (es. telefono e computer aperti insieme).
+    let q = supa.from('gestionale').update({ dati: db, updated_at: new Date().toISOString() }).eq('user_id', utente.id);
+    if(cloudStamp) q = q.eq('updated_at', cloudStamp);
+    const { data, error } = await q.select('updated_at');
     if(error) throw error;
-    cloudStamp = data.updated_at;
+    if(data && data.length){
+      cloudStamp = data[0].updated_at;
+      modifichePendenti = false;
+      setSync('ok');
+      return true;
+    }
+    // Nessuna riga aggiornata: o è la primissima scrittura per questo utente,
+    // o nel frattempo un altro dispositivo ha salvato una versione diversa.
+    const { data: remoto, error: errSel } = await supa.from('gestionale')
+      .select('dati,updated_at').eq('user_id', utente.id).maybeSingle();
+    if(errSel) throw errSel;
+    if(!remoto){
+      const ins = await supa.from('gestionale')
+        .upsert({ user_id: utente.id, dati: db, updated_at: new Date().toISOString() })
+        .select('updated_at').single();
+      if(ins.error) throw ins.error;
+      cloudStamp = ins.data.updated_at;
+    } else {
+      setSync('err', 'Conflitto: un altro dispositivo ha salvato nel frattempo');
+      const tieniLocale = confirm(
+        'Un altro dispositivo ha sincronizzato dati diversi da questo nel frattempo.\n\n'+
+        'OK = mantieni i dati di QUESTO dispositivo (li carico sul cloud)\n'+
+        'Annulla = usa invece i dati più recenti dal CLOUD su questo dispositivo'
+      );
+      if(tieniLocale){
+        const ins = await supa.from('gestionale')
+          .upsert({ user_id: utente.id, dati: db, updated_at: new Date().toISOString() })
+          .select('updated_at').single();
+        if(ins.error) throw ins.error;
+        cloudStamp = ins.data.updated_at;
+      } else {
+        applicaRemoto(remoto);
+      }
+    }
     modifichePendenti = false;
     setSync('ok');
-  }catch(e){ setSync('err'); }
+    return true;
+  }catch(e){ setSync('err'); return false; }
 }
 async function pullCloud(){
-  if(!supa || !utente) return;
+  if(!supa || !utente) return false;
   if(modifichePendenti){ return pushCloud(); }   // prima metti al sicuro le modifiche locali
   setSync('sync');
   try{
@@ -2333,18 +2485,28 @@ async function pullCloud(){
     if(error) throw error;
     if(data){
       if(data.updated_at !== cloudStamp){
-        db = data.dati || db;
-        db.counters = db.counters || {pr:0,ft:0};
-        migraDati();
-        cloudStamp = data.updated_at;
-        salvaLocale();
-        render();
+        const primoPullDiSessione = cloudStamp == null;
+        if(primoPullDiSessione && dbHaDatiReali(db) && firmaDb(data.dati)!==firmaDb(db)){
+          // Questo dispositivo ha dati locali "veri" (probabilmente lavorati offline
+          // o senza account) diversi da quelli già sul cloud: non sovrascriverli in
+          // silenzio con il primo pull dopo il login.
+          const tieniLocale = confirm(
+            'Questo dispositivo ha dati diversi da quelli già sincronizzati sul cloud (probabilmente creati offline o senza account).\n\n'+
+            'OK = mantieni i dati di QUESTO dispositivo e caricali sul cloud\n'+
+            'Annulla = usa invece i dati del CLOUD, sostituendo quelli di questo dispositivo'
+          );
+          if(tieniLocale) await pushCloud();
+          else applicaRemoto(data);
+        } else {
+          applicaRemoto(data);
+        }
       }
       setSync('ok');
     } else {
       await pushCloud();   // primo dispositivo: carica i dati locali sul cloud
     }
-  }catch(e){ setSync('err'); }
+    return true;
+  }catch(e){ setSync('err'); return false; }
 }
 function aggiornaCloudUI(){ setSync(utente ? 'ok' : 'off'); }
 
@@ -2415,26 +2577,32 @@ function mostraAuthErr(msg){
 window.accedi = async function(ev){
   ev.preventDefault();
   const f = ev.target;
-  const { error } = await supa.auth.signInWithPassword({ email:f.elements.email.value.trim(), password:f.elements.password.value });
-  if(error){
-    mostraAuthErr(error.message==='Invalid login credentials' ? 'Email o password errati. Se è la prima volta, usa "Registrati".' : 'Errore: '+error.message);
-    return;
-  }
-  chiudiModal(); toast('Connesso al cloud');
+  try{
+    const { error } = await supa.auth.signInWithPassword({ email:f.elements.email.value.trim(), password:f.elements.password.value });
+    if(error){
+      mostraAuthErr(error.message==='Invalid login credentials' ? 'Email o password errati. Se è la prima volta, usa "Registrati".' : 'Errore: '+error.message);
+      return;
+    }
+    chiudiModal(); toast('Connesso al cloud');
+  }catch(e){ mostraAuthErr('Errore di rete: controlla la connessione e riprova.'); }
 };
 window.registrati = async function(f){
   const email = f.elements.email.value.trim(), password = f.elements.password.value;
   if(!email || password.length<6){ mostraAuthErr('Inserisci email e una password di almeno 6 caratteri.'); return; }
-  const { data, error } = await supa.auth.signUp({ email, password });
-  if(error){ mostraAuthErr('Errore: '+error.message); return; }
-  if(data.session){ chiudiModal(); toast('Account creato e connesso'); }
-  else mostraAuthErr('Quasi fatto: controlla la mail "'+email+'" e clicca il link di conferma, poi torna qui e premi Accedi.');
+  try{
+    const { data, error } = await supa.auth.signUp({ email, password });
+    if(error){ mostraAuthErr('Errore: '+error.message); return; }
+    if(data.session){ chiudiModal(); toast('Account creato e connesso'); }
+    else mostraAuthErr('Quasi fatto: controlla la mail "'+email+'" e clicca il link di conferma, poi torna qui e premi Accedi.');
+  }catch(e){ mostraAuthErr('Errore di rete: controlla la connessione e riprova.'); }
 };
 window.esciCloud = async function(){
   if(!confirm('Uscire dall\'account? I dati restano salvati su questo dispositivo e sul cloud.')) return;
-  await supa.auth.signOut();
-  utente = null; cloudStamp = null;
-  aggiornaCloudUI(); chiudiModal(); toast('Disconnesso');
+  try{
+    await supa.auth.signOut();
+    utente = null; cloudStamp = null;
+    aggiornaCloudUI(); chiudiModal(); toast('Disconnesso');
+  }catch(e){ alert('Errore di rete: non sono riuscito a disconnetterti. Riprova.'); }
 };
 window.soloLocale = function(){
   if(lsOk){ try{ localStorage.setItem(CLOUD_DISMISS_KEY,'1'); }catch(e){} }
@@ -2460,7 +2628,7 @@ function initCloud(){
       if(lsOk){ try{ dism = localStorage.getItem(CLOUD_DISMISS_KEY)==='1'; }catch(e){} }
       if(!dism) apriLoginSheet();
     }
-  });
+  }).catch(()=>{ setSync('err','Errore di connessione al cloud'); });
   // quando torni sull'app (es. riapri dal telefono), ricontrolla il cloud
   document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && utente) pullCloud(); });
   // controllo automatico ogni 60 secondi mentre l'app è aperta
@@ -2615,8 +2783,8 @@ if(!lsOk) $('#bannerMem').style.display='block';
         label: MESI[m].slice(0,3),
         mese: m,
         anno: y,
-        emesso:    somma(db.fatture.filter(f=>dentro(f.dataEmissione||'')), f=>f.totale),
-        incassato: somma(db.fatture.filter(f=>dentro(f.dataIncasso  ||'')), f=>f.totale),
+        emesso:    somma(db.fatture.filter(f=>dentro(f.dataEmissione||'')), valoreDoc),
+        incassato: somma(db.fatture.filter(f=>f.statoPagamento==='Pagata' && dentro(f.dataIncasso||'')), valoreDoc),
       });
     }
     return out;
@@ -2727,17 +2895,17 @@ if(!lsOk) $('#bannerMem').style.display='block';
     const bPrev = resBounds(mode, new Date(anchor.getFullYear(), anchor.getMonth()-len, 1));
 
     const emesse      = db.fatture.filter(f=> inP(f.dataEmissione, b));
-    const incassate   = db.fatture.filter(f=> inP(f.dataIncasso,   b));
+    const incassate   = db.fatture.filter(f=> f.statoPagamento==='Pagata' && inP(f.dataIncasso, b));
     const emessePrev    = db.fatture.filter(f=> inP(f.dataEmissione, bPrev));
-    const incassatePrev = db.fatture.filter(f=> inP(f.dataIncasso,   bPrev));
+    const incassatePrev = db.fatture.filter(f=> f.statoPagamento==='Pagata' && inP(f.dataIncasso, bPrev));
     const fattPeriodo = db.fatture.filter(f=> inP(f.dataEmissione,b) || inP(f.dataIncasso,b));
     const fattSenza   = db.fatture.filter(f=> !f.dataEmissione && !f.dataIncasso);
 
-    const fatturato    = somma(emesse,    f=>f.totale);
-    const incassato    = somma(incassate, f=>f.totale);
+    const fatturato    = somma(emesse,    valoreDoc);
+    const incassato    = somma(incassate, valoreDoc);
     const accantona    = somma(incassate, accantonare);
-    const fatturatoPrev = somma(emessePrev,    f=>f.totale);
-    const incassatoPrev = somma(incassatePrev, f=>f.totale);
+    const fatturatoPrev = somma(emessePrev,    valoreDoc);
+    const incassatoPrev = somma(incassatePrev, valoreDoc);
 
     const prevInviati = db.preventivi.filter(p=> inP(p.dataInvio, b));
     const prevSenza   = db.preventivi.filter(p=> !p.dataInvio);
@@ -3051,7 +3219,9 @@ if(!lsOk) $('#bannerMem').style.display='block';
   };
   window.vFatture = function(){
     return `
-    <div class="sec-head"><h2>Fatture</h2><button class="btn primary" onclick="apriFormFattura()">＋ Nuova</button></div>
+    <div class="sec-head"><h2>Fatture</h2>
+      <span class="sub"><button class="linkino-btn" onclick="apriImpostazioniSdI()">Fatturazione elettronica: invio n. ${prog5(db.counters.xml||0)}</button></span>
+      <button class="btn primary" onclick="apriFormFattura()">＋ Nuova</button></div>
     ${toolbar()}
     ${wrap(kanban('fattura', STATI_FATTURA, filtra(db.fatture,'fattura'), 'statoPagamento', cardFattura))}
     ${scadenzarioHTML(false)}
