@@ -54,7 +54,7 @@
 <style>
 /* ============ DESIGN TOKENS — Apple-like ============ */
 :root{
-  --bg:#f2f2f7; --card:#ffffff; --ink:#1c1c1e; --muted:#8e8e93; --line:rgba(60,60,67,.12);
+  --bg:#f2f2f7; --card:#ffffff; --ink:#1c1c1e; --muted:#6d6d72; --line:rgba(60,60,67,.12);
   --accent:#ff6b1a; --accent-2:#ff9500;
   --accent-soft:rgba(255,107,26,.12);
   --ok:#34c759; --ok-soft:rgba(52,199,89,.15);
@@ -282,9 +282,10 @@ input[type=color].colore-cliente{width:100%;height:41px;border:none;border-radiu
 .avvisi-list{display:flex;flex-direction:column;gap:10px}
 .avviso-item{
   display:flex;align-items:flex-start;gap:13px;background:var(--card);border-radius:16px;
-  padding:16px 18px;cursor:pointer;box-shadow:var(--shadow-sm);
+  padding:16px 18px;cursor:pointer;box-shadow:var(--shadow-sm);transition:transform .12s,background-color .12s;
 }
 .avviso-item:active{transform:scale(.99)}
+@media (hover:hover){ .avviso-item:hover{background:var(--btn)} }
 .avviso-item .dot{margin-top:7px}
 .avviso-tit{font-size:15.5px;font-weight:700;margin-bottom:4px}
 .avviso-desc{font-size:13.5px;color:var(--muted);font-weight:500;line-height:1.45}
@@ -505,6 +506,9 @@ body.doc-aperto{overflow:hidden}
 @media (max-width:400px){
   .brand small{display:none}
 }
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}
+}
 </style>
 </head>
 <body>
@@ -662,10 +666,16 @@ function badge(st){ return '<span class="badge '+(STATO_CLASSE[st]||'g')+'">'+es
 function chips(arr){ if(!arr||!arr.length) return ''; return '<div>'+arr.map(s=>'<span class="chip">'+esc(s)+'</span>').join('')+'</div>'; }
 function iniziali(nome){ return (nome||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
 function coloreValido(c){ return /^#[0-9a-fA-F]{6}$/.test(c||'') ? c : ''; }
+// Il colore dell'avatar lo sceglie l'utente da un <input type="color"> libero: su
+// tonalità chiare (giallo, azzurro pastello...) le iniziali bianche sparirebbero.
+function testoLeggibile(hex){
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return (r*299 + g*587 + b*114)/1000 > 150 ? '#1c1c1e' : '#fff';
+}
 function avatarHTML(c){
   if(c.foto) return '<div class="avatar"><img src="'+esc(c.foto)+'" alt=""></div>';
   const col = coloreValido(c.colore);
-  return '<div class="avatar"'+(col?' style="background:'+col+';color:#fff"':'')+'>'+esc(iniziali(c.nome))+'</div>';
+  return '<div class="avatar"'+(col?' style="background:'+col+';color:'+testoLeggibile(col)+'"':'')+'>'+esc(iniziali(c.nome))+'</div>';
 }
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('show'),2400); }
 
@@ -1039,38 +1049,65 @@ function generaAvvisi(){
   if(scadute.length) out.push({t:'r',vista:'fatture',
     titolo:scadute.length===1?'1 fattura scaduta':scadute.length+' fatture scadute',
     testo:'Totale '+eur(somma(scadute,valoreDoc))+'. Invia un sollecito ai clienti coinvolti.'});
-  db.fatture.filter(f=>!fatturaScaduta(f)&&f.statoPagamento==='Emessa'&&f.scadenzaPagamento&&f.scadenzaPagamento<=limS)
-    .forEach(f=>out.push({t:'a',vista:'fatture',
-      titolo:esc(f.numero)+' in scadenza',
-      testo:'Scade il '+fmtData(f.scadenzaPagamento)+' · '+eur(f.totale)+'. Tienila d\'occhio se il pagamento non è ancora arrivato.'}));
+  const inScadenza=db.fatture.filter(f=>!fatturaScaduta(f)&&f.statoPagamento==='Emessa'&&f.scadenzaPagamento&&f.scadenzaPagamento<=limS);
+  if(inScadenza.length===1){ const f=inScadenza[0]; out.push({t:'a',vista:'fatture',
+    titolo:esc(f.numero)+' in scadenza',
+    testo:'Scade il '+fmtData(f.scadenzaPagamento)+' · '+eur(f.totale)+'. Tienila d\'occhio se il pagamento non è ancora arrivato.'}); }
+  else if(inScadenza.length>1) out.push({t:'a',vista:'fatture',
+    titolo:inScadenza.length+' fatture in scadenza',
+    testo:'Nei prossimi 7 giorni · totale '+eur(somma(inScadenza,valoreDoc))+'. Tienile d\'occhio se i pagamenti non sono ancora arrivati.'});
   const daEm=db.fatture.filter(f=>f.statoPagamento==='Da emettere');
   if(daEm.length) out.push({t:'b',vista:'fatture',
     titolo:daEm.length===1?'1 fattura da emettere':daEm.length+' fatture da emettere',
     testo:eur(somma(daEm,valoreDoc))+' da fatturare. Completa e invia appena pronto.'});
   // preventivi
-  db.preventivi.filter(p=>p.stato==='Inviato'&&p.validoFino&&p.validoFino<oggiS)
-    .forEach(p=>out.push({t:'a',vista:'preventivi',
-      titolo:'Preventivo scaduto',
-      testo:esc(p.numero)+' oltre la validità ('+fmtData(p.validoFino)+'). Rilancialo o segnalo come Scaduto.'}));
+  const prevScaduti=db.preventivi.filter(p=>p.stato==='Inviato'&&p.validoFino&&p.validoFino<oggiS);
+  if(prevScaduti.length===1){ const p=prevScaduti[0]; out.push({t:'a',vista:'preventivi',
+    titolo:'Preventivo scaduto',
+    testo:esc(p.numero)+' oltre la validità ('+fmtData(p.validoFino)+'). Rilancialo o segnalo come Scaduto.'}); }
+  else if(prevScaduti.length>1) out.push({t:'a',vista:'preventivi',
+    titolo:prevScaduti.length+' preventivi scaduti',
+    testo:'Oltre la validità indicata. Rilanciali o segnali come Scaduti.'});
+  const daSollecitare=[];
   db.preventivi.filter(p=>p.stato==='Inviato'&&p.dataInvio&&(!p.validoFino||p.validoFino>=oggiS)).forEach(p=>{
     const gg=Math.floor((new Date(oggiS)-new Date(p.dataInvio))/86400000);
-    if(gg>=10) out.push({t:'b',vista:'preventivi',
-      titolo:'Follow-up preventivo',
-      testo:esc(p.numero)+' inviato da '+gg+' giorni senza risposta. Fai un follow-up.'});
+    if(gg>=10) daSollecitare.push(p);
   });
+  if(daSollecitare.length===1){ const p=daSollecitare[0];
+    const gg=Math.floor((new Date(oggiS)-new Date(p.dataInvio))/86400000);
+    out.push({t:'b',vista:'preventivi',
+      titolo:'Follow-up preventivo',
+      testo:esc(p.numero)+' inviato da '+gg+' giorni senza risposta. Fai un follow-up.'}); }
+  else if(daSollecitare.length>1) out.push({t:'b',vista:'preventivi',
+    titolo:daSollecitare.length+' preventivi da ricontattare',
+    testo:'Inviati da almeno 10 giorni senza risposta. Fai un follow-up.'});
   const bozze=db.preventivi.filter(p=>p.stato==='Bozza');
   if(bozze.length) out.push({t:'g',vista:'preventivi',
     titolo:bozze.length===1?'1 preventivo in bozza':bozze.length+' preventivi in bozza',
     testo:'Da completare e inviare quando sono pronti.'});
   // progetti
-  db.progetti.filter(p=>p.stato!=='Fatto'&&p.scadenza&&p.scadenza<oggiS)
-    .forEach(p=>out.push({t:'r',vista:'progetti',
-      titolo:'Progetto in ritardo',
-      testo:'"'+esc(p.titolo)+'" oltre la scadenza ('+fmtData(p.scadenza)+').'}));
-  // mensili
-  promemoriaMensili().forEach(x=>out.push({t:x.ritardo?'r':'a',vista:'dashboard',
+  const progRitardo=db.progetti.filter(p=>p.stato!=='Fatto'&&p.scadenza&&p.scadenza<oggiS);
+  if(progRitardo.length===1){ const p=progRitardo[0]; out.push({t:'r',vista:'progetti',
+    titolo:'Progetto in ritardo',
+    testo:'"'+esc(p.titolo)+'" oltre la scadenza ('+fmtData(p.scadenza)+').'}); }
+  else if(progRitardo.length>1) out.push({t:'r',vista:'progetti',
+    titolo:progRitardo.length+' progetti in ritardo',
+    testo:'Oltre la scadenza prevista. Controllali in Progetti.'});
+  // mensili: separati per severità (ritardo vs promemoria), ciascun gruppo in una sola card
+  const mensili = promemoriaMensili();
+  const mensiliRitardo = mensili.filter(x=>x.ritardo), mensiliOk = mensili.filter(x=>!x.ritardo);
+  if(mensiliRitardo.length===1){ const x=mensiliRitardo[0]; out.push({t:'r',vista:'dashboard',
     titolo:'Fattura '+nomeMese(x.key)+' da creare',
-    testo:'Per "'+esc(x.p.titolo)+'".'+(x.ritardo?' In ritardo ⚠':'')}));
+    testo:'Per "'+esc(x.p.titolo)+'". In ritardo ⚠'}); }
+  else if(mensiliRitardo.length>1) out.push({t:'r',vista:'dashboard',
+    titolo:mensiliRitardo.length+' fatture mensili in ritardo',
+    testo:'Progetti ricorrenti non ancora fatturati per il mese di competenza. In ritardo ⚠'});
+  if(mensiliOk.length===1){ const x=mensiliOk[0]; out.push({t:'a',vista:'dashboard',
+    titolo:'Fattura '+nomeMese(x.key)+' da creare',
+    testo:'Per "'+esc(x.p.titolo)+'".'}); }
+  else if(mensiliOk.length>1) out.push({t:'a',vista:'dashboard',
+    titolo:mensiliOk.length+' fatture mensili da creare',
+    testo:'Progetti ricorrenti da fatturare per il mese in corso.'});
   if(!out.length) out.push({t:'v',vista:'dashboard',titolo:'Tutto in ordine',testo:'Nessuna azione urgente al momento ✓'});
   return out;
 }
@@ -2789,10 +2826,24 @@ if(!lsOk) $('#bannerMem').style.display='block';
     }
     return out;
   }
+  // Il testo dentro un SVG scala con l'intero disegno (viewBox): con un viewBox
+  // fisso a 900 unità, su un telefono (SVG renderizzato ~300px) un "font-size:11px"
+  // diventa realmente ~3-4px, illeggibile. Costruendo il viewBox sulla larghezza
+  // reale del contenitore, il fattore di scala resta vicino a 1 su ogni schermo.
+  function larghezzaGraficoSvg(){
+    const card = document.querySelector('.chart-card');
+    if(card){
+      const cs = getComputedStyle(card);
+      const w = card.clientWidth - (parseFloat(cs.paddingLeft)||0) - (parseFloat(cs.paddingRight)||0);
+      if(w > 0) return Math.round(w);
+    }
+    const padMain = (window.innerWidth||900) <= 640 ? 24 : 32;
+    return Math.max(280, Math.round((window.innerWidth||900) - padMain - 36));
+  }
   function svgAndamento(mesi){
     const max = Math.max(1, ...mesi.map(m=>Math.max(m.emesso, m.incassato)));
     const top = niceMax(max);
-    const W=900, H=280, ml=54, mr=10, mt=16, mb=28;
+    const W=larghezzaGraficoSvg(), H=280, ml=54, mr=10, mt=16, mb=28;
     const pw = W-ml-mr, ph = H-mt-mb, y0 = mt+ph;
     const y = v => mt + ph - (v/top)*ph;
     const gw = pw/mesi.length, bw = Math.min(27, gw*0.38), gap = 2;
@@ -2828,11 +2879,15 @@ if(!lsOk) $('#bannerMem').style.display='block';
         const maxLen = Math.max(testi[0].length, testi[1].length);
         const boxW = Math.round(Math.max(86, padX*2+sw+gap+maxLen*6.6));
         const boxH = padY*2+rowH*2;
-        const boxX = cx-boxW/2;
+        // Clampato in orizzontale così il box non esce dal grafico (mese selezionato
+        // = prima o ultima colonna) né copre l'etichetta dell'asse Y a sinistra.
+        const boxX = Math.min(Math.max(cx-boxW/2, ml+4), W-mr-boxW-4);
         const boxY = Math.max(mt-2, Math.min(y1,y2)-10-boxH);
         const r1y = boxY+padY+12, r2y = r1y+rowH;
         const swX = boxX+padX, txX = swX+sw+gap;
-        cifre = `<g class="chart-tip">
+        // pointer-events:none: il box è più largo della colonna e altrimenti
+        // ruba i click alla colonna adiacente su cui si sovrappone.
+        cifre = `<g class="chart-tip" style="pointer-events:none">
           <rect x="${boxX}" y="${boxY}" width="${boxW}" height="${boxH}" rx="12" class="chart-tip-bg" filter="url(#chartTipShadow)"/>
           <rect x="${swX}" y="${r1y-9}" width="${sw}" height="${sw}" rx="2" class="chart-tip-sw1"/>
           <text x="${txX}" y="${r1y}" class="chart-tip-txt">${testi[0]}</text>
@@ -2950,13 +3005,13 @@ if(!lsOk) $('#bannerMem').style.display='block';
       </div>
       <div class="stat">
         <div class="lbl">Preventivi inviati</div>
-        <div class="big">${prevInviati.length} · ${eur(valPrev)}</div>
-        <div class="det">${nAcc} accettati nel periodo</div>
+        <div class="big">${eur(valPrev)}</div>
+        <div class="det">${prevInviati.length} inviati · ${nAcc} accettati nel periodo</div>
       </div>
       <div class="stat">
         <div class="lbl">Progetti avviati</div>
-        <div class="big">${progAvviati.length} · ${eur(valProg)}</div>
-        <div class="det">per data di inizio</div>
+        <div class="big">${eur(valProg)}</div>
+        <div class="det">${progAvviati.length} per data di inizio</div>
       </div>
     </div>`;
 
@@ -3042,8 +3097,8 @@ if(!lsOk) $('#bannerMem').style.display='block';
     const st = document.createElement('style');
     st.id = 'res-embed-style';
     st.textContent = '.res-sep{height:1px;background:var(--line);margin:34px 0 26px;border:0}'
-      + ':root{--chart-1:#ff6b1a;--chart-2:#007aff;--tooltip-bg:#1c1c1e;--tooltip-ink:#f2f2f7}'
-      + '[data-theme=dark]{--chart-1:#e8660a;--chart-2:#0a84ff;--tooltip-bg:#3a3a3c;--tooltip-ink:#f2f2f7}'
+      + ':root{--chart-1:var(--accent);--chart-2:var(--blu);--tooltip-bg:#1c1c1e;--tooltip-ink:#f2f2f7;--chart-hl:rgba(120,120,128,.26)}'
+      + '[data-theme=dark]{--tooltip-bg:#4a4a4d;--tooltip-ink:#f2f2f7;--chart-hl:rgba(170,170,178,.22)}'
       + '.chart-card{background:var(--card);border-radius:var(--r-xl);padding:18px 18px 20px;box-shadow:var(--shadow-sm);margin-bottom:22px}'
       + '.chart-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:8px}'
       + '.chart-title{font-weight:800;font-size:16px}'
@@ -3061,17 +3116,18 @@ if(!lsOk) $('#bannerMem').style.display='block';
       + '.chart-grid{stroke:var(--line);stroke-width:1}'
       + '.chart-axisline{stroke:var(--line);stroke-width:1}'
       + '.chart-axis{fill:var(--muted);font-size:11px;transition:opacity .15s}'
-      + '.chart-axis.dim{opacity:.45}'
+      + '.chart-axis.dim{opacity:.7}'
       + '.chart-axis.sel{fill:var(--ink);font-weight:700}'
       + '.chart-mese{cursor:pointer}'
-      + '.chart-hl{fill:var(--btn)}'
-      + '.chart-tip-bg{fill:var(--tooltip-bg)}'
+      + '@media (hover:hover){ .chart-mese:hover .chart-bar-1:not(.dim){opacity:.82} .chart-mese:hover .chart-bar-2:not(.dim){opacity:.82} }'
+      + '.chart-hl{fill:var(--chart-hl)}'
+      + '.chart-tip-bg{fill:var(--tooltip-bg);stroke:var(--line);stroke-width:1}'
       + '.chart-tip-txt{fill:var(--tooltip-ink);font-size:11px;font-weight:700}'
       + '.chart-tip-sw1{fill:var(--chart-1)}'
       + '.chart-tip-sw2{fill:var(--chart-2)}'
       + '.chart-nav{display:flex;align-items:center;gap:8px;font-size:14px}'
       + '.chart-nav b{min-width:112px;text-align:center;font-weight:700}'
-      + '.chart-nav .btn{min-width:32px;padding:5px 10px}';
+      + '.chart-nav .btn{min-width:44px;min-height:44px;padding:5px 10px;display:inline-flex;align-items:center;justify-content:center}';
     document.head.appendChild(st);
   }
 
