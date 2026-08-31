@@ -280,12 +280,15 @@ td.euro{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
 input[type=color].colore-cliente{width:100%;height:41px;border:none;border-radius:13px;background:var(--input);padding:6px;cursor:pointer}
 
 /* ---------- consigli & promemoria ---------- */
-.avvisi-list{display:flex;flex-direction:column;gap:8px}
+.avvisi-list{display:flex;flex-direction:column;gap:10px}
 .avviso-item{
-  display:flex;align-items:center;gap:10px;background:var(--card);border-radius:14px;
-  padding:11px 14px;font-size:13.5px;font-weight:500;cursor:pointer;box-shadow:var(--shadow-sm);
+  display:flex;align-items:flex-start;gap:13px;background:var(--card);border-radius:16px;
+  padding:16px 18px;cursor:pointer;box-shadow:var(--shadow-sm);
 }
 .avviso-item:active{transform:scale(.99)}
+.avviso-item .dot{margin-top:7px}
+.avviso-tit{font-size:15.5px;font-weight:700;margin-bottom:4px}
+.avviso-desc{font-size:13.5px;color:var(--muted);font-weight:500;line-height:1.45}
 
 /* ---------- riepilogo cliente ---------- */
 .stato-riga{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px}
@@ -529,7 +532,7 @@ body.doc-aperto{overflow:hidden}
 <div id="toast"></div>
 <input type="file" id="importFile" accept=".json,application/json" hidden>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
 <script>
 'use strict';
 /* ============================================================
@@ -962,35 +965,56 @@ function generaAvvisi(){
   const limS=lim.getFullYear()+'-'+String(lim.getMonth()+1).padStart(2,'0')+'-'+String(lim.getDate()).padStart(2,'0');
   // fatture
   const scadute=db.fatture.filter(fatturaScaduta);
-  if(scadute.length) out.push({t:'r',vista:'fatture',testo:scadute.length+(scadute.length===1?' fattura scaduta':' fatture scadute')+' · '+eur(somma(scadute,f=>f.totale))+' — invia un sollecito'});
+  if(scadute.length) out.push({t:'r',vista:'fatture',
+    titolo:scadute.length===1?'1 fattura scaduta':scadute.length+' fatture scadute',
+    testo:'Totale '+eur(somma(scadute,f=>f.totale))+'. Invia un sollecito ai clienti coinvolti.'});
   db.fatture.filter(f=>!fatturaScaduta(f)&&f.statoPagamento==='Emessa'&&f.scadenzaPagamento&&f.scadenzaPagamento<=limS)
-    .forEach(f=>out.push({t:'a',vista:'fatture',testo:esc(f.numero)+' scade il '+fmtData(f.scadenzaPagamento)+' · '+eur(f.totale)}));
+    .forEach(f=>out.push({t:'a',vista:'fatture',
+      titolo:esc(f.numero)+' in scadenza',
+      testo:'Scade il '+fmtData(f.scadenzaPagamento)+' · '+eur(f.totale)+'. Tienila d\'occhio se il pagamento non è ancora arrivato.'}));
   const daEm=db.fatture.filter(f=>f.statoPagamento==='Da emettere');
-  if(daEm.length) out.push({t:'b',vista:'fatture',testo:daEm.length+(daEm.length===1?' fattura da emettere':' fatture da emettere')+' · '+eur(somma(daEm,f=>f.totale))});
+  if(daEm.length) out.push({t:'b',vista:'fatture',
+    titolo:daEm.length===1?'1 fattura da emettere':daEm.length+' fatture da emettere',
+    testo:eur(somma(daEm,f=>f.totale))+' da fatturare. Completa e invia appena pronto.'});
   db.fatture.filter(f=>!f.bollo&&(parseFloat(f.totale)||0)>SOGLIA_BOLLO&&f.tipoDoc!=='Nota di credito'&&f.statoPagamento!=='Da emettere')
-    .forEach(f=>out.push({t:'a',vista:'fatture',testo:'Bollo mancante su '+esc(f.numero)+'? Obbligatorio sopra 77,47€'}));
+    .forEach(f=>out.push({t:'a',vista:'fatture',
+      titolo:'Bollo mancante',
+      testo:'Manca il bollo su '+esc(f.numero)+', obbligatorio sopra 77,47€.'}));
   // preventivi
   db.preventivi.filter(p=>p.stato==='Inviato'&&p.validoFino&&p.validoFino<oggiS)
-    .forEach(p=>out.push({t:'a',vista:'preventivi',testo:esc(p.numero)+' oltre validità ('+fmtData(p.validoFino)+') — rilancia o segna Scaduto'}));
+    .forEach(p=>out.push({t:'a',vista:'preventivi',
+      titolo:'Preventivo scaduto',
+      testo:esc(p.numero)+' oltre la validità ('+fmtData(p.validoFino)+'). Rilancialo o segnalo come Scaduto.'}));
   db.preventivi.filter(p=>p.stato==='Inviato'&&p.dataInvio&&(!p.validoFino||p.validoFino>=oggiS)).forEach(p=>{
     const gg=Math.floor((new Date(oggiS)-new Date(p.dataInvio))/86400000);
-    if(gg>=10) out.push({t:'b',vista:'preventivi',testo:esc(p.numero)+' inviato da '+gg+' giorni — fai un follow-up'});
+    if(gg>=10) out.push({t:'b',vista:'preventivi',
+      titolo:'Follow-up preventivo',
+      testo:esc(p.numero)+' inviato da '+gg+' giorni senza risposta. Fai un follow-up.'});
   });
   const bozze=db.preventivi.filter(p=>p.stato==='Bozza');
-  if(bozze.length) out.push({t:'g',vista:'preventivi',testo:bozze.length+(bozze.length===1?' preventivo in bozza da completare':' preventivi in bozza da completare')});
+  if(bozze.length) out.push({t:'g',vista:'preventivi',
+    titolo:bozze.length===1?'1 preventivo in bozza':bozze.length+' preventivi in bozza',
+    testo:'Da completare e inviare quando sono pronti.'});
   // progetti
   db.progetti.filter(p=>p.stato!=='Fatto'&&p.scadenza&&p.scadenza<oggiS)
-    .forEach(p=>out.push({t:'r',vista:'progetti',testo:'"'+esc(p.titolo)+'" oltre la scadenza ('+fmtData(p.scadenza)+')'}));
+    .forEach(p=>out.push({t:'r',vista:'progetti',
+      titolo:'Progetto in ritardo',
+      testo:'"'+esc(p.titolo)+'" oltre la scadenza ('+fmtData(p.scadenza)+').'}));
   // mensili
-  promemoriaMensili().forEach(x=>out.push({t:x.ritardo?'r':'a',vista:'dashboard',testo:'Fattura '+nomeMese(x.key)+' da creare per "'+esc(x.p.titolo)+'"'}));
-  if(!out.length) out.push({t:'v',vista:'dashboard',testo:'Tutto in ordine: nessuna azione urgente ✓'});
+  promemoriaMensili().forEach(x=>out.push({t:x.ritardo?'r':'a',vista:'dashboard',
+    titolo:'Fattura '+nomeMese(x.key)+' da creare',
+    testo:'Per "'+esc(x.p.titolo)+'".'+(x.ritardo?' In ritardo ⚠':'')}));
+  if(!out.length) out.push({t:'v',vista:'dashboard',titolo:'Tutto in ordine',testo:'Nessuna azione urgente al momento ✓'});
   return out;
 }
 function avvisiHTML(){
   const ordine={r:0,a:1,b:2,g:3,v:4};
   const items=generaAvvisi().sort((x,y)=>ordine[x.t]-ordine[y.t]).slice(0,8);
   return `<div class="sec-head"><h2>Consigli & promemoria</h2><button class="btn mini" onclick="aggiornaAvvisi()">↻ Aggiorna</button></div>
-  <div class="avvisi-list">${items.map(x=>`<div class="avviso-item" onclick="vai('${x.vista}')"><span class="dot d-${x.t}"></span><span>${x.testo}</span></div>`).join('')}</div>`;
+  <div class="avvisi-list">${items.map(x=>`<div class="avviso-item" onclick="vai('${x.vista}')">
+    <span class="dot d-${x.t}"></span>
+    <div><div class="avviso-tit">${x.titolo}</div><div class="avviso-desc">${x.testo}</div></div>
+  </div>`).join('')}</div>`;
 }
 window.aggiornaAvvisi = function(){
   if(supa && utente) sincronizzaOra();
@@ -2427,7 +2451,9 @@ if(!lsOk) $('#bannerMem').style.display='block';
    Filtra fatture/preventivi/progetti per periodo (Mese/Trimestre/Semestre/
    Anno) con navigazione avanti/indietro. In cima, un grafico a barre
    "Andamento fatturato" (Emesso/Incassato, SVG disegnato a mano) sugli
-   ultimi 12 mesi fissi — non segue il periodo selezionato sotto di lui.
+   ultimi 12 mesi fissi; il mese in evidenza è sincronizzato con quello
+   del Resoconto sotto (cliccare un mese o usare le frecce del grafico
+   imposta anche il periodo del Resoconto, e viceversa).
    NON è più una pagina a sé: viene renderizzata IN CODA alla Dashboard,
    subito sotto "Consigli & promemoria".
    Non modifica nessuna riga esistente. Per rimuoverla, cancella questo blocco.
@@ -2503,6 +2529,15 @@ if(!lsOk) $('#bannerMem').style.display='block';
     const t = new Date(); ui.resY = t.getFullYear(); ui.resM = t.getMonth();
     resRender();
   };
+  window.chartSelMese = function(anno, mese){
+    ui.resMode = 'mese'; ui.resY = anno; ui.resM = mese;
+    resRender();
+  };
+  window.chartNav = function(dir){
+    const a = new Date(ui.resY, ui.resM + dir, 1);
+    ui.resMode = 'mese'; ui.resY = a.getFullYear(); ui.resM = a.getMonth();
+    resRender();
+  };
 
   /* 4. costruttore tabelle (riusa gli stili esistenti) */
   function tabella(intestazioni, righeHtml, vuotoMsg){
@@ -2514,9 +2549,12 @@ if(!lsOk) $('#bannerMem').style.display='block';
       + '</tr></thead><tbody>'+righeHtml+'</tbody></table></div>';
   }
 
-  /* 4b. grafico "Andamento fatturato" — barre Emesso/Incassato, ultimi 12
-        mesi FISSI (non segue il selettore di periodo qui sotto: dà sempre
-        il quadro d'insieme). SVG disegnato a mano, nessuna libreria. */
+  /* 4b. grafico "Andamento fatturato" — barre Emesso/Incassato, finestra
+        di 12 mesi FISSA (sempre gli ultimi 12 rispetto a oggi). Il mese
+        evidenziato invece è ui.resY/ui.resM, condiviso col Resoconto:
+        cliccare una colonna o le frecce del grafico chiama chartSelMese/
+        chartNav, che impostano anche il periodo del Resoconto sotto.
+        SVG disegnato a mano, nessuna libreria. */
   function eur0(n){ return new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n||0); }
   function niceMax(v){
     if(v<=0) return 100;
@@ -2534,6 +2572,7 @@ if(!lsOk) $('#bannerMem').style.display='block';
       const dentro = dt => dt>=from && dt<to;
       out.push({
         label: MESI[m].slice(0,3),
+        mese: m,
         anno: y,
         emesso:    somma(db.fatture.filter(f=>dentro(f.dataEmissione||'')), f=>f.totale),
         incassato: somma(db.fatture.filter(f=>dentro(f.dataIncasso  ||'')), f=>f.totale),
@@ -2548,6 +2587,7 @@ if(!lsOk) $('#bannerMem').style.display='block';
     const pw = W-ml-mr, ph = H-mt-mb, y0 = mt+ph;
     const y = v => mt + ph - (v/top)*ph;
     const gw = pw/mesi.length, bw = Math.min(22, gw*0.32), gap = 3;
+    const selIdx = mesi.findIndex(m=>m.anno===ui.resY && m.mese===ui.resM);
 
     const grid = [top/2, top].map(v=>{
       const yy = y(v);
@@ -2566,14 +2606,19 @@ if(!lsOk) $('#bannerMem').style.display='block';
       const cx = ml + i*gw + gw/2;
       const x1 = cx - gap/2 - bw, x2 = cx + gap/2;
       const y1 = y(m.emesso), y2 = y(m.incassato);
-      const ultimo = i===mesi.length-1;
-      const etichetta = (x,yy,val) => ultimo
+      const sel = i===selIdx;
+      const dim = selIdx!==-1 && !sel;
+      const cls = c => dim ? c+' dim' : c;
+      const etichetta = (x,yy,val) => sel
         ? `<text x="${x+bw/2}" y="${Math.max(mt+9,yy-6)}" text-anchor="middle" class="chart-val">${eur0(val)}</text>` : '';
-      return `<g>
-        <path d="${barra(x1,y1,bw,y0-y1)}" class="chart-bar-1"><title>${esc(m.label+' '+m.anno)} · Emesso ${eur(m.emesso)}</title></path>
-        <path d="${barra(x2,y2,bw,y0-y2)}" class="chart-bar-2"><title>${esc(m.label+' '+m.anno)} · Incassato ${eur(m.incassato)}</title></path>
+      const hl = sel ? `<rect x="${ml+i*gw+2}" y="${mt}" width="${gw-4}" height="${ph}" rx="8" class="chart-hl"/>` : '';
+      return `<g class="chart-mese" onclick="chartSelMese(${m.anno},${m.mese})">
+        ${hl}
+        <rect x="${ml+i*gw}" y="${mt}" width="${gw}" height="${ph}" fill="transparent"/>
+        <path d="${barra(x1,y1,bw,y0-y1)}" class="${cls('chart-bar-1')}"><title>${esc(m.label+' '+m.anno)} · Emesso ${eur(m.emesso)}</title></path>
+        <path d="${barra(x2,y2,bw,y0-y2)}" class="${cls('chart-bar-2')}"><title>${esc(m.label+' '+m.anno)} · Incassato ${eur(m.incassato)}</title></path>
         ${etichetta(x1,y1,m.emesso)}${etichetta(x2,y2,m.incassato)}
-        <text x="${cx}" y="${H-8}" text-anchor="middle" class="chart-axis">${esc(m.label)}</text>
+        <text x="${cx}" y="${H-8}" text-anchor="middle" class="chart-axis${dim?' dim':''}${sel?' sel':''}">${esc(m.label)}</text>
       </g>`;
     }).join('');
 
@@ -2586,12 +2631,19 @@ if(!lsOk) $('#bannerMem').style.display='block';
   }
   function vChartAndamento(){
     const mesi = datiAndamento12m();
+    const selIdx = mesi.findIndex(m=>m.anno===ui.resY && m.mese===ui.resM);
+    const navLabel = selIdx>-1 ? (MESI[mesi[selIdx].mese]+' '+mesi[selIdx].anno) : '—';
     return `
     <div class="chart-card">
       <div class="chart-head">
         <div>
           <div class="chart-title">Andamento fatturato</div>
-          <div class="chart-sub">Ultimi 12 mesi · non segue il periodo selezionato qui sotto</div>
+          <div class="chart-sub">Ultimi 12 mesi · clicca un mese o usa le frecce</div>
+        </div>
+        <div class="chart-nav">
+          <button class="btn neutro mini" onclick="chartNav(-1)" aria-label="Mese precedente">‹</button>
+          <b>${esc(navLabel)}</b>
+          <button class="btn neutro mini" onclick="chartNav(1)" aria-label="Mese successivo">›</button>
         </div>
         <div class="chart-legend">
           <span class="lk lk-1">Emesso <b>${eur0(somma(mesi,m=>m.emesso))}</b></span>
@@ -2771,12 +2823,20 @@ if(!lsOk) $('#bannerMem').style.display='block';
       + '.chart-legend .lk-1::before{background:var(--chart-1)}'
       + '.chart-legend .lk-2::before{background:var(--chart-2)}'
       + '.chart-svg{width:100%;height:auto;display:block;overflow:visible}'
-      + '.chart-bar-1{fill:var(--chart-1)}'
-      + '.chart-bar-2{fill:var(--chart-2)}'
+      + '.chart-bar-1{fill:var(--chart-1);transition:opacity .15s}'
+      + '.chart-bar-2{fill:var(--chart-2);transition:opacity .15s}'
+      + '.chart-bar-1.dim,.chart-bar-2.dim{opacity:.3}'
       + '.chart-grid{stroke:var(--line);stroke-width:1}'
       + '.chart-axisline{stroke:var(--line);stroke-width:1}'
-      + '.chart-axis{fill:var(--muted);font-size:11px}'
-      + '.chart-val{fill:var(--ink);font-size:11px;font-weight:700}';
+      + '.chart-axis{fill:var(--muted);font-size:11px;transition:opacity .15s}'
+      + '.chart-axis.dim{opacity:.45}'
+      + '.chart-axis.sel{fill:var(--ink);font-weight:700}'
+      + '.chart-val{fill:var(--ink);font-size:11px;font-weight:700}'
+      + '.chart-mese{cursor:pointer}'
+      + '.chart-hl{fill:var(--accent-soft)}'
+      + '.chart-nav{display:flex;align-items:center;gap:8px;font-size:14px}'
+      + '.chart-nav b{min-width:112px;text-align:center;font-weight:700}'
+      + '.chart-nav .btn{min-width:32px;padding:5px 10px}';
     document.head.appendChild(st);
   }
 
