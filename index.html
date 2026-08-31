@@ -655,7 +655,7 @@ function chips(arr){ if(!arr||!arr.length) return ''; return '<div>'+arr.map(s=>
 function iniziali(nome){ return (nome||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
 function coloreValido(c){ return /^#[0-9a-fA-F]{6}$/.test(c||'') ? c : ''; }
 function avatarHTML(c){
-  if(c.foto) return '<div class="avatar"><img src="'+c.foto+'" alt=""></div>';
+  if(c.foto) return '<div class="avatar"><img src="'+esc(c.foto)+'" alt=""></div>';
   const col = coloreValido(c.colore);
   return '<div class="avatar"'+(col?' style="background:'+col+';color:#fff"':'')+'>'+esc(iniziali(c.nome))+'</div>';
 }
@@ -727,6 +727,8 @@ function migraDati(){
     ['piva','cf','via','civico','cap','comune','provincia','sdi','pec'].forEach(k=>{
       if(c[k] === undefined) c[k] = '';
     });
+    // foto: solo data-URI immagine valida (scarta valori manomessi da un backup importato o dal cloud)
+    if(c.foto && !/^data:image\/(png|jpe?g|webp);base64,[A-Za-z0-9+/=]+$/.test(c.foto)) c.foto = '';
   });
   (db.fatture||[]).forEach(f=>{
     if(!Array.isArray(f.voci) || !f.voci.length){
@@ -1482,7 +1484,7 @@ window.apriFormCliente = function(id){
     <div><label>Foto / logo</label>
       <button type="button" class="btn" style="width:100%" onclick="document.getElementById('fotoCliente').click()">Scegli immagine</button>
       <input type="file" id="fotoCliente" accept="image/*" hidden onchange="selezionaFoto(this)">
-      <img id="fotoPreview" class="foto-preview" src="${c.foto||''}" style="${c.foto?'display:block':''}">
+      <img id="fotoPreview" class="foto-preview" src="${esc(c.foto||'')}" style="${c.foto?'display:block':''}">
       ${c.foto?'<div class="nota-campo"><button type="button" class="btn mini danger" style="margin-top:6px" onclick="rimuoviFoto()">Rimuovi foto</button></div>':''}
     </div>
     <div class="full sep-frm">Dati per fattura e file XML
