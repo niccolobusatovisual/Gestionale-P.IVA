@@ -1,7 +1,7 @@
 /* Service worker — Gestionale P.IVA
    Strategia: network-first per index.html (così gli aggiornamenti arrivano subito),
    cache-first per il resto. Permette di aprire l'app anche offline. */
-const CACHE = 'gestionale-piva-v10';
+const CACHE = 'gestionale-piva-v11';
 const ASSETS = ['.', 'index.html', 'manifest.json', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
@@ -26,14 +26,15 @@ self.addEventListener('fetch', e => {
     // network-first: prova la rete, se offline usa la cache
     e.respondWith(
       fetch(e.request)
-        .then(r => { const copia = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copia)); return r; })
+        .then(r => { if (r.ok && r.type === 'basic') { const copia = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copia)); } return r; })
         .catch(() => caches.match(e.request).then(r => r || caches.match('index.html')))
     );
   } else {
-    // cache-first per asset statici
+    // cache-first per asset statici (solo risposte riuscite e della stessa origine)
     e.respondWith(
       caches.match(e.request).then(r => r || fetch(e.request).then(res => {
-        const copia = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copia)); return res;
+        if (res.ok && res.type === 'basic') { const copia = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copia)); }
+        return res;
       }))
     );
   }

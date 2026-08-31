@@ -632,11 +632,22 @@ const ICO = {
 /* ---------- helper ---------- */
 const $ = s => document.querySelector(s);
 function uid(){ return 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+// id "sicuro" per l'uso in attributi HTML e dentro stringhe onclick="fn('id')": solo alfanumerico/-/_.
+function idValido(x){ return typeof x === 'string' && /^[A-Za-z0-9_-]{1,40}$/.test(x); }
+// forza un campo "numerico" a un numero finito reale, altrimenti null (mai una stringa arbitraria).
+function numOK(x){
+  if(typeof x === 'number' && isFinite(x)) return x;
+  const n = parseFloat(x);
+  return isFinite(n) ? n : null;
+}
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function eur(n){ return (n==null || n==='' || isNaN(n)) ? '—' : new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(n); }
 function arrot(x){ return Math.round(x*100)/100; }
 function oggi(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-function fmtData(d){ if(!d) return '—'; const p=d.split('-'); return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : d; }
+function fmtData(d){
+  if(!d || !/^\d{4}-\d{2}-\d{2}$/.test(d)) return '—';
+  const p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0];
+}
 function tempoFa(dataS){
   if(!dataS) return '';
   const gg = Math.round((new Date(oggi()) - new Date(dataS)) / 86400000);
@@ -724,6 +735,7 @@ salvaLocale();
 function migraDati(){
   if(db.counters.xml == null) db.counters.xml = 0;   // progressivo di trasmissione SdI
   (db.clienti||[]).forEach(c=>{
+    if(!idValido(c.id)) c.id = uid();
     ['piva','cf','via','civico','cap','comune','provincia','sdi','pec'].forEach(k=>{
       if(c[k] === undefined) c[k] = '';
     });
@@ -731,23 +743,36 @@ function migraDati(){
     if(c.foto && !/^data:image\/(png|jpe?g|webp);base64,[A-Za-z0-9+/=]+$/.test(c.foto)) c.foto = '';
   });
   (db.fatture||[]).forEach(f=>{
+    if(!idValido(f.id)) f.id = uid();
     if(!Array.isArray(f.voci) || !f.voci.length){
       const imp = f.imponibile != null ? f.imponibile : f.totale;
       f.voci = [{ descrizione: f.titolo || 'Prestazione professionale', dettaglio:'', importo: imp != null ? imp : null }];
     }
+    f.voci.forEach(v=>{ if(v.importo != null) v.importo = numOK(v.importo); });
+    if(f.imponibile != null) f.imponibile = numOK(f.imponibile);
+    if(f.totale != null) f.totale = numOK(f.totale);
     if(!f.natura) f.natura = 'N2.2';
     if(f.condizioni === undefined) f.condizioni = '';
     if(f.rivalsaBollo === undefined) f.rivalsaBollo = false;
     if(f.xmlProgressivo === undefined) f.xmlProgressivo = null;
+    else if(f.xmlProgressivo != null) f.xmlProgressivo = numOK(f.xmlProgressivo);
   });
   (db.preventivi||[]).forEach(p=>{
+    if(!idValido(p.id)) p.id = uid();
     if(!Array.isArray(p.voci))
       p.voci = p.importo != null ? [{ descrizione: p.titolo || '', dettaglio:'', importo: p.importo }] : [];
+    p.voci.forEach(v=>{ if(v.importo != null) v.importo = numOK(v.importo); });
     if(!Array.isArray(p.software)) p.software = [];
+    p.software.forEach(s=>{ if(s.importo != null) s.importo = numOK(s.importo); });
+    if(p.importo != null) p.importo = numOK(p.importo);
     if(p.oggetto === undefined) p.oggetto = '';
     if(p.etichettaTotale === undefined) p.etichettaTotale = 'Totale progetto';
     if(p.condizioni === undefined) p.condizioni = '';
     if(p.sottotitolo === undefined) p.sottotitolo = '';
+  });
+  (db.progetti||[]).forEach(g=>{
+    if(!idValido(g.id)) g.id = uid();
+    if(g.valore != null) g.valore = numOK(g.valore);
   });
 }
 
@@ -831,13 +856,15 @@ window.apriAllegati = function(entity, id){
         <button class="btn primary" ${(!supa||!utente)?'disabled':''} onclick="document.getElementById('fileAllegato').click()">${ICO.plus}Aggiungi file</button>
       </div>
     </div>
-    <input type="file" id="fileAllegato" hidden onchange="caricaAllegato('${entity}','${id}',this)">`);
+    <input type="file" id="fileAllegato" accept="application/pdf,image/*" hidden onchange="caricaAllegato('${entity}','${id}',this)">`);
 };
+const TIPI_ALLEGATO = ['application/pdf','image/png','image/jpeg','image/webp','image/heic','image/heif'];
 window.caricaAllegato = async function(entity, id, input){
   const file = input.files[0]; if(!file) return;
   input.value='';
   if(!supa || !utente){ alert('Accedi al cloud per caricare i file.'); return; }
   if(file.size > 20*1024*1024){ alert('File troppo grande (max 20 MB).'); return; }
+  if(!TIPI_ALLEGATO.includes(file.type)){ alert('Formato non supportato: carica un PDF o una foto (JPEG, PNG, WEBP, HEIC).'); return; }
   const rec = trovaRecord(entity, id); if(!rec) return;
   toast('Caricamento in corso…');
   const pulito = file.name.replace(/[^\w.\- ]/g,'_');
