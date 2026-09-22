@@ -512,6 +512,91 @@ body.doc-aperto{overflow:hidden}
   @page{size:A4;margin:18mm 16mm}
 }
 
+/* ============ CANTIERI (documenti in costruzione) ============ */
+.cant-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(250px,100%),1fr));gap:12px}
+.cant-card{
+  min-width:0;width:100%;text-align:left;font:inherit;color:inherit;border:none;
+  background:var(--card);border-radius:var(--r-xl);padding:16px;cursor:pointer;
+  box-shadow:var(--shadow-sm);transition:transform .12s,box-shadow .15s;
+  display:flex;flex-direction:column;gap:3px;
+}
+.cant-card:active{transform:scale(.98)}
+.cant-card:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
+@media (hover:hover){ .cant-card:hover{box-shadow:var(--shadow)} }
+.cant-card .tt{font-size:15.5px;font-weight:700;letter-spacing:-.02em;line-height:1.3;overflow-wrap:anywhere}
+.cant-card .cl{font-size:12.5px;color:var(--muted);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cant-card .vv{font-size:22px;font-weight:800;letter-spacing:-.03em;color:var(--accent);margin-top:8px;font-variant-numeric:tabular-nums}
+.cant-card .dd{font-size:12px;color:var(--muted);font-weight:500;margin-top:auto;padding-top:10px}
+.cant-card.chiuso .vv{color:var(--muted)}
+
+/* scheda del singolo cantiere */
+.cant-hero{background:var(--card);border-radius:var(--r-xl);padding:20px 22px;box-shadow:var(--shadow-sm)}
+.cant-hero-top{display:flex;align-items:flex-start;gap:12px}
+.cant-hero h2{flex:1;min-width:0;font-size:23px;font-weight:800;letter-spacing:-.03em;line-height:1.2;overflow-wrap:anywhere}
+.cant-sotto{font-size:13.5px;color:var(--muted);font-weight:500;margin-top:3px}
+.cant-lbl{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:16px}
+.cant-tot{font-size:34px;font-weight:800;letter-spacing:-.03em;color:var(--accent);margin-top:2px;font-variant-numeric:tabular-nums}
+.cant-hero.chiuso .cant-tot{color:var(--muted)}
+.cant-riep{display:flex;gap:4px 16px;flex-wrap:wrap;font-size:13px;color:var(--muted);font-weight:500;margin-top:5px}
+.cant-riep b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+.cant-azioni{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}
+.cant-azioni .btn.danger{margin-left:auto}
+.cant-fatto{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;background:var(--ok-soft);color:var(--ok);border-radius:13px;padding:11px 14px;font-size:13.5px;font-weight:600}
+.cant-fatto .btn{color:var(--ink);background:var(--card)}
+
+/* barra "aggiungi al volo": il listino come pulsanti */
+.lst-chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.lst-chip{
+  border:none;background:var(--card);box-shadow:var(--shadow-sm);border-radius:99px;
+  padding:8px 14px;font-size:13px;font-weight:600;color:var(--ink);
+  display:inline-flex;align-items:center;gap:8px;max-width:100%;transition:transform .1s;
+}
+.lst-chip:active{transform:scale(.95)}
+.lst-chip .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:min(190px,45vw)}
+.lst-chip .p{color:var(--accent);font-weight:700;white-space:nowrap}
+.lst-chip.vuoto{background:var(--input);box-shadow:none;color:var(--muted);font-weight:500}
+
+/* righe del cantiere */
+.cv-list{display:flex;flex-direction:column;gap:9px}
+.cv-riga{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  background:var(--card);border-radius:16px;padding:12px 14px;box-shadow:var(--shadow-sm);
+}
+.cv-riga.spenta{opacity:.55}
+.cv-riga.spenta .cv-imp{text-decoration:line-through}
+.cv-main{flex:1 1 190px;min-width:0;border:none;background:none;padding:0;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.cv-main:focus-visible{outline:2.5px solid var(--accent);outline-offset:3px;border-radius:8px}
+.cv-main:disabled{cursor:default}
+.cv-desc{display:block;font-weight:600;font-size:14.5px;line-height:1.3;overflow-wrap:anywhere}
+.cv-meta{display:block;font-size:12px;color:var(--muted);font-weight:500;margin-top:3px;overflow-wrap:anywhere}
+.cv-imp{font-weight:800;font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums;min-width:84px;text-align:right}
+.cv-az{display:flex;align-items:center;gap:4px}
+.step{display:inline-flex;align-items:center;background:var(--btn);border-radius:99px;padding:2px}
+.step button{
+  width:28px;height:28px;border-radius:50%;border:none;background:none;color:var(--ink);
+  font-size:16px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;padding:0 0 2px;
+}
+.step button:active{transform:scale(.9)}
+.step input{
+  width:46px;border:none;background:none;text-align:center;
+  font-weight:700;font-size:14px;font-variant-numeric:tabular-nums;-moz-appearance:textfield;
+}
+.step input::-webkit-outer-spin-button,.step input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.step input:focus{outline:none;box-shadow:0 0 0 2px var(--accent);border-radius:8px}
+.tgl{border:none;border-radius:99px;padding:5px 11px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.tgl.on{background:var(--ok-soft);color:var(--ok)}
+.tgl.off{background:var(--grigio-soft);color:var(--muted)}
+.tgl:active{transform:scale(.95)}
+.tgl:disabled,.step button:disabled{opacity:.45}
+.cv-sconto{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;
+  background:var(--input);border-radius:16px;padding:12px 14px;font-size:13.5px;font-weight:600;
+}
+.cv-sconto input[type=number]{width:92px;border:none;border-radius:11px;padding:8px 10px;background:var(--card);color:var(--ink);font:inherit;-webkit-appearance:none;appearance:none}
+.cv-sconto select{border:none;border-radius:11px;padding:8px 10px;background:var(--card);color:var(--ink);font:inherit}
+.cv-sconto input:focus,.cv-sconto select:focus{outline:none;box-shadow:0 0 0 2.5px var(--accent)}
+.cv-sconto .val{margin-left:auto;color:var(--danger);font-weight:800;font-variant-numeric:tabular-nums}
+
 /* ============ RESPONSIVE ============ */
 @media (max-width:768px){
   .seg{display:none}
@@ -534,6 +619,13 @@ body.doc-aperto{overflow:hidden}
   .voce{grid-template-columns:1fr 96px 32px}
   .voci[data-dettaglio="1"] .voce{grid-template-columns:1fr 96px 32px}
   .voci[data-dettaglio="1"] .v-det{grid-column:1/-1}
+  /* cantiere: descrizione su una riga sua, comandi sotto (il pollice arriva a tutto) */
+  .cant-hero{padding:18px}
+  .cant-hero h2{font-size:20px}
+  .cant-tot{font-size:29px}
+  .cv-riga{padding:11px 12px;gap:8px}
+  .cv-main{flex-basis:100%}
+  .cv-imp{margin-left:auto}
   .doc{padding:18px 16px 26px;font-size:11.5px}
   .d-hdr{flex-direction:column;gap:16px}
   .d-hdr-r{text-align:left;max-width:none}
@@ -596,6 +688,10 @@ const STATI_PROGETTO = ['Non iniziato','In corso','Fatto'];
 const STATI_FATTURA = ['Da emettere','Emessa','Pagata','Scaduta'];
 const TIPI_DOC = ['Fattura','Nota di credito','Prestazione occasionale'];
 const METODI_PAG = ['Bonifico','PayPal','Contanti','Altro'];
+/* ---------- cantieri (documenti in costruzione) + listino ---------- */
+const STATI_CANTIERE = ['Aperto','Chiuso'];
+const UNITA = ['a corpo','ora','giorno','mese','pezzo','pagina','post'];
+const TIPI_SCONTO = ['%','€'];
 const ALIQUOTA_ACC = 0.2322;      // ~23% di ogni incasso da accantonare
 const SOGLIA_BOLLO = 77.47;
 const IMPORTO_BOLLO = 2;
@@ -799,7 +895,7 @@ function seed(){
     note:'885€ base / 1.095€ con revisioni. Regime forfettario, senza IVA.'};
   const pr3={id:uid(),numero:'PR-3',titolo:'Social Media Manager',clienteId:c3.id,progettoId:p3.id,importo:null,stato:'Bozza',dataInvio:'',validoFino:'',servizi:['Consulenza','Content Creation'],note:''};
 
-  return { clienti:[c1,c2,c3], preventivi:[pr1,pr2,pr3], progetti:[p1,p2,p3], fatture:[], counters:{pr:3,ft:0} };
+  return { clienti:[c1,c2,c3], preventivi:[pr1,pr2,pr3], progetti:[p1,p2,p3], fatture:[], cantieri:[], listino:[], counters:{pr:3,ft:0} };
 }
 
 let db = caricaDB() || seed();
@@ -820,6 +916,8 @@ function migraDati(){
   db.fatture = Array.isArray(db.fatture) ? db.fatture : [];
   db.preventivi = Array.isArray(db.preventivi) ? db.preventivi : [];
   db.progetti = Array.isArray(db.progetti) ? db.progetti : [];
+  db.cantieri = Array.isArray(db.cantieri) ? db.cantieri : [];
+  db.listino = Array.isArray(db.listino) ? db.listino : [];
   if(db.counters.xml == null) db.counters.xml = 0;   // progressivo di trasmissione SdI
   db.clienti = db.clienti.filter(c => c && typeof c === 'object');
   (db.clienti||[]).forEach(c=>{
@@ -873,6 +971,59 @@ function migraDati(){
     if(g.valore != null) g.valore = numOK(g.valore);
     if(!STATI_PROGETTO.includes(g.stato)) g.stato = 'Non iniziato';
   });
+  // Listino: le voci riutilizzabili con cui si riempiono i cantieri.
+  db.listino = db.listino.filter(v => v && typeof v === 'object');
+  db.listino.forEach(v=>{
+    if(!idValido(v.id)) v.id = uid();
+    ['descrizione','servizio'].forEach(k=>{
+      if(typeof v[k] === 'number') v[k] = String(v[k]);
+      else if(typeof v[k] !== 'string') v[k] = '';
+    });
+    if(!UNITA.includes(v.unita)) v.unita = 'a corpo';
+    v.prezzo = numOK(v.prezzo);
+  });
+  // Cantieri: il documento che si costruisce nel tempo, prima di diventare
+  // preventivo o fattura. Stesse difese delle altre entità: un blob manomesso
+  // (backup importato, pull cloud) non deve poter lasciare una voce senza
+  // quantità o con un prezzo che è una stringa.
+  db.cantieri = db.cantieri.filter(c => c && typeof c === 'object');
+  db.cantieri.forEach(c=>{
+    if(!idValido(c.id)) c.id = uid();
+    ['nome','note','creato','aggiornato'].forEach(k=>{
+      if(typeof c[k] === 'number') c[k] = String(c[k]);
+      else if(typeof c[k] !== 'string') c[k] = '';
+    });
+    if(!c.nome) c.nome = 'Cantiere senza nome';
+    if(!c.creato) c.creato = oggi();
+    if(!STATI_CANTIERE.includes(c.stato)) c.stato = 'Aperto';
+    if(!idValido(c.clienteId)) c.clienteId = null;
+    if(!idValido(c.progettoId)) c.progettoId = null;
+    if(!Array.isArray(c.voci)) c.voci = [];
+    c.voci = c.voci.filter(v => v && typeof v === 'object');
+    c.voci.forEach(v=>{
+      if(!idValido(v.id)) v.id = uid();
+      ['descrizione','data'].forEach(k=>{
+        if(typeof v[k] === 'number') v[k] = String(v[k]);
+        else if(typeof v[k] !== 'string') v[k] = '';
+      });
+      if(!UNITA.includes(v.unita)) v.unita = 'a corpo';
+      if(!idValido(v.listinoId)) v.listinoId = null;   // da quale voce di listino arriva
+      const q = numOK(v.qta);
+      v.qta = (q == null || q <= 0) ? 1 : arrot(q);
+      v.prezzo = numOK(v.prezzo);                      // null = ancora da quotare
+      v.inclusa = v.inclusa === undefined ? true : !!v.inclusa;
+    });
+    if(!c.sconto || typeof c.sconto !== 'object') c.sconto = {tipo:'%', valore:0};
+    if(!TIPI_SCONTO.includes(c.sconto.tipo)) c.sconto.tipo = '%';
+    const sv = numOK(c.sconto.valore);
+    c.sconto.valore = (sv == null || sv < 0) ? 0 : sv;
+    // il documento generato resta collegato solo finché quel record esiste
+    if(c.generato && typeof c.generato === 'object'){
+      const vivo = (c.generato.tipo==='preventivo' && db.preventivi.some(p=>p.id===c.generato.id))
+                || (c.generato.tipo==='fattura'   && db.fatture.some(f=>f.id===c.generato.id));
+      if(!vivo) c.generato = null;
+    } else c.generato = null;
+  });
   // Il contatore preventivi (db.counters.pr) non viene ricostruito dai dati: se un
   // backup/pull cloud arriva con un contatore azzerato o indietro, il prossimo
   // preventivo duplicherebbe un numero già esistente. Lo riallineiamo sempre al
@@ -888,7 +1039,36 @@ function migraDati(){
 /* ---------- lookup ---------- */
 const getCliente  = id => db.clienti.find(c=>c.id===id);
 const getProgetto = id => db.progetti.find(p=>p.id===id);
+const getCantiere = id => db.cantieri.find(c=>c.id===id);
+const getVoceListino = id => db.listino.find(v=>v.id===id);
 function nomeCliente(id){ const c=getCliente(id); return c ? c.nome : '—'; }
+
+/* ---------- cantieri: conti ----------
+   Una voce pesa quantità × prezzo. Prezzo null = voce già decisa ma non
+   ancora quotata: vale 0 e viene contata a parte, così il totale non mente. */
+const UNITA_PLURALE = {'a corpo':'a corpo','ora':'ore','giorno':'giorni','mese':'mesi','pezzo':'pezzi','pagina':'pagine','post':'post'};
+function etichettaUnita(u, q){ return (parseFloat(q)||0)===1 ? u : (UNITA_PLURALE[u] || u); }
+function importoVoce(v){ return arrot((parseFloat(v.qta)||0) * (parseFloat(v.prezzo)||0)); }
+function contiCantiere(c){
+  const voci = (c && Array.isArray(c.voci)) ? c.voci : [];
+  const incluse = arrot(somma(voci.filter(v=>v.inclusa), importoVoce));
+  const spente  = arrot(somma(voci.filter(v=>!v.inclusa), importoVoce));
+  const sc = (c && c.sconto) || {tipo:'%', valore:0};
+  const val = Math.max(parseFloat(sc.valore)||0, 0);
+  // lo sconto non può superare il valore scontabile: il totale non va mai sotto zero
+  const sconto = arrot(sc.tipo==='%' ? incluse * Math.min(val,100) / 100 : Math.min(val, incluse));
+  return {
+    incluse, spente, sconto,
+    totale: arrot(incluse - sconto),
+    nVoci: voci.length,
+    nIncluse: voci.filter(v=>v.inclusa).length,
+    daQuotare: voci.filter(v=>v.inclusa && v.prezzo==null).length
+  };
+}
+// data dell'ultima voce aggiunta (per il "ultima voce 3 giorni fa" sulle schede)
+function ultimaVoceCantiere(c){
+  return (c.voci||[]).reduce((max,v)=> (v.data && v.data>max) ? v.data : max, '');
+}
 
 /* ---------- numerazione fatture: progressivo a 3 cifre per anno (001-2026) ---------- */
 function prossimoNumeroFattura(anno){
@@ -1024,7 +1204,7 @@ function accantonare(f){
 }
 
 /* ---------- stato UI ---------- */
-const ui = { view:'dashboard', clienteId:null };
+const ui = { view:'dashboard', clienteId:null, cantiereId:null, cantieriChiusi:false, cantiereDaCollegare:null };
 
 /* ============================================================
    NAVIGAZIONE (segmented desktop + tab bar mobile)
@@ -1039,7 +1219,9 @@ function costruisciNav(){
    ============================================================ */
 function render(){
   document.querySelectorAll('[data-view]').forEach(b=>{
-    b.classList.toggle('active', b.dataset.view===ui.view || (ui.view==='cliente' && b.dataset.view==='clienti'));
+    b.classList.toggle('active', b.dataset.view===ui.view
+      || (ui.view==='cliente' && b.dataset.view==='clienti')
+      || (ui.view==='cantiere' && b.dataset.view==='preventivi'));
   });
   const app = $('#app');
   if(ui.view==='dashboard')  app.innerHTML = vDashboard();
@@ -1048,11 +1230,19 @@ function render(){
   if(ui.view==='progetti')   app.innerHTML = vProgetti();
   if(ui.view==='fatture')    app.innerHTML = vFatture();
   if(ui.view==='cliente')    app.innerHTML = vClienteDettaglio();
+  if(ui.view==='cantiere')   app.innerHTML = vCantiere();
   bindDnD(app);
   try{ window.scrollTo(0,0); }catch(e){}
 }
 function vai(view, clienteId){ ui.view=view; ui.clienteId=clienteId||null; render(); }
 window.vai = vai;
+/* Ridisegna solo il cantiere aperto, SENZA riportare la pagina in cima.
+   render() fa sempre scrollTo(0,0): su una lista lunga, ogni tocco su "+"
+   rimanderebbe l'elenco all'inizio. */
+function aggiornaCantiere(){
+  if(ui.view !== 'cantiere'){ render(); return; }
+  $('#app').innerHTML = vCantiere();
+}
 
 /* ---------- DASHBOARD ---------- */
 function vDashboard(){
@@ -1456,6 +1646,7 @@ function cardPreventivo(p){
 }
 function vPreventivi(){
   return `
+  ${sezioneCantieri()}
   <div class="sec-head"><h2>Preventivi</h2><button class="btn primary" onclick="apriFormPreventivo()">${ICO.plus}Nuovo</button></div>
   ${kanban('preventivo', STATI_PREVENTIVO, db.preventivi, 'stato', cardPreventivo)}
   `;
@@ -1607,7 +1798,12 @@ window.spostaStato = spostaStato;
 function apriModal(html){
   const m=$('#modal'); m.innerHTML='<div class="modal-box"><div class="handle"></div>'+html+'</div>'; m.classList.add('open');
 }
-function chiudiModal(){ const m=$('#modal'); m.classList.remove('open'); m.innerHTML=''; }
+function chiudiModal(){
+  const m=$('#modal'); m.classList.remove('open'); m.innerHTML='';
+  // se il form generato da un cantiere viene abbandonato, il cantiere non va
+  // collegato a niente: il segnaposto muore con il modale
+  ui.cantiereDaCollegare = null;
+}
 window.chiudiModal = chiudiModal;
 $('#modal').addEventListener('click', e=>{ if(e.target.id==='modal') chiudiModal(); });
 
@@ -1633,13 +1829,16 @@ window.filtraProgetti = function(sel){
 /* ---------- editor voci (righe descrizione + importo) ----------
    Usato sia dalla fattura (una riga per prestazione) sia dal preventivo
    (con in più il dettaglio ore × tariffa). I dati si rileggono dal DOM
-   con leggiVoci() al momento del salvataggio. */
+   con leggiVoci() al momento del salvataggio.
+   L'importo NON ha min="0": una riga di sconto è negativa (la genera il
+   cantiere) e con il limite il form si rifiutava di salvare. Imponibile e
+   totale restano invece vincolati a zero, che è giusto. */
 function rigaVoceHTML(v, dettaglio){
   v = v || {};
   return `<div class="voce">
     <input type="text" class="v-desc" placeholder="Descrizione" value="${esc(v.descrizione)}">
     ${dettaglio ? `<input type="text" class="v-det" placeholder="es. 3h × € 20,00" value="${esc(v.dettaglio)}">` : ''}
-    <input type="number" class="v-imp" step="0.01" min="0" inputmode="decimal" placeholder="€" value="${v.importo!=null?v.importo:''}">
+    <input type="number" class="v-imp" step="0.01" inputmode="decimal" placeholder="€" value="${v.importo!=null?v.importo:''}">
     <button type="button" class="icon danger" onclick="rimuoviVoce(this)" title="Rimuovi voce">${ICO.trash}</button>
   </div>`;
 }
@@ -1875,7 +2074,9 @@ window.salvaPreventivo = function(ev){
   }
   else {
     db.counters.pr++;
-    db.preventivi.push(Object.assign({id:uid(), numero:'PR-'+db.counters.pr}, dati));
+    const nuovo = Object.assign({id:uid(), numero:'PR-'+db.counters.pr}, dati);
+    db.preventivi.push(nuovo);
+    collegaCantiereGenerato('preventivo', nuovo.id);
   }
   salva(); chiudiModal(); toast('Preventivo salvato'); render();
 };
@@ -2011,7 +2212,9 @@ window.salvaFattura = function(ev){
     Object.assign(rec, dati);
   }
   else {
-    db.fatture.push(Object.assign({id:uid()}, dati));
+    const nuova = Object.assign({id:uid()}, dati);
+    db.fatture.push(nuova);
+    collegaCantiereGenerato('fattura', nuova.id);
   }
   salva(); chiudiModal(); toast('Fattura salvata'); render();
 };
@@ -2049,6 +2252,464 @@ window.creaFatturaDaProgetto = function(id){
     imponibile:p.valore, totale:p.valore, statoPagamento:'Da emettere',
     dataEmissione: oggi() });
 };
+
+/* ============================================================
+   CANTIERI — il documento che si costruisce nel tempo
+   Un cantiere è un preventivo (o una fattura) che non ha ancora forma:
+   raccoglie voci mano a mano, le conta con quantità × prezzo, permette di
+   spegnerne qualcuna senza perderla, e alla fine versa tutto in un
+   documento vero — che solo lì prende il suo numero. Finché resta un
+   cantiere non compare nelle board e non brucia numerazione.
+   ============================================================ */
+
+/* ---------- formati ---------- */
+function fmtQta(q){
+  const n = parseFloat(q)||0;
+  return Number.isInteger(n) ? String(n) : String(n).replace('.', ',');
+}
+/* Riga "3 ore × € 45,00".
+   Il formato della cifra cambia col posto in cui finisce: l'app usa eur()
+   (45,00 €, stile italiano), il foglio del documento usa eurDoc() (€ 45,00,
+   stile NB). Passare il formattatore giusto evita di stampare le due forme
+   nella stessa pagina. */
+function dettaglioVoce(v, fmt){
+  fmt = fmt || eur;
+  if(v.prezzo == null) return '';
+  if((parseFloat(v.qta)||0) === 1 && v.unita === 'a corpo') return '';
+  return fmtQta(v.qta) + ' ' + etichettaUnita(v.unita, v.qta) + ' × ' + fmt(v.prezzo);
+}
+
+/* ---------- elenco cantieri (sezione in cima alla vista Preventivi) ---------- */
+function cardCantiere(c){
+  const n = contiCantiere(c);
+  const ultima = ultimaVoceCantiere(c);
+  const sotto = [];
+  if(c.stato==='Chiuso') sotto.push('archiviato');
+  sotto.push(plurale(n.nVoci, 'voce', 'voci'));
+  if(ultima) sotto.push('ultima ' + tempoFa(ultima));
+  return `<button class="cant-card${c.stato==='Chiuso'?' chiuso':''}" onclick="apriCantiere('${c.id}')">
+    <span class="tt">${esc(c.nome)}</span>
+    <span class="cl">${esc(c.clienteId ? nomeCliente(c.clienteId) : 'nessun cliente')}</span>
+    <span class="vv">${eur(n.totale)}</span>
+    <span class="dd">${esc(sotto.join(' · '))}</span>
+  </button>`;
+}
+function sezioneCantieri(){
+  const aperti = db.cantieri.filter(c=>c.stato==='Aperto');
+  const chiusi = db.cantieri.filter(c=>c.stato==='Chiuso');
+  const testa = `<div class="sec-head"><h2>Cantieri</h2>
+    <span class="sub">documenti in costruzione</span>
+    <span style="display:flex;gap:8px">
+      <button class="btn" onclick="apriListino()">Listino</button>
+      <button class="btn primary" onclick="apriFormCantiere()">${ICO.plus}Nuovo cantiere</button>
+    </span></div>`;
+  if(!db.cantieri.length){
+    return testa + `<div class="taxbox">
+      <h3>Nessun cantiere</h3>
+      <p>Un cantiere è un preventivo o una fattura che costruisci un pezzo per volta, quando il progetto non ha ancora una forma definita. Aggiungi le voci mano a mano che il lavoro cresce, spegni quelle che restano solo un'ipotesi, e quando è il momento diventa un documento vero con un tocco.</p>
+      <p>Prima conviene riempire il <b>listino</b>: le voci che usi sempre (un'ora di consulenza, un logo, un post) con la loro unità e il prezzo. Poi nel cantiere le aggiungi con un tocco.</p>
+    </div>`;
+  }
+  const corpo = aperti.length
+    ? `<div class="cant-grid">${aperti.map(cardCantiere).join('')}</div>`
+    : '<div class="vuoto">Nessun cantiere aperto.</div>';
+  let coda = '';
+  if(chiusi.length){
+    coda = `<div style="margin-top:12px"><button class="linkino-btn" style="padding:0" onclick="toggleCantieriChiusi()">${ui.cantieriChiusi?'Nascondi':'Mostra'} ${plurale(chiusi.length,'cantiere chiuso','cantieri chiusi')}</button></div>`;
+    if(ui.cantieriChiusi) coda += `<div class="cant-grid" style="margin-top:12px">${chiusi.map(cardCantiere).join('')}</div>`;
+  }
+  return testa + corpo + coda;
+}
+window.toggleCantieriChiusi = function(){ ui.cantieriChiusi = !ui.cantieriChiusi; render(); };
+
+/* ---------- scheda del singolo cantiere ---------- */
+function rigaCantiere(c, v){
+  const chiuso = c.stato === 'Chiuso';
+  const meta = [];
+  if(v.prezzo == null) meta.push('<b style="color:var(--warn)">prezzo da definire</b>');
+  else { const d = dettaglioVoce(v); if(d) meta.push(esc(d)); }
+  if(v.data) meta.push(esc(fmtData(v.data)));
+  return `<div class="cv-riga${v.inclusa?'':' spenta'}">
+    <button class="cv-main" onclick="apriFormVoceCantiere('${c.id}','${v.id}')" ${chiuso?'disabled':''} title="Modifica la voce">
+      <span class="cv-desc">${esc(v.descrizione || 'Voce senza descrizione')}</span>
+      ${meta.length?`<span class="cv-meta">${meta.join(' · ')}</span>`:''}
+    </button>
+    ${chiuso ? '' : `<span class="step">
+      <button onclick="cambiaQta('${c.id}','${v.id}',-1)" aria-label="Diminuisci la quantità">−</button>
+      <input type="number" step="0.5" min="0" inputmode="decimal" value="${esc(String(v.qta))}" onchange="impostaQta('${c.id}','${v.id}',this.value)" aria-label="Quantità">
+      <button onclick="cambiaQta('${c.id}','${v.id}',1)" aria-label="Aumenta la quantità">+</button>
+    </span>`}
+    <span class="cv-imp">${eur(importoVoce(v))}</span>
+    <span class="cv-az">
+      <button class="tgl ${v.inclusa?'on':'off'}" onclick="toggleVoceCantiere('${c.id}','${v.id}')" ${chiuso?'disabled':''}
+        title="${v.inclusa?'Escludi dal totale (la voce resta qui)':'Rimetti nel totale'}">${v.inclusa?'✓ inclusa':'✗ esclusa'}</button>
+      ${chiuso ? '' : `<button class="icon danger" onclick="rimuoviVoceCantiere('${c.id}','${v.id}')" title="Rimuovi la voce">${ICO.trash}</button>`}
+    </span>
+  </div>`;
+}
+function vCantiere(){
+  const c = getCantiere(ui.cantiereId);
+  if(!c){
+    return `<div class="sec-head"><h2>Cantiere</h2><button class="btn" onclick="vai('preventivi')">‹ Torna ai preventivi</button></div>
+      <div class="vuoto">Questo cantiere non esiste più: forse è stato eliminato da un altro dispositivo.</div>`;
+  }
+  const n = contiCantiere(c);
+  const chiuso = c.stato === 'Chiuso';
+
+  const sotto = [c.clienteId ? esc(nomeCliente(c.clienteId)) : 'Nessun cliente', 'aperto il ' + fmtData(c.creato)];
+  if(chiuso) sotto.push('chiuso');
+
+  const riep = [plurale(n.nIncluse, 'voce inclusa', 'voci incluse')];
+  if(n.spente)    riep.push('escluse <b>' + eur(n.spente) + '</b>');
+  if(n.sconto)    riep.push('sconto <b>−' + eur(n.sconto) + '</b>');
+  if(n.daQuotare) riep.push('<b style="color:var(--warn)">' + plurale(n.daQuotare, 'voce da quotare', 'voci da quotare') + '</b>');
+
+  // documento già generato: il cantiere resta come storia, ma si vede dov'è finito
+  let fatto = '';
+  if(c.generato){
+    const rec = c.generato.tipo==='preventivo'
+      ? db.preventivi.find(p=>p.id===c.generato.id)
+      : db.fatture.find(f=>f.id===c.generato.id);
+    if(rec) fatto = `<div class="cant-fatto">✓ Versato ${c.generato.tipo==='preventivo'?'nel preventivo':'nella fattura'} ${esc(rec.numero||'')}
+      <button class="btn mini" onclick="vai('${c.generato.tipo==='preventivo'?'preventivi':'fatture'}')">Vai al documento</button></div>`;
+  }
+
+  const azioni = chiuso
+    ? `<button class="btn primary" onclick="riapriCantiere('${c.id}')">Riapri</button>
+       <button class="btn" onclick="apriFormCantiere('${c.id}')">${ICO.pen}Modifica</button>
+       <button class="btn danger" onclick="eliminaCantiere('${c.id}')">${ICO.trash}Elimina</button>`
+    : `<button class="btn primary" onclick="generaDaCantiere('${c.id}','preventivo')">Genera preventivo</button>
+       <button class="btn" onclick="generaDaCantiere('${c.id}','fattura')">Genera fattura</button>
+       <button class="btn" onclick="apriFormCantiere('${c.id}')">${ICO.pen}Modifica</button>
+       <button class="btn neutro" onclick="chiudiCantiere('${c.id}')">Archivia</button>
+       <button class="btn danger" onclick="eliminaCantiere('${c.id}')">${ICO.trash}Elimina</button>`;
+
+  const chipsListino = db.listino.length
+    ? db.listino.map(l=>`<button class="lst-chip" onclick="aggiungiDaListino('${c.id}','${l.id}')" title="Aggiungi al cantiere">
+        <span class="n">${esc(l.descrizione)}</span><span class="p">${l.prezzo!=null?eur(l.prezzo):'da quotare'}</span></button>`).join('')
+    : `<button class="lst-chip vuoto" onclick="apriListino()">Il listino è vuoto: riempilo e le voci compaiono qui</button>`;
+
+  const barra = chiuso ? '' : `
+    <div class="sec-head"><h2 style="font-size:17px">Aggiungi al volo</h2></div>
+    <div class="lst-chips">${chipsListino}
+      <button class="btn" onclick="apriFormVoceCantiere('${c.id}')">${ICO.plus}Voce libera</button>
+      <button class="btn" onclick="apriListino()">Gestisci listino</button>
+    </div>`;
+
+  const lista = (c.voci||[]).length
+    ? `<div class="cv-list">${c.voci.map(v=>rigaCantiere(c,v)).join('')}</div>
+       <div class="cv-sconto">
+         <span>Sconto sul totale</span>
+         <input type="number" step="0.01" min="0" inputmode="decimal" value="${c.sconto.valore?c.sconto.valore:''}" placeholder="0"
+           onchange="impostaSconto('${c.id}', this.value, null)" ${chiuso?'disabled':''} aria-label="Valore dello sconto">
+         <select onchange="impostaSconto('${c.id}', null, this.value)" ${chiuso?'disabled':''} aria-label="Tipo di sconto">${opzioni(TIPI_SCONTO, c.sconto.tipo)}</select>
+         <span class="val">${n.sconto ? '− '+eur(n.sconto) : ''}</span>
+       </div>`
+    : `<div class="vuoto">Ancora nessuna voce. Tocca una voce del listino qui sopra, oppure "Voce libera".</div>`;
+
+  return `
+  <div class="sec-head"><button class="btn" onclick="vai('preventivi')">‹ Cantieri</button></div>
+  <div class="cant-hero${chiuso?' chiuso':''}">
+    <div class="cant-hero-top"><h2>${esc(c.nome)}</h2>${chiuso?'<span class="badge g">Archiviato</span>':''}</div>
+    <div class="cant-sotto">${sotto.join(' · ')}</div>
+    <div class="cant-lbl">Totale del cantiere</div>
+    <div class="cant-tot">${eur(n.totale)}</div>
+    <div class="cant-riep">${riep.map(r=>'<span>'+r+'</span>').join('')}</div>
+    ${fatto}
+    <div class="cant-azioni">${azioni}</div>
+  </div>
+  ${c.note?`<div class="dett-note" style="margin-top:12px">${esc(c.note)}</div>`:''}
+  ${barra}
+  <div class="sec-head"><h2 style="font-size:17px">Voci del cantiere</h2><span class="sub">${plurale((c.voci||[]).length,'voce','voci')}</span></div>
+  ${lista}
+  `;
+}
+
+/* ---------- azioni sul cantiere ---------- */
+window.apriCantiere = function(id){
+  ui.view = 'cantiere'; ui.cantiereId = id; ui.clienteId = null; render();
+};
+window.apriFormCantiere = function(id){
+  const c = id ? getCantiere(id) : {};
+  if(id && !c){ toast('Cantiere non trovato'); return; }
+  apriModal(`<h3>${id?'Modifica cantiere':'Nuovo cantiere'}</h3>
+  <form class="frm" onsubmit="salvaCantiere(event)" autocomplete="off">
+    <input type="hidden" name="_id" value="${id||''}">
+    <div class="full"><label>Nome *</label><input type="text" name="nome" required maxlength="150" pattern=".*\\S.*" title="Dai un nome al cantiere" value="${esc(c.nome)}" placeholder="es. Rebranding Studio Rossi">
+      <div class="nota-campo">Un nome di lavoro: lo cambi quando il progetto prende forma.</div></div>
+    <div><label>Cliente</label><select name="clienteId" onchange="filtraProgetti(this)">${opzioniClienti(c.clienteId)}</select></div>
+    <div><label>Progetto collegato</label><select name="progettoId">${opzioniProgetti(c.progettoId, c.clienteId)}</select></div>
+    <div class="full"><label>Note interne</label><textarea name="note">${esc(c.note)}</textarea>
+      <div class="nota-campo">Finiscono nelle note del documento generato.</div></div>
+    <div class="frm-foot"><button type="button" class="btn neutro" onclick="chiudiModal()">Annulla</button><button type="submit" class="btn primary">Salva</button></div>
+  </form>`);
+};
+window.salvaCantiere = function(ev){
+  ev.preventDefault();
+  const f = ev.target, v = n => f.elements[n].value.trim();
+  const id = v('_id');
+  const dati = { nome:v('nome'), clienteId:v('clienteId')||null, progettoId:v('progettoId')||null, note:v('note'), aggiornato:oggi() };
+  if(id){
+    const rec = getCantiere(id);
+    if(!rec){ alert('Questo cantiere non esiste più (probabilmente eliminato da un altro dispositivo). Chiudi e ricontrolla.'); return; }
+    Object.assign(rec, dati);
+    salva(); chiudiModal(); toast('Cantiere salvato'); aggiornaCantiere();
+  } else {
+    const nuovo = Object.assign({ id:uid(), stato:'Aperto', voci:[], sconto:{tipo:'%',valore:0}, generato:null, creato:oggi() }, dati);
+    db.cantieri.push(nuovo);
+    salva(); chiudiModal(); toast('Cantiere creato');
+    apriCantiere(nuovo.id);
+  }
+};
+window.chiudiCantiere = function(id){
+  const c = getCantiere(id); if(!c) return;
+  c.stato = 'Chiuso'; c.aggiornato = oggi();
+  salva(); toast('Cantiere archiviato'); aggiornaCantiere();
+};
+window.riapriCantiere = function(id){
+  const c = getCantiere(id); if(!c) return;
+  c.stato = 'Aperto'; c.aggiornato = oggi();
+  salva(); toast('Cantiere riaperto'); aggiornaCantiere();
+};
+window.eliminaCantiere = function(id){
+  const c = getCantiere(id); if(!c) return;
+  if(!confirm('Eliminare il cantiere "'+c.nome+'" con tutte le sue voci?')) return;
+  db.cantieri = db.cantieri.filter(x=>x.id!==id);
+  salva(); toast('Cantiere eliminato'); vai('preventivi');
+};
+
+/* ---------- voci del cantiere ---------- */
+window.aggiungiDaListino = function(cantiereId, listinoId){
+  const c = getCantiere(cantiereId), l = getVoceListino(listinoId);
+  if(!c || !l || c.stato==='Chiuso') return;
+  // seconda pressione sulla stessa voce = quantità +1: due tocchi, due ore
+  const gia = c.voci.find(v => v.listinoId === l.id && v.inclusa);
+  if(gia){
+    gia.qta = arrot((parseFloat(gia.qta)||0) + 1);
+    gia.data = oggi();
+    toast(l.descrizione + ' · ' + fmtQta(gia.qta));
+  } else {
+    c.voci.push({ id:uid(), descrizione:l.descrizione, listinoId:l.id, qta:1,
+      unita:l.unita, prezzo:l.prezzo, inclusa:true, data:oggi() });
+    toast('Aggiunta: ' + l.descrizione);
+  }
+  c.aggiornato = oggi();
+  salva(); aggiornaCantiere();
+};
+window.apriFormVoceCantiere = function(cantiereId, voceId){
+  const c = getCantiere(cantiereId); if(!c) return;
+  const v = voceId ? (c.voci||[]).find(x=>x.id===voceId) : {};
+  if(voceId && !v){ toast('Voce non trovata'); return; }
+  apriModal(`<h3>${voceId?'Modifica voce':'Voce libera'}</h3>
+  <form class="frm" onsubmit="salvaVoceCantiere(event)" autocomplete="off">
+    <input type="hidden" name="_cantiere" value="${c.id}">
+    <input type="hidden" name="_id" value="${voceId||''}">
+    <div class="full"><label>Descrizione *</label><input type="text" name="descrizione" required maxlength="300" pattern=".*\\S.*" title="Descrivi la voce" value="${esc(v.descrizione)}" placeholder="es. Impaginazione brochure"></div>
+    <div><label>Quantità</label><input type="number" name="qta" step="0.5" min="0" inputmode="decimal" value="${v.qta!=null?v.qta:1}"></div>
+    <div><label>Unità</label><select name="unita">${opzioni(UNITA, v.unita||'a corpo')}</select></div>
+    <div><label>Prezzo unitario (€)</label><input type="number" name="prezzo" step="0.01" inputmode="decimal" value="${v.prezzo!=null?v.prezzo:''}">
+      <div class="nota-campo">Lascia vuoto se il prezzo non è ancora deciso: la voce resta segnata come da quotare.</div></div>
+    <div><label>&nbsp;</label><label class="chk"><input type="checkbox" name="inclusa" ${(v.inclusa===undefined||v.inclusa)?'checked':''}> Inclusa nel totale</label>
+      <div class="nota-campo">Toglila per tenerla qui come ipotesi, fuori dal conto.</div></div>
+    ${voceId?'':`<div class="full"><label class="chk"><input type="checkbox" name="salvaInListino"> Salva anche nel listino</label>
+      <div class="nota-campo">Così la ritrovi con un tocco nei prossimi cantieri.</div></div>`}
+    <div class="frm-foot"><button type="button" class="btn neutro" onclick="chiudiModal()">Annulla</button><button type="submit" class="btn primary">Salva</button></div>
+  </form>`);
+};
+window.salvaVoceCantiere = function(ev){
+  ev.preventDefault();
+  const f = ev.target, val = n => f.elements[n].value.trim();
+  const c = getCantiere(val('_cantiere'));
+  if(!c){ alert('Questo cantiere non esiste più. Chiudi e ricontrolla.'); return; }
+  const id = val('_id');
+  const q = parseFloat(f.elements.qta.value);
+  const prezzo = f.elements.prezzo.value;
+  const dati = {
+    descrizione: val('descrizione'),
+    qta: (isFinite(q) && q > 0) ? arrot(q) : 1,
+    unita: UNITA.includes(val('unita')) ? val('unita') : 'a corpo',
+    prezzo: prezzo === '' ? null : numOK(prezzo),
+    inclusa: f.elements.inclusa.checked
+  };
+  if(id){
+    const rec = (c.voci||[]).find(x=>x.id===id);
+    if(!rec){ alert('Questa voce non esiste più. Chiudi e ricontrolla.'); return; }
+    Object.assign(rec, dati);
+  } else {
+    c.voci.push(Object.assign({ id:uid(), listinoId:null, data:oggi() }, dati));
+  }
+  const inListino = f.elements.salvaInListino;
+  if(inListino && inListino.checked && dati.descrizione){
+    db.listino.push({ id:uid(), descrizione:dati.descrizione, unita:dati.unita, prezzo:dati.prezzo, servizio:'' });
+  }
+  c.aggiornato = oggi();
+  salva(); chiudiModal(); toast('Voce salvata'); aggiornaCantiere();
+};
+window.cambiaQta = function(cantiereId, voceId, dir){
+  const c = getCantiere(cantiereId); if(!c || c.stato==='Chiuso') return;
+  const v = (c.voci||[]).find(x=>x.id===voceId); if(!v) return;
+  const nuova = arrot((parseFloat(v.qta)||0) + dir);
+  if(nuova <= 0) return;            // sotto zero non si scende: per togliere c'è il cestino
+  v.qta = nuova; c.aggiornato = oggi();
+  salva(); aggiornaCantiere();
+};
+window.impostaQta = function(cantiereId, voceId, valore){
+  const c = getCantiere(cantiereId); if(!c || c.stato==='Chiuso') return;
+  const v = (c.voci||[]).find(x=>x.id===voceId); if(!v) return;
+  const q = parseFloat(valore);
+  const nuova = (isFinite(q) && q > 0) ? arrot(q) : 1;
+  // niente ridisegno se il valore non è cambiato: altrimenti il semplice
+  // passaggio di fuoco sul campo farebbe sparire il bottone appena premuto
+  if(nuova === v.qta) return;
+  v.qta = nuova; c.aggiornato = oggi();
+  salva(); aggiornaCantiere();
+};
+window.toggleVoceCantiere = function(cantiereId, voceId){
+  const c = getCantiere(cantiereId); if(!c || c.stato==='Chiuso') return;
+  const v = (c.voci||[]).find(x=>x.id===voceId); if(!v) return;
+  v.inclusa = !v.inclusa; c.aggiornato = oggi();
+  salva(); aggiornaCantiere();
+};
+window.rimuoviVoceCantiere = function(cantiereId, voceId){
+  const c = getCantiere(cantiereId); if(!c || c.stato==='Chiuso') return;
+  if(!(c.voci||[]).some(x=>x.id===voceId)) return;
+  c.voci = c.voci.filter(x=>x.id!==voceId); c.aggiornato = oggi();
+  salva(); aggiornaCantiere();
+};
+window.impostaSconto = function(cantiereId, valore, tipo){
+  const c = getCantiere(cantiereId); if(!c || c.stato==='Chiuso') return;
+  if(tipo != null) c.sconto.tipo = TIPI_SCONTO.includes(tipo) ? tipo : '%';
+  if(valore != null){
+    const n = parseFloat(valore);
+    c.sconto.valore = (isFinite(n) && n > 0) ? arrot(n) : 0;
+  }
+  c.aggiornato = oggi();
+  salva(); aggiornaCantiere();
+};
+
+/* ---------- da cantiere a documento ---------- */
+window.generaDaCantiere = function(id, tipo){
+  const c = getCantiere(id); if(!c) return;
+  const incluse = (c.voci||[]).filter(v=>v.inclusa);
+  if(!incluse.length){ alert('Il cantiere non ha voci incluse: non c\'è niente da versare nel documento.'); return; }
+  const n = contiCantiere(c);
+  if(n.daQuotare){
+    const avviso = n.daQuotare===1
+      ? "C'è una voce senza prezzo: entrerà nel documento a zero."
+      : 'Ci sono ' + n.daQuotare + ' voci senza prezzo: entreranno nel documento a zero.';
+    if(!confirm(avviso + ' Procedo lo stesso?')) return;
+  }
+
+  const voci = incluse.map(v=>({ descrizione: v.descrizione, dettaglio: dettaglioVoce(v, eurDoc), importo: importoVoce(v) }));
+  // lo sconto diventa una riga negativa: così la somma delle voci continua a
+  // fare il totale, sia nel PDF sia nel riepilogo XML
+  if(n.sconto) voci.push({ descrizione: 'Sconto' + (c.sconto.tipo==='%' ? ' '+fmtQta(c.sconto.valore)+'%' : ''), dettaglio:'', importo: -n.sconto });
+
+  // le voci spente non entrano nel documento, ma restano scritte nelle note
+  // interne: servono a ricordare cosa era stato valutato e poi tolto
+  const spente = (c.voci||[]).filter(v=>!v.inclusa);
+  const note = [
+    c.note,
+    'Generato dal cantiere "' + c.nome + '".',
+    spente.length ? 'Valutato e non incluso: ' + spente.map(v=>v.descrizione+' ('+eur(importoVoce(v))+')').join('; ') + '.' : ''
+  ].filter(Boolean).join('\n');
+
+  if(tipo === 'preventivo'){
+    apriFormPreventivo(null, { titolo:c.nome, clienteId:c.clienteId, progettoId:c.progettoId,
+      voci, software:[], importo:n.totale, stato:'Bozza', etichettaTotale:'Totale progetto', note });
+  } else {
+    // il form fattura non mostra il campo dettaglio: lo fondiamo nella
+    // descrizione, come fa creaFatturaDaPreventivo, altrimenti "3 ore × € 45,00"
+    // sparirebbe al primo salvataggio
+    const vociFt = voci.map(v=>({ descrizione: v.descrizione + (v.dettaglio ? ' ('+v.dettaglio+')' : ''), dettaglio:'', importo: v.importo }));
+    apriFormFattura(null, { titolo:c.nome, clienteId:c.clienteId, progettoId:c.progettoId,
+      voci:vociFt, imponibile:n.totale, totale:n.totale, statoPagamento:'Da emettere', natura:'N2.2',
+      dataEmissione:oggi(), note });
+  }
+  // Il collegamento si chiude al salvataggio del form, quando il documento
+  // esiste davvero e ha un id. Va impostato DOPO apriForm*, che apre il modale
+  // (e chiudiModal azzera il segnaposto).
+  ui.cantiereDaCollegare = { cantiereId:c.id, tipo:tipo };
+};
+/* Chiamata da salvaPreventivo/salvaFattura subito prima di chiudere il modale. */
+function collegaCantiereGenerato(tipo, recordId){
+  const pend = ui.cantiereDaCollegare;
+  if(!pend || pend.tipo !== tipo || !recordId) return;
+  ui.cantiereDaCollegare = null;
+  const c = getCantiere(pend.cantiereId); if(!c) return;
+  c.generato = { tipo:tipo, id:recordId };
+  c.stato = 'Chiuso';
+  c.aggiornato = oggi();
+}
+
+/* ---------- LISTINO ---------- */
+function rigaListino(l){
+  const meta = [l.unita];
+  if(l.servizio) meta.push(l.servizio);
+  return `<div class="mini-item">
+    <span class="tt">${esc(l.descrizione)}<span class="nota-campo" style="display:block">${esc(meta.join(' · '))}</span></span>
+    <span class="euro">${l.prezzo!=null?eur(l.prezzo):'da quotare'}</span>
+    <button class="icon" onclick="apriFormListino('${l.id}')" title="Modifica">${ICO.pen}</button>
+    <button class="icon danger" onclick="eliminaVoceListino('${l.id}')" title="Elimina">${ICO.trash}</button>
+  </div>`;
+}
+window.apriListino = function(){
+  const corpo = db.listino.length
+    ? `<div class="mini-list">${db.listino.map(rigaListino).join('')}</div>`
+    : `<p class="cloud-desc">Il listino è vuoto. Mettici le voci che usi sempre — un'ora di consulenza, un logo, un post — con la loro unità e il prezzo: nei cantieri le aggiungi con un tocco.</p>`;
+  apriModal(`<h3>Listino</h3>
+  <p class="cloud-desc">Le voci riutilizzabili con cui riempi i cantieri. Cambiare un prezzo qui non tocca i cantieri già costruiti.</p>
+  ${corpo}
+  <div class="frm-foot" style="margin-top:16px">
+    <button type="button" class="btn neutro" onclick="chiudiModal()">Chiudi</button>
+    <button type="button" class="btn primary" onclick="apriFormListino()">${ICO.plus}Nuova voce</button>
+  </div>`);
+};
+window.apriFormListino = function(id){
+  const l = id ? getVoceListino(id) : {};
+  if(id && !l){ toast('Voce non trovata'); return; }
+  apriModal(`<h3>${id?'Modifica voce di listino':'Nuova voce di listino'}</h3>
+  <form class="frm" onsubmit="salvaVoceListino(event)" autocomplete="off">
+    <input type="hidden" name="_id" value="${id||''}">
+    <div class="full"><label>Descrizione *</label><input type="text" name="descrizione" required maxlength="300" pattern=".*\\S.*" title="Descrivi la voce" value="${esc(l.descrizione)}" placeholder="es. Ora di consulenza"></div>
+    <div><label>Unità</label><select name="unita">${opzioni(UNITA, l.unita||'a corpo')}</select></div>
+    <div><label>Prezzo unitario (€)</label><input type="number" name="prezzo" step="0.01" inputmode="decimal" value="${l.prezzo!=null?l.prezzo:''}">
+      <div class="nota-campo">Lascia vuoto se dipende sempre dal caso.</div></div>
+    <div class="full"><label>Tipo servizio</label><select name="servizio"><option value="">— nessuno —</option>${opzioni(SERVIZI, l.servizio)}</select></div>
+    <div class="frm-foot"><button type="button" class="btn neutro" onclick="apriListino()">Annulla</button><button type="submit" class="btn primary">Salva</button></div>
+  </form>`);
+};
+window.salvaVoceListino = function(ev){
+  ev.preventDefault();
+  const f = ev.target, val = n => f.elements[n].value.trim();
+  const id = val('_id');
+  const prezzo = f.elements.prezzo.value;
+  const dati = {
+    descrizione: val('descrizione'),
+    unita: UNITA.includes(val('unita')) ? val('unita') : 'a corpo',
+    prezzo: prezzo === '' ? null : numOK(prezzo),
+    servizio: SERVIZI.includes(val('servizio')) ? val('servizio') : ''
+  };
+  if(id){
+    const rec = getVoceListino(id);
+    if(!rec){ alert('Questa voce non esiste più. Chiudi e ricontrolla.'); return; }
+    Object.assign(rec, dati);
+  } else {
+    db.listino.push(Object.assign({ id:uid() }, dati));
+  }
+  salva(); toast('Listino aggiornato');
+  apriListino();
+  if(ui.view === 'cantiere') aggiornaCantiere();
+};
+window.eliminaVoceListino = function(id){
+  const l = getVoceListino(id); if(!l) return;
+  if(!confirm('Togliere "'+l.descrizione+'" dal listino? I cantieri che la usano non cambiano.')) return;
+  db.listino = db.listino.filter(x=>x.id!==id);
+  salva(); toast('Voce tolta dal listino');
+  apriListino();
+  if(ui.view === 'cantiere') aggiornaCantiere();
+};
+/* ============ FINE CANTIERI ============ */
 
 /* ============================================================
    DOCUMENTI — PDF di cortesia (stampa del browser) + XML FatturaPA
@@ -3409,6 +4070,7 @@ if(!lsOk) $('#bannerMem').style.display='block';
   /* --- viste board sovrascritte (aggiungono barra + filtro, riusano tutto il resto) --- */
   window.vPreventivi = function(){
     return `
+    ${sezioneCantieri()}
     <div class="sec-head"><h2>Preventivi</h2><button class="btn primary" onclick="apriFormPreventivo()">＋ Nuovo</button></div>
     ${toolbar()}
     ${wrap(kanban('preventivo', STATI_PREVENTIVO, filtra(db.preventivi,'preventivo'), 'stato', cardPreventivo))}
