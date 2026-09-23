@@ -45,45 +45,63 @@
 <!-- ============ FINE BLOCCO SICUREZZA ============ -->
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Gestionale P.IVA — Niccolò Busato</title>
-<meta name="theme-color" content="#f2f2f7">
+<meta name="theme-color" content="#f5f5f3">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Gestionale">
 <style>
-/* ============ DESIGN TOKENS — Apple-like ============ */
+/* ============ DESIGN TOKENS — Minimalism & Swiss Style ============
+   Direzione confermata dalla skill ui-ux-pro-max (--domain style →
+   "minimalism-and-swiss-style", data per dashboard e strumenti di lavoro),
+   con la sua nota esplicita: niente gradienti, niente ombre complesse.
+   La definizione la portano i bordi da 1px, non le ombre.
+
+   ENFASI = massimo contrasto col fondo pagina, non "nero".
+   In chiaro la superficie di enfasi è scura, in scuro diventa chiara:
+   una card nera su fondo nero non esiste. Sono --emph-*.
+
+   L'arancione è tornato a fare SOLO l'accento: azioni primarie, link,
+   stato attivo. Mai un fondale. */
 :root{
-  --bg:#f2f2f7; --card:#ffffff; --ink:#1c1c1e; --muted:#6d6d72; --line:rgba(60,60,67,.12);
-  --accent:#ff6b1a; --accent-2:#ff9500;
-  --accent-soft:rgba(255,107,26,.12);
-  --ok:#34c759; --ok-soft:rgba(52,199,89,.15);
-  --blu:#007aff; --blu-soft:rgba(0,122,255,.12);
-  --danger:#ff3b30; --danger-soft:rgba(255,59,48,.12);
-  --warn:#cc7a00; --warn-soft:rgba(255,149,0,.16);
-  --grigio:#8e8e93; --grigio-soft:rgba(120,120,128,.14);
-  --kb:rgba(120,120,128,.09);
-  --input:rgba(120,120,128,.10);
-  --btn:rgba(120,120,128,.13);
-  --glass:rgba(242,242,247,.82);
-  --shadow:0 1px 2px rgba(0,0,0,.04),0 8px 28px rgba(0,0,0,.06);
-  --shadow-sm:0 1px 2px rgba(0,0,0,.05),0 3px 10px rgba(0,0,0,.05);
-  --r-xl:22px; --r-lg:18px; --r-md:14px;
+  --bg:#f5f5f3; --card:#ffffff; --ink:#16161a; --muted:#6e6e73; --line:rgba(22,22,26,.12);
+  --accent:#ff6b1a; --accent-2:#ff8a3d;
+  --accent-ink:#c94f08;                       /* arancione leggibile su fondo chiaro */
+  --accent-soft:rgba(255,107,26,.10);
+  --emph-bg:#16161a; --emph-ink:#f5f5f3;
+  --emph-muted:rgba(245,245,243,.62); --emph-line:rgba(245,245,243,.16);
+  --ok:#15794a; --ok-soft:rgba(21,121,74,.11);
+  --blu:#0a63c9; --blu-soft:rgba(10,99,201,.10);
+  --danger:#c22d22; --danger-soft:rgba(194,45,34,.10);
+  --warn:#9a5b00; --warn-soft:rgba(154,91,0,.12);
+  --grigio:#6e6e73; --grigio-soft:rgba(110,110,115,.12);
+  --kb:rgba(22,22,26,.04);
+  --input:rgba(22,22,26,.04);
+  --btn:rgba(22,22,26,.05);
+  --glass:rgba(245,245,243,.86);
+  --shadow:0 1px 2px rgba(22,22,26,.05);
+  --shadow-sm:0 1px 1px rgba(22,22,26,.04);
+  --r-xl:14px; --r-lg:12px; --r-md:10px;
 }
 [data-theme=dark]{
-  --bg:#000000; --card:#1c1c1e; --ink:#f2f2f7; --muted:#98989e; --line:rgba(84,84,88,.5);
-  --accent:#ff7a26; --accent-soft:rgba(255,122,38,.20);
-  --ok:#30d158; --ok-soft:rgba(48,209,88,.20);
-  --blu:#0a84ff; --blu-soft:rgba(10,132,255,.20);
-  --danger:#ff453a; --danger-soft:rgba(255,69,58,.20);
-  --warn:#ffb340; --warn-soft:rgba(255,159,10,.20);
-  --grigio:#98989e; --grigio-soft:rgba(120,120,128,.24);
-  --kb:rgba(120,120,128,.14);
-  --input:rgba(120,120,128,.22);
-  --btn:rgba(120,120,128,.26);
-  --glass:rgba(10,10,12,.8);
-  --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.35);
-  --shadow-sm:0 1px 2px rgba(0,0,0,.3),0 3px 10px rgba(0,0,0,.3);
+  --bg:#0e0e10; --card:#1a1a1d; --ink:#f2f2f0; --muted:#98989d; --line:rgba(242,242,240,.14);
+  --accent:#ff8340; --accent-2:#ffa066;
+  --accent-ink:#ff9a62;
+  --accent-soft:rgba(255,131,64,.14);
+  --emph-bg:#f2f2f0; --emph-ink:#16161a;
+  --emph-muted:rgba(22,22,26,.60); --emph-line:rgba(22,22,26,.14);
+  --ok:#43c98a; --ok-soft:rgba(67,201,138,.14);
+  --blu:#5aa8ff; --blu-soft:rgba(90,168,255,.14);
+  --danger:#ff6f62; --danger-soft:rgba(255,111,98,.14);
+  --warn:#e0a54a; --warn-soft:rgba(224,165,74,.14);
+  --grigio:#98989d; --grigio-soft:rgba(152,152,157,.14);
+  --kb:rgba(242,242,240,.05);
+  --input:rgba(242,242,240,.06);
+  --btn:rgba(242,242,240,.08);
+  --glass:rgba(14,14,16,.86);
+  --shadow:0 1px 2px rgba(0,0,0,.4);
+  --shadow-sm:0 1px 1px rgba(0,0,0,.3);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{color-scheme:light dark}
@@ -114,9 +132,11 @@ header{
 .seg button.active{background:var(--card);color:var(--ink);box-shadow:var(--shadow-sm)}
 .top-actions{display:flex;gap:8px;margin-left:auto}
 .iconbtn{
-  width:36px;height:36px;border-radius:50%;border:none;background:var(--btn);
-  display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--ink);
+  width:38px;height:38px;border-radius:var(--r-md);border:1px solid var(--line);background:var(--card);
+  display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--muted);
+  transition:background .2s,color .2s;
 }
+.iconbtn:hover{background:var(--btn);color:var(--ink)}
 .iconbtn:active{transform:scale(.94)}
 .iconbtn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 
@@ -161,7 +181,7 @@ main{max-width:1240px;margin:0 auto;padding:20px 16px 60px}
 
 /* ============ DASHBOARD ============ */
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:14px}
-.stat{background:var(--card);border-radius:var(--r-xl);padding:18px 18px 16px;box-shadow:var(--shadow-sm)}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r-xl);padding:15px 16px 14px;box-shadow:none}
 .stat .toprow{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
 .stat .lbl{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
 .stat .big{font-size:28px;font-weight:800;letter-spacing:-.03em;margin-top:8px;font-variant-numeric:tabular-nums}
@@ -171,15 +191,37 @@ main{max-width:1240px;margin:0 auto;padding:20px 16px 60px}
   background:var(--grigio-soft);color:var(--muted);font-size:12px;font-weight:700;
   display:flex;align-items:center;justify-content:center;font-style:italic;font-family:Georgia,serif;
 }
-.stat.acc .info-i{background:rgba(255,255,255,.25);color:#fff}
-.stat.hl{background:var(--accent-soft);box-shadow:none}
-.stat.hl .big{color:var(--accent)}
-.stat.hl .lbl{color:var(--accent)}
-.stat.acc{background:linear-gradient(135deg,var(--accent) 0%,var(--accent-2) 100%);box-shadow:0 10px 30px rgba(255,199,120,.35)}
-[data-theme=dark] .stat.acc{box-shadow:0 10px 30px rgba(255,107,26,.25)}
-.stat.acc .lbl,.stat.acc .det{color:rgba(255,255,255,.85)}
-.stat.acc .big{color:#fff}
-.taxbox{background:var(--card);border-radius:var(--r-xl);padding:20px;margin-top:16px;box-shadow:var(--shadow-sm)}
+.stat.acc .info-i{background:var(--emph-line);color:var(--emph-ink)}
+.stat.hl{background:var(--card);border-color:var(--accent)}
+.stat.hl .big{color:var(--accent-ink)}
+.stat.hl .lbl{color:var(--accent-ink)}
+/* Superficie di enfasi. Era un gradiente arancione che urlava anche
+   quando il valore dentro era 0,00 €: l'enfasi stava attaccata alla card
+   invece che al numero. Ora è una sola card per schermata, a massimo
+   contrasto col fondo — scura in chiaro, chiara in scuro. */
+.stat.acc{background:var(--emph-bg);border-color:var(--emph-bg);box-shadow:none;color:var(--emph-ink)}
+.stat.acc .lbl,.stat.acc .det{color:var(--emph-muted)}
+.stat.acc .big{color:var(--emph-ink)}
+.stat.acc a,.stat.acc .linkino-btn{color:var(--emph-ink)}
+
+/* La card di enfasi della dashboard: una, larga, con il riepilogo a fianco */
+.stat.hero{grid-column:1/-1;padding:20px}
+.stat.hero .big{font-size:38px;line-height:1;margin-top:8px}
+.hero-grid{display:grid;gap:16px}
+@media(min-width:760px){
+  .stat.hero{padding:22px 24px}
+  .stat.hero .big{font-size:44px}
+  .hero-grid{grid-template-columns:1.15fr 1fr;gap:28px}
+}
+.hero-side{display:flex;flex-direction:column;justify-content:center;gap:9px;
+  border-top:1px solid var(--emph-line);padding-top:15px}
+@media(min-width:760px){ .hero-side{border-top:0;border-left:1px solid var(--emph-line);padding:0 0 0 28px} }
+.hero-side .r{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  font-size:13.5px;color:var(--emph-muted)}
+.hero-side .r b{color:var(--emph-ink);font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.hero-side .r .btn-emph{background:none;border:0;padding:0;color:var(--emph-ink);
+  font-size:13px;font-weight:600;text-decoration:underline}
+.taxbox{background:var(--card);border:1px solid var(--line);border-radius:var(--r-xl);padding:18px;margin-top:14px;box-shadow:none}
 .taxbox h3{font-size:16px;font-weight:700;letter-spacing:-.02em;margin-bottom:8px}
 .taxbox p{color:var(--muted);font-size:14px;margin-bottom:6px}
 .taxbox p b{color:var(--ink)}
@@ -214,34 +256,51 @@ main{max-width:1240px;margin:0 auto;padding:20px 16px 60px}
 .badge.a{background:var(--warn-soft);color:var(--warn)}
 .chip{display:inline-block;background:var(--grigio-soft);color:var(--muted);border-radius:7px;padding:2px 8px;font-size:11px;font-weight:500;margin:3px 4px 0 0}
 
-/* ============ KANBAN ============ */
-.kb{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 10px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+/* ============ KANBAN ============
+   Le colonne non scorrono più in orizzontale: sotto i 900px diventano
+   schede di stato col conteggio (.kb-tabs), e si vedono TUTTI gli stati
+   invece di due su cinque. Lo scorrimento orizzontale è classificato
+   dalla skill come problema di gravità alta.
+   Le colonne non sono più interamente colorate: in uno stile Swiss il
+   colore è un segnale, non un fondale. Resta una barretta di stato. */
+.kb{display:grid;gap:10px;padding:2px 2px 10px;align-items:start}
 .kb-col{
-  background:var(--kb);border-radius:var(--r-lg);padding:10px;
-  min-width:250px;flex:1 0 250px;scroll-snap-align:start;transition:background .15s;
+  background:var(--kb);border-radius:var(--r-lg);padding:9px;min-width:0;transition:background .15s;
 }
-/* colonne interamente colorate in base allo stato */
-.kb-col.kg{background:var(--grigio-soft)}
-.kb-col.kb-b{background:var(--blu-soft)}
-.kb-col.kv{background:var(--ok-soft)}
-.kb-col.kr{background:var(--danger-soft)}
-.kb-col.ka{background:var(--warn-soft)}
-.kb-title{font-size:13.5px;font-weight:800;letter-spacing:-.01em}
-.kg .kb-title{color:var(--grigio)}
-.kb-b .kb-title{color:var(--blu)}
-.kv .kb-title{color:var(--ok)}
-.kr .kb-title{color:var(--danger)}
-.ka .kb-title{color:var(--warn)}
+.kb-title{font-size:12.5px;font-weight:700;letter-spacing:.01em;display:flex;align-items:center;gap:7px}
+.kb-title::before{content:"";width:3px;height:13px;border-radius:2px;background:var(--grigio);flex:none}
+.kb-b .kb-title::before{background:var(--blu)}
+.kv .kb-title::before{background:var(--ok)}
+.kr .kb-title::before{background:var(--danger)}
+.ka .kb-title::before{background:var(--warn)}
 .kb-col.over{outline:2px dashed var(--accent);outline-offset:-2px;background:var(--accent-soft)}
 .kb-head{display:flex;align-items:center;justify-content:space-between;margin:2px 4px 10px;padding:0 2px}
-.kb-count{font-size:12px;color:var(--muted);font-weight:700;background:var(--grigio-soft);border-radius:99px;padding:1px 8px}
-.kb-cards{display:flex;flex-direction:column;gap:9px;min-height:44px}
-.kb-empty{color:var(--muted);opacity:.5;text-align:center;font-size:12.5px;padding:12px 0;font-weight:500}
-.kcard{background:var(--card);border-radius:16px;padding:13px 14px;cursor:grab;box-shadow:var(--shadow-sm)}
+.kb-count{font-size:11.5px;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
+.kb-cards{display:flex;flex-direction:column;gap:8px;min-height:44px}
+.kb-empty{color:var(--muted);opacity:.7;text-align:center;font-size:12.5px;padding:12px 0;font-weight:500}
+/* schede di stato (sotto i 900px) */
+.kb-tabs{display:flex;gap:6px;overflow-x:auto;padding:1px 2px 10px;scrollbar-width:none}
+.kb-tabs::-webkit-scrollbar{display:none}
+.kb-tabs button{
+  display:inline-flex;align-items:center;gap:7px;white-space:nowrap;
+  font-size:13px;font-weight:650;min-height:38px;padding:0 13px;
+  border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--muted);
+  transition:background .2s,color .2s,border-color .2s;
+}
+.kb-tabs button .n{
+  font-size:11.5px;font-weight:700;padding:1px 7px;border-radius:99px;
+  background:var(--btn);color:var(--muted);font-variant-numeric:tabular-nums;
+}
+.kb-tabs button[aria-pressed="true"]{background:var(--emph-bg);border-color:var(--emph-bg);color:var(--emph-ink)}
+.kb-tabs button[aria-pressed="true"] .n{background:var(--emph-line);color:var(--emph-ink)}
+@media(min-width:900px){ .kb-tabs{display:none} .kb{grid-template-columns:repeat(var(--kb-n,5),minmax(0,1fr))} }
+@media(max-width:899px){ .kb{grid-template-columns:minmax(0,1fr)} .kb-col.nascosta{display:none} .kb-col{background:none;padding:0} .kb-col .kb-head{display:none} }
+.kcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r-md);padding:12px 13px;cursor:grab;box-shadow:none}
 .kcard.dragging{opacity:.45;transform:rotate(1.5deg)}
 .kcard-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.kcard .num{font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:7px;padding:2px 8px;letter-spacing:.02em}
+.kcard .num{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.03em}
 .kcard-val{font-weight:800;font-size:15px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.kcard-val.vuoto{font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:.02em}
 .kcard-title{font-weight:600;font-size:14.5px;margin-top:7px;line-height:1.3;letter-spacing:-.01em}
 .kcard-sub{font-size:12.5px;color:var(--muted);margin-top:2px;font-weight:500}
 .kcard-date{font-size:12px;color:var(--muted);margin-top:5px;font-weight:500}
@@ -250,10 +309,12 @@ main{max-width:1240px;margin:0 auto;padding:20px 16px 60px}
 .spacer{flex:1}
 .mover{display:flex;gap:5px}
 .mv{
-  width:27px;height:27px;border-radius:50%;border:none;background:var(--btn);
-  color:var(--ink);font-size:15px;font-weight:700;line-height:1;
+  width:38px;height:38px;border-radius:9px;border:1px solid var(--line);background:var(--card);
+  color:var(--ink);font-size:16px;font-weight:700;line-height:1;
   display:flex;align-items:center;justify-content:center;padding-bottom:2px;
+  transition:background .2s;
 }
+.mv:not(:disabled):hover{background:var(--btn)}
 .mv:disabled{opacity:.3;cursor:default}
 .mv:not(:disabled):active{transform:scale(.9)}
 .icon{background:none;border:none;color:var(--muted);font-size:14px;padding:4px 6px;border-radius:8px}
@@ -267,7 +328,7 @@ main{max-width:1240px;margin:0 auto;padding:20px 16px 60px}
 .linkino{font-size:12px;color:var(--ok);font-weight:600}
 
 /* ============ TABELLE ============ */
-.twrap{background:var(--card);border-radius:var(--r-xl);overflow-x:auto;box-shadow:var(--shadow-sm);-webkit-overflow-scrolling:touch}
+.twrap{background:var(--card);border:1px solid var(--line);border-radius:var(--r-xl);overflow-x:auto;box-shadow:none;-webkit-overflow-scrolling:touch}
 table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:780px}
 th{padding:12px 14px;text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:.5px solid var(--line);white-space:nowrap;font-weight:600}
 td{padding:11px 14px;border-bottom:.5px solid var(--line);vertical-align:middle}
@@ -286,40 +347,50 @@ td.euro{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
 .cerca:focus{outline:none;box-shadow:0 0 0 2.5px var(--accent)}
 /* minmax(0,…) e min-width:0 sono il cuore del fix: senza, un testo senza spazi
    (email, sito) impone la sua larghezza minima alla colonna e sfonda la card. */
-.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),1fr));gap:13px}
+.cgrid{background:var(--card);border:1px solid var(--line);border-radius:var(--r-xl);overflow:hidden}
+/* Righe, non schede: in una schermata di telefono ne entrano otto invece di
+   due, e le colonne si allineano anche quando un cliente ha il sottotitolo
+   e un altro no (prima le altezze ballavano). */
 .ccard{
-  position:relative;overflow:hidden;min-width:0;width:100%;text-align:left;font:inherit;color:inherit;border:none;
-  background:var(--card);border-radius:var(--r-xl);padding:16px;cursor:pointer;
-  box-shadow:var(--shadow-sm);transition:transform .12s,box-shadow .15s;
-  display:flex;flex-direction:column;align-items:stretch;min-height:172px;
+  position:relative;min-width:0;width:100%;text-align:left;font:inherit;color:inherit;
+  border:0;border-bottom:1px solid var(--line);border-radius:0;
+  background:var(--card);padding:11px 14px;cursor:pointer;transition:background .15s;
+  display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:12px;align-items:center;
 }
+.ccard:last-child{border-bottom:0}
 .ccard[hidden]{display:none}
 /* fascia colore: dentro la card (overflow:hidden) segue gli angoli arrotondati,
    un border-top invece si assottiglia sui bordi a forma di mezzaluna */
-.ccard::before,.dettaglio-info::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:var(--c,transparent)}
-.ccard:active{transform:scale(.98)}
+.ccard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c,transparent)}
+.dettaglio-info::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:var(--c,transparent)}
+.ccard:active{background:var(--btn)}
 .ccard:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
-@media (hover:hover){ .ccard:hover{box-shadow:var(--shadow)} }
+@media (hover:hover){ .ccard:hover{background:var(--btn)} }
 .ccard .avatar{
-  width:44px;height:44px;flex:0 0 44px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
-  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;margin-bottom:10px;
+  width:40px;height:40px;flex:0 0 40px;border-radius:50%;background:var(--accent-soft);color:var(--accent-ink);
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;
 }
+.ccard-mid{min-width:0;display:flex;flex-direction:column;gap:1px}
 .ccard-nome{
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;
-  font-size:16px;font-weight:700;letter-spacing:-.02em;line-height:1.3;margin-bottom:3px;
+  font-size:14.5px;font-weight:650;letter-spacing:-.01em;line-height:1.3;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
+.ccard-rt{text-align:right;white-space:nowrap;display:flex;flex-direction:column;gap:1px;align-items:flex-end}
+.ccard-rt .eu{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.ccard-rt .sm{font-size:11.5px;color:var(--muted)}
 .ccard .meta{display:block;font-size:12.5px;color:var(--muted);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ccard-inc{align-self:flex-start;max-width:100%;margin-top:10px;overflow:hidden;text-overflow:ellipsis}
-.ccard .conta{display:flex;gap:3px 12px;margin-top:auto;padding-top:12px;font-size:12px;color:var(--muted);font-weight:500;flex-wrap:wrap}
+.ccard-inc{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.ccard .conta{display:flex;gap:3px 10px;font-size:12px;color:var(--muted);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
 .foto-preview{width:64px;height:64px;border-radius:50%;object-fit:cover;display:none;margin-top:8px}
 input[type=color].colore-cliente{width:100%;height:41px;border:none;border-radius:13px;background:var(--input);padding:6px;cursor:pointer}
 
 /* ---------- consigli & promemoria ---------- */
-.avvisi-list{display:flex;flex-direction:column;gap:10px}
+.avvisi-list{display:flex;flex-direction:column;gap:8px}
 .avviso-item{
-  display:flex;align-items:flex-start;gap:13px;background:var(--card);border-radius:16px;
-  padding:16px 18px;cursor:pointer;box-shadow:var(--shadow-sm);transition:transform .12s,background-color .12s;
+  display:flex;align-items:flex-start;gap:13px;background:var(--card);
+  border:1px solid var(--line);border-radius:var(--r-md);
+  padding:13px 15px;cursor:pointer;transition:background-color .15s;
 }
 .avviso-item:active{transform:scale(.99)}
 @media (hover:hover){ .avviso-item:hover{background:var(--btn)} }
@@ -365,8 +436,8 @@ input[type=color].colore-cliente{width:100%;height:41px;border:none;border-radiu
 .dettaglio-azioni .btn.danger{margin-left:auto}
 .mini-list{display:flex;flex-direction:column;gap:9px}
 .mini-item{
-  background:var(--card);border-radius:16px;padding:12px 15px;
-  display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:var(--shadow-sm);
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r-md);padding:11px 14px;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:none;
 }
 .mini-item .tt{font-weight:600;flex:1;min-width:130px;font-size:14px;overflow-wrap:anywhere}
 .mini-item .euro{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -665,10 +736,10 @@ body.doc-aperto{overflow:hidden}
     <div class="brand">NB <small>· Gestionale P.IVA</small></div>
     <div class="seg" id="segnav"></div>
     <div class="top-actions">
-      <button class="iconbtn" id="btnCloud" title="Sincronizzazione cloud"><svg viewBox="0 0 24 24"><path d="M7 18.5a4.6 4.6 0 1 1 .8-9.1A6.2 6.2 0 0 1 19.6 11.4 3.9 3.9 0 0 1 18.2 18.5z"/></svg></button>
-      <button class="iconbtn" id="btnSync" title="Sincronizza adesso"><svg class="ico-gear" viewBox="0 0 16 16" fill="currentColor" stroke="none"><path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872zM8 10.93a2.93 2.93 0 1 1 0-5.86 2.93 2.93 0 0 1 0 5.86z"/><circle cx="8" cy="8" r="1.5"/></svg></button>
-      <button class="iconbtn" id="btnExport" title="Esporta backup JSON"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 19h16"/></svg></button>
-      <button class="iconbtn" id="btnImport" title="Importa backup JSON"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 19h16"/></svg></button>
+      <button class="iconbtn" id="btnCloud" title="Sincronizzazione cloud" aria-label="Sincronizzazione cloud"><svg viewBox="0 0 24 24"><path d="M7 18.5a4.6 4.6 0 1 1 .8-9.1A6.2 6.2 0 0 1 19.6 11.4 3.9 3.9 0 0 1 18.2 18.5z"/></svg></button>
+      <button class="iconbtn" id="btnSync" title="Sincronizza adesso" aria-label="Sincronizza adesso"><svg class="ico-gear" viewBox="0 0 16 16" fill="currentColor" stroke="none"><path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872zM8 10.93a2.93 2.93 0 1 1 0-5.86 2.93 2.93 0 0 1 0 5.86z"/><circle cx="8" cy="8" r="1.5"/></svg></button>
+      <button class="iconbtn" id="btnExport" title="Esporta backup JSON" aria-label="Esporta backup JSON"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 19h16"/></svg></button>
+      <button class="iconbtn" id="btnImport" title="Importa backup JSON" aria-label="Importa backup JSON"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 19h16"/></svg></button>
     </div>
   </div>
   <div class="banner-mem" id="bannerMem" style="display:none">⚠ localStorage non disponibile: i dati vivono solo in questa sessione. Usa Esporta per non perderli.</div>
@@ -902,7 +973,7 @@ function salva(){
 function applicaTema(t){
   document.documentElement.dataset.theme = t;
   const m = document.querySelector('meta[name=theme-color]');
-  if(m) m.content = t==='dark' ? '#000000' : '#f2f2f7';
+  if(m) m.content = t==='dark' ? '#0e0e10' : '#f5f5f3';
 }
 /* Il tema segue automaticamente le impostazioni di sistema (chiaro/scuro) */
 function temaSistema(){
@@ -1359,19 +1430,28 @@ function vDashboard(){
   // di sempre non serviva a niente, perché non scendeva mai.
   const annoFisc = new Date().getFullYear();
   const sd = salvadanaio(annoFisc);
+  // La card di enfasi guarda l'ANNO in corso, non il totale di sempre: è la
+  // cifra che conta per il forfettario, che ragiona per anno d'imposta.
+  const pagateAnno = pagate.filter(f=>annoCompetenza(f)===annoFisc);
+  const incassatoAnno = somma(pagateAnno, valoreDoc);
+  const emessoAnno = somma(emesse.filter(f=>annoDaData(f.dataEmissione)===annoFisc), valoreDoc);
 
   return `
   <div class="sec-head"><h2>Dashboard</h2><span class="sub">${fmtData(oggi())}</span></div>
   <div class="cards">
-    <div class="stat acc">
-      <div class="lbl">Fatturato emesso</div>
-      <div class="big">${eur(somma(emesse,valoreDoc))}</div>
-      <div class="det">${emesse.length} ${emesse.length===1?'fattura emessa':'fatture emesse'}${daIncassare.length?' · '+daIncassare.length+' da incassare':''}</div>
-    </div>
-    <div class="stat acc">
-      <div class="lbl">Incassato</div>
-      <div class="big">${eur(somma(pagate,valoreDoc))}</div>
-      <div class="det">${pagate.length} ${pagate.length===1?'fattura pagata':'fatture pagate'}</div>
+    <div class="stat acc hero">
+      <div class="hero-grid">
+        <div>
+          <div class="lbl">Incassato ${annoFisc}</div>
+          <div class="big">${eur(incassatoAnno)}</div>
+          <div class="det">${plurale(pagateAnno.length, 'fattura pagata', 'fatture pagate')} quest'anno</div>
+        </div>
+        <div class="hero-side">
+          <div class="r"><span>Fatturato emesso</span><b>${eur(emessoAnno)}</b></div>
+          <div class="r"><span>Da incassare</span><b>${eur(somma(daIncassare,valoreDoc))}</b></div>
+          <div class="r"><span>Tasse da tenere da parte</span><b>${eur(sd.residuo)}</b></div>
+        </div>
+      </div>
     </div>
     <div class="stat">
       <div class="lbl">Da incassare</div>
@@ -1667,14 +1747,22 @@ function vClienti(){
     const nascosta = q && !cerca.includes(q);
     if(!nascosta) visibili++;
     // <button>: raggiungibile con Tab e apribile con Invio/Spazio, a differenza di un <div onclick>
+    // Una riga: avatar, identità al centro, cifra a destra. La seconda riga
+    // del centro raccoglie quello che prima occupava tre righe separate.
+    const incassatoC = somma(db.fatture.filter(f=>f.clienteId===c.id && f.statoPagamento==='Pagata'), valoreDoc);
+    const sottoRiga = [sotto, c.referente, c.email].filter(Boolean).join(' · ');
     return `<button type="button" class="ccard" data-cerca="${esc(cerca)}" onclick="vai('cliente','${c.id}')"${col?' style="--c:'+col+'"':''}${nascosta?' hidden':''}>
       ${avatarHTML(c)}
-      <span class="ccard-nome" title="${esc(c.nome)}">${esc(c.nome)}</span>
-      ${sotto?'<span class="meta" title="'+esc(sotto)+'">'+esc(sotto)+'</span>':''}
-      ${c.referente?'<span class="meta" title="'+esc(c.referente)+'">'+esc(c.referente)+'</span>':''}
-      ${c.email?'<span class="meta" title="'+esc(c.email)+'">'+esc(c.email)+'</span>':''}
-      ${daIncassare>0?'<span class="badge ccard-inc '+(scaduta?'r':'a')+'">'+eur(daIncassare)+(scaduta?' scaduto':' da incassare')+'</span>':''}
-      <span class="conta">${conta || '<span>Nessun lavoro registrato</span>'}</span>
+      <span class="ccard-mid">
+        <span class="ccard-nome" title="${esc(c.nome)}">${esc(c.nome)}</span>
+        ${sottoRiga?'<span class="meta" title="'+esc(sottoRiga)+'">'+esc(sottoRiga)+'</span>':''}
+        <span class="conta">${conta || '<span>Nessun lavoro registrato</span>'}</span>
+      </span>
+      <span class="ccard-rt">
+        ${daIncassare>0
+          ? '<span class="eu" style="color:var(--'+(scaduta?'danger':'warn')+')">'+eur(daIncassare)+'</span><span class="sm">'+(scaduta?'scaduto':'da incassare')+'</span>'
+          : (incassatoC ? '<span class="eu">'+eur(incassatoC)+'</span><span class="sm">incassato</span>' : '')}
+      </span>
     </button>`;
   }).join('');
   return `
@@ -1873,7 +1961,7 @@ function cardPreventivo(p){
   if(p.dataInvio) date.push('inviato '+fmtData(p.dataInvio));
   if(p.validoFino) date.push('valido fino '+fmtData(p.validoFino));
   return `<div class="kcard" draggable="true" data-id="${p.id}" data-entity="preventivo">
-    <div class="kcard-top"><span class="num">${esc(p.numero)}</span><span class="kcard-val">${eur(p.importo)}</span></div>
+    <div class="kcard-top"><span class="num">${esc(p.numero)}</span><span class="kcard-val${p.importo==null?' vuoto':''}">${p.importo==null?'da quotare':eur(p.importo)}</span></div>
     <div class="kcard-title">${esc(p.titolo)}</div>
     <div class="kcard-sub">${esc(nomeCliente(p.clienteId))}</div>
     ${chips(p.servizi)}
@@ -1909,7 +1997,7 @@ function cardProgetto(p){
   }
   const inRitardo = p.scadenza && p.scadenza < oggi() && p.stato!=='Fatto';
   return `<div class="kcard" draggable="true" data-id="${p.id}" data-entity="progetto">
-    <div class="kcard-top"><span>${p.mensile?'<span class="chip mensile">↻ Mensile</span>':''}</span><span class="kcard-val">${eur(p.valore)}${p.mensile?'<span style="font-size:11px;color:var(--muted)">/mese</span>':''}</span></div>
+    <div class="kcard-top"><span>${p.mensile?'<span class="chip mensile">↻ Mensile</span>':''}</span><span class="kcard-val${p.valore==null?' vuoto':''}">${p.valore==null?'da definire':eur(p.valore)}${(p.mensile&&p.valore!=null)?'<span style="font-size:11px;color:var(--muted)">/mese</span>':''}</span></div>
     <div class="kcard-title" style="margin-top:${p.mensile?'7px':'0'}">${esc(p.titolo)}</div>
     <div class="kcard-sub">${esc(nomeCliente(p.clienteId))}</div>
     ${chips(p.servizi)}
@@ -1934,7 +2022,7 @@ function fatturaScaduta(f){
 function cardFattura(f){
   const acc = accantonare(f);
   return `<div class="kcard" draggable="true" data-id="${f.id}" data-entity="fattura">
-    <div class="kcard-top"><span class="num">${esc(f.numero)}</span><span class="kcard-val">${eur(f.totale)}</span></div>
+    <div class="kcard-top"><span class="num">${esc(f.numero)}</span><span class="kcard-val${f.totale==null?' vuoto':''}">${f.totale==null?'da definire':eur(f.totale)}</span></div>
     <div class="kcard-title">${esc(f.titolo)}</div>
     <div class="kcard-sub">${esc(nomeCliente(f.clienteId))} · ${esc(f.tipoDoc)}</div>
     ${f.scadenzaPagamento?'<div class="kcard-date '+(fatturaScaduta(f)?'rossa':'')+'">scad. pagamento '+fmtData(f.scadenzaPagamento)+(fatturaScaduta(f)?' ⚠':'')+'</div>':''}
@@ -1985,15 +2073,39 @@ function vFatture(){
 
 /* ---------- kanban + drag & drop (desktop) ---------- */
 const CLASSE_COLONNA = {g:'kg', b:'kb-b', v:'kv', r:'kr', a:'ka'};
+/* Stato mostrato quando le colonne sono schede (sotto i 900px). Uno per
+   entità: passare da Preventivi a Fatture non deve resettare la scelta. */
+function statoAttivo(entity, stati){
+  if(!ui.statoBoard || typeof ui.statoBoard !== 'object') ui.statoBoard = {};
+  if(!stati.includes(ui.statoBoard[entity])) ui.statoBoard[entity] = stati[0];
+  return ui.statoBoard[entity];
+}
+/* L'indice al posto del nome: niente testo dell'utente dentro un onclick. */
+window.kbStato = function(entity, i){
+  const stati = {preventivo:STATI_PREVENTIVO, progetto:STATI_PROGETTO, fattura:STATI_FATTURA}[entity];
+  if(!stati || !stati[i]) return;
+  ui.statoBoard = ui.statoBoard || {};
+  ui.statoBoard[entity] = stati[i];
+  render();
+};
 function kanban(entity, stati, records, campo, cardFn){
-  return '<div class="kb">' + stati.map(st=>{
+  const attivo = statoAttivo(entity, stati);
+  const conta = st => records.filter(r=>r[campo]===st).length;
+  // Le schede di stato sostituiscono lo scorrimento orizzontale: prima si
+  // vedevano 2 colonne su 5 e niente diceva che le altre esistessero.
+  const schede = '<div class="kb-tabs" role="group" aria-label="Filtra per stato">' + stati.map((st,i)=>
+    `<button type="button" aria-pressed="${st===attivo}" onclick="kbStato('${entity}',${i})">${esc(st)}<span class="n">${conta(st)}</span></button>`
+  ).join('') + '</div>';
+  const colonne = stati.map(st=>{
     const recs = records.filter(r=>r[campo]===st);
     const cls = CLASSE_COLONNA[STATO_CLASSE[st]] || 'kg';
-    return `<div class="kb-col ${cls}" data-entity="${entity}" data-stato="${esc(st)}">
+    return `<div class="kb-col ${cls}${st===attivo?'':' nascosta'}" data-entity="${entity}" data-stato="${esc(st)}">
       <div class="kb-head"><span class="kb-title">${esc(st)}</span><span class="kb-count">${recs.length}</span></div>
-      <div class="kb-cards">${recs.map(cardFn).join('') || '<div class="kb-empty">sposta qui</div>'}</div>
+      <div class="kb-cards">${recs.map(cardFn).join('')
+        || '<div class="kb-empty">Nessuno qui.<br>Spostane uno con le frecce ‹ ›</div>'}</div>
     </div>`;
-  }).join('') + '</div>';
+  }).join('');
+  return schede + '<div class="kb" style="--kb-n:'+stati.length+'">' + colonne + '</div>';
 }
 function bindDnD(root){
   root.querySelectorAll('.kcard[draggable=true]').forEach(el=>{
@@ -4113,7 +4225,7 @@ if(!lsOk) $('#bannerMem').style.display='block';
         <div class="big">${eur(incassato)}</div>
         <div class="det">${incassate.length} fatture incassate${resDelta(incassato,incassatoPrev)}</div>
       </div>
-      <div class="stat acc">
+      <div class="stat">
         <div class="lbl">Da accantonare</div>
         <div class="big">${eur(arrot(accantona))}</div>
         <div class="det">~23,22% dell'incassato del periodo</div>
@@ -4193,7 +4305,9 @@ if(!lsOk) $('#bannerMem').style.display='block';
 
     return `
     <div class="res-sep"></div>
-    <div class="sec-head"><h2>Resoconto</h2><span class="sub">${resLabel(mode,b)}</span></div>
+    <details class="res-wrap"${ui.resAperto?' open':''} ontoggle="ui.resAperto=this.open">
+      <summary><span class="res-ch">›</span><span class="res-tt">Resoconto</span><span class="res-hint">${resLabel(mode,b)} · grafico e tabelle</span></summary>
+      <div class="res-in">
     ${vChartAndamento()}
     ${barra}
     ${cards}
@@ -4204,6 +4318,8 @@ if(!lsOk) $('#bannerMem').style.display='block';
     <div class="sec-head" style="margin-top:24px"><h2>Progetti avviati</h2></div>
     ${tabProg}
     ${senzaHtml}
+      </div>
+    </details>
     `;
   };
 
@@ -4211,10 +4327,20 @@ if(!lsOk) $('#bannerMem').style.display='block';
   if(!document.getElementById('res-embed-style')){
     const st = document.createElement('style');
     st.id = 'res-embed-style';
-    st.textContent = '.res-sep{height:1px;background:var(--line);margin:34px 0 26px;border:0}'
+    st.textContent = '.res-sep{height:1px;background:var(--line);margin:30px 0 18px;border:0}'
+      + '.res-wrap{background:var(--card);border:1px solid var(--line);border-radius:var(--r-xl)}'
+      + '.res-wrap>summary{cursor:pointer;padding:15px 17px;list-style:none;display:flex;align-items:center;gap:10px;flex-wrap:wrap}'
+      + '.res-wrap>summary::-webkit-details-marker{display:none}'
+      + '.res-wrap>summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:var(--r-xl)}'
+      + '.res-tt{font-weight:800;font-size:17px;letter-spacing:-.02em}'
+      + '.res-hint{font-size:13px;color:var(--muted)}'
+      + '.res-ch{color:var(--muted);font-size:17px;font-weight:700;transition:transform .2s;display:inline-block}'
+      + '.res-wrap[open]>summary .res-ch{transform:rotate(90deg)}'
+      + '.res-in{padding:2px 17px 18px;border-top:1px solid var(--line);margin-top:2px;padding-top:16px}'
+      + '@media(prefers-reduced-motion:reduce){.res-ch{transition:none}}'
       + ':root{--chart-1:var(--accent);--chart-2:var(--blu);--tooltip-bg:#1c1c1e;--tooltip-ink:#f2f2f7;--chart-hl:rgba(120,120,128,.26)}'
       + '[data-theme=dark]{--tooltip-bg:#4a4a4d;--tooltip-ink:#f2f2f7;--chart-hl:rgba(170,170,178,.22)}'
-      + '.chart-card{background:var(--card);border-radius:var(--r-xl);padding:18px 18px 20px;box-shadow:var(--shadow-sm);margin-bottom:22px}'
+      + '.chart-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-xl);padding:18px 18px 20px;margin-bottom:22px}'
       + '.chart-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:8px}'
       + '.chart-title{font-weight:800;font-size:16px}'
       + '.chart-sub{color:var(--muted);font-size:12.5px;margin-top:2px}'
@@ -4405,14 +4531,14 @@ if(!lsOk) $('#bannerMem').style.display='block';
   window.vPreventivi = function(){
     return `
     ${sezioneCantieri()}
-    <div class="sec-head"><h2>Preventivi</h2><button class="btn primary" onclick="apriFormPreventivo()">＋ Nuovo</button></div>
+    <div class="sec-head"><h2>Preventivi</h2><button class="btn primary" onclick="apriFormPreventivo()">${ICO.plus}Nuovo</button></div>
     ${toolbar()}
     ${wrap(kanban('preventivo', STATI_PREVENTIVO, filtra(db.preventivi,'preventivo'), 'stato', cardPreventivo))}
     `;
   };
   window.vProgetti = function(){
     return `
-    <div class="sec-head"><h2>Progetti</h2><button class="btn primary" onclick="apriFormProgetto()">＋ Nuovo</button></div>
+    <div class="sec-head"><h2>Progetti</h2><button class="btn primary" onclick="apriFormProgetto()">${ICO.plus}Nuovo</button></div>
     ${toolbar()}
     ${wrap(kanban('progetto', STATI_PROGETTO, filtra(db.progetti,'progetto'), 'stato', cardProgetto))}
     `;
@@ -4421,7 +4547,7 @@ if(!lsOk) $('#bannerMem').style.display='block';
     return `
     <div class="sec-head"><h2>Fatture</h2>
       <span class="sub"><button class="linkino-btn" onclick="apriImpostazioniSdI()">Fatturazione elettronica: invio n. ${prog5(db.counters.xml||0)}</button></span>
-      <button class="btn primary" onclick="apriFormFattura()">＋ Nuova</button></div>
+      <button class="btn primary" onclick="apriFormFattura()">${ICO.plus}Nuova</button></div>
     ${toolbar()}
     ${wrap(kanban('fattura', STATI_FATTURA, filtra(db.fatture,'fattura'), 'statoPagamento', cardFattura))}
     ${scadenzarioHTML(false)}
