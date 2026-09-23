@@ -185,6 +185,23 @@ main{max-width:1240px;margin:0 auto;padding:20px 16px 60px}
 .taxbox p b{color:var(--ink)}
 .taxrow{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 4px}
 .taxpill{background:var(--input);border-radius:14px;padding:10px 14px;font-size:12.5px;color:var(--muted);font-weight:500}
+
+/* ---- salvadanaio tasse ---- */
+.sd-nav{display:flex;align-items:center;justify-content:center;gap:10px;margin:14px 0 2px}
+.sd-nav .btn{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+.sd-nav b{min-width:92px;text-align:center;font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
+.sd-cifre{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:12px}
+.sd-cifre>div{background:var(--input);border-radius:14px;padding:12px;min-width:0}
+.sd-cifre .k{display:block;font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.sd-cifre .v{display:block;font-size:18px;font-weight:800;margin-top:5px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.sd-cifre .sd-res{background:var(--accent-soft)}
+.sd-cifre .sd-res .k,.sd-cifre .sd-res .v{color:var(--accent)}
+.sd-cifre .sd-saldo{background:var(--ok-soft)}
+.sd-cifre .sd-saldo .k,.sd-cifre .sd-saldo .v{color:var(--ok)}
+.sd-bar{height:8px;border-radius:99px;background:var(--input);overflow:hidden;margin-top:13px}
+.sd-bar i{display:block;height:100%;border-radius:99px;background:var(--ok)}
+.sd-perc{font-size:12.5px;color:var(--muted);margin-top:7px}
+@media (max-width:420px){ .sd-cifre{grid-template-columns:minmax(0,1fr)} }
 .taxpill b{display:block;font-size:16px;color:var(--ink);font-weight:700;letter-spacing:-.02em;margin-top:1px}
 .avviso{background:var(--warn-soft);color:var(--warn);border-radius:14px;padding:12px 15px;font-size:13.5px;margin-top:12px;font-weight:500}
 
@@ -675,6 +692,7 @@ body.doc-aperto{overflow:hidden}
 const LS_KEY = 'gestionale_piva_nb_v1';
 const THEME_KEY = 'gestionale_piva_nb_theme';
 const CLOUD_DISMISS_KEY = 'gestionale_piva_nb_cloud_dismiss';
+const OWNER_KEY = 'gestionale_piva_nb_owner';   // di quale account sono i dati salvati qui
 
 /* ---------- Supabase (sincronizzazione cloud) ---------- */
 const SUPA_URL = 'https://xibxqkoroxjjiuwittlr.supabase.co';
@@ -686,6 +704,11 @@ const SERVIZI = ['Graphic Design','Brand Identity','Web Design','Sito web','Auto
 const STATI_PREVENTIVO = ['Bozza','Inviato','Accettato','Rifiutato','Scaduto'];
 const STATI_PROGETTO = ['Non iniziato','In corso','Fatto'];
 const STATI_FATTURA = ['Da emettere','Emessa','Pagata','Scaduta'];
+/* "Scaduta" è una colonna della board, ma NON un passo del flusso: una fattura
+   scaduta è una fattura emessa e non ancora pagata. Le frecce ‹ › seguono questo
+   flusso più corto, altrimenti la › su una fattura Pagata portava a "Scaduta" —
+   e spostaStato lì cancella la data d'incasso. */
+const FLUSSO_FATTURA = ['Da emettere','Emessa','Pagata'];
 const TIPI_DOC = ['Fattura','Nota di credito','Prestazione occasionale'];
 const METODI_PAG = ['Bonifico','PayPal','Contanti','Altro'];
 /* ---------- cantieri (documenti in costruzione) + listino ---------- */
@@ -695,6 +718,12 @@ const TIPI_SCONTO = ['%','€'];
 const ALIQUOTA_ACC = 0.2322;      // ~23% di ogni incasso da accantonare
 const SOGLIA_BOLLO = 77.47;
 const IMPORTO_BOLLO = 2;
+/* ---------- salvadanaio tasse ----------
+   L'accantonamento è una somma che cresce a ogni incasso: senza registrare anche
+   i versamenti, il numero non scende MAI: pagato l'F24 a giugno, la dashboard
+   continuava a chiedere soldi già dati allo Stato. I versamenti sono legati
+   all'ANNO D'IMPOSTA (l'anno degli incassi), non all'anno in cui si paga. */
+const TIPI_VERSAMENTO = ['Imposta sostitutiva','INPS Gestione Separata','Acconto','Altro'];
 
 /* ---------- profilo fornitore (fonte: skill nick-profile) ---------- */
 const NB = {
@@ -779,6 +808,13 @@ function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&am
 function eur(n){ return (n==null || n==='' || isNaN(n)) ? '—' : new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(n); }
 function arrot(x){ return Math.round(x*100)/100; }
 function oggi(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+// data ISO fra n giorni (n negativo = indietro). Serve alla scadenza di pagamento
+// proposta in automatico quando una fattura passa a "Emessa".
+function fraGiorni(n, da){
+  const base = /^\d{4}-\d{2}-\d{2}$/.test(da||'') ? new Date(da+'T00:00:00') : new Date();
+  base.setDate(base.getDate() + (parseInt(n,10)||0));
+  return base.getFullYear()+'-'+String(base.getMonth()+1).padStart(2,'0')+'-'+String(base.getDate()).padStart(2,'0');
+}
 function fmtData(d){
   if(!d || !/^\d{4}-\d{2}-\d{2}$/.test(d)) return '—';
   const p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0];
@@ -918,6 +954,7 @@ function migraDati(){
   db.progetti = Array.isArray(db.progetti) ? db.progetti : [];
   db.cantieri = Array.isArray(db.cantieri) ? db.cantieri : [];
   db.listino = Array.isArray(db.listino) ? db.listino : [];
+  db.versamenti = Array.isArray(db.versamenti) ? db.versamenti : [];
   if(db.counters.xml == null) db.counters.xml = 0;   // progressivo di trasmissione SdI
   db.clienti = db.clienti.filter(c => c && typeof c === 'object');
   (db.clienti||[]).forEach(c=>{
@@ -1023,6 +1060,22 @@ function migraDati(){
                 || (c.generato.tipo==='fattura'   && db.fatture.some(f=>f.id===c.generato.id));
       if(!vivo) c.generato = null;
     } else c.generato = null;
+  });
+  // Versamenti delle tasse: stesse difese delle altre entità. Un importo che arriva
+  // come stringa da un backup manomesso farebbe sballare il residuo del salvadanaio
+  // senza nessun errore a schermo.
+  db.versamenti = db.versamenti.filter(v => v && typeof v === 'object');
+  db.versamenti.forEach(v=>{
+    if(!idValido(v.id)) v.id = uid();
+    ['data','note'].forEach(k=>{
+      if(typeof v[k] === 'number') v[k] = String(v[k]);
+      else if(typeof v[k] !== 'string') v[k] = '';
+    });
+    if(!TIPI_VERSAMENTO.includes(v.tipo)) v.tipo = 'Altro';
+    const imp = numOK(v.importo);
+    v.importo = (imp == null || imp < 0) ? 0 : arrot(imp);
+    const a = parseInt(v.anno, 10);
+    v.anno = isFinite(a) ? a : annoDaData(v.data);
   });
   // Il contatore preventivi (db.counters.pr) non viene ricostruito dai dati: se un
   // backup/pull cloud arriva con un contatore azzerato o indietro, il prossimo
@@ -1193,6 +1246,20 @@ window.eliminaAllegato = async function(entity, id, idx){
   salva(); toast('File eliminato');
   apriAllegati(entity, id); render();
 };
+/* Eliminando il record se ne perde l'elenco allegati: senza questa pulizia i
+   file restano per sempre nel bucket, invisibili e senza più niente che li
+   colleghi a qualcosa (il piano free di Supabase ha 1 GB). Se non si è connessi
+   non si può cancellare nulla: meglio avvisare prima che lasciare rifiuti muti. */
+function allegatiNonEliminabili(rec){
+  return (rec.allegati||[]).length && (!supa || !utente);
+}
+function rimuoviAllegatiDi(rec){
+  const paths = (rec.allegati||[]).map(a=>a.path).filter(Boolean);
+  if(!paths.length || !supa || !utente) return;
+  // non blocca l'eliminazione del record: se la rete cade, il dato locale va via
+  // lo stesso e restano al massimo dei file orfani, non un record a metà
+  Promise.resolve(supa.storage.from(BUCKET).remove(paths)).catch(()=>{});
+}
 
 /* ---------- previsione tasse ---------- */
 // Una nota di credito storna il documento che rettifica: nei totali (fatturato,
@@ -1201,6 +1268,40 @@ function segnoDoc(f){ return f.tipoDoc==='Nota di credito' ? -1 : 1; }
 function valoreDoc(f){ return (parseFloat(f.totale)||0) * segnoDoc(f); }
 function accantonare(f){
   return f.statoPagamento==='Pagata' ? arrot(valoreDoc(f) * ALIQUOTA_ACC) : 0;
+}
+
+/* ---------- salvadanaio: accantonato − versato = quanto tenere da parte ----------
+   Il forfettario tassa per CASSA: conta l'anno in cui il soldo è entrato, non
+   quello della fattura. Da qui `dataIncasso` prima di `dataEmissione`. */
+function annoCompetenza(f){ return annoDaData(f.dataIncasso || f.dataEmissione); }
+function accantonatoAnno(anno){
+  return arrot(somma(db.fatture.filter(f=>f.statoPagamento==='Pagata' && annoCompetenza(f)===anno), accantonare));
+}
+function versatoAnno(anno){
+  return arrot(somma(db.versamenti.filter(v=>v.anno===anno), v=>v.importo));
+}
+function salvadanaio(anno){
+  const accantonato = accantonatoAnno(anno), versato = versatoAnno(anno);
+  return { anno, accantonato, versato, residuo: arrot(accantonato - versato) };
+}
+/* Gli anni su cui il selettore può muoversi: quelli con un incasso o un versamento,
+   più l'anno in corso. Ordinati dal più recente. */
+function anniTasse(){
+  const set = new Set([new Date().getFullYear()]);
+  db.fatture.forEach(f=>{ if(f.statoPagamento==='Pagata') set.add(annoCompetenza(f)); });
+  db.versamenti.forEach(v=>set.add(v.anno));
+  return [...set].sort((a,b)=>b-a);
+}
+/* Le due date in cui il forfettario versa, sempre nell'anno DOPO quello d'imposta. */
+function scadenzeFiscali(anno){
+  return [
+    { data:(anno+1)+'-06-30', cosa:'Saldo '+anno+' e primo acconto '+(anno+1) },
+    { data:(anno+1)+'-11-30', cosa:'Secondo acconto '+(anno+1) }
+  ];
+}
+function prossimaScadenzaFiscale(anno){
+  const o = oggi();
+  return scadenzeFiscali(anno).find(s=>s.data >= o) || null;
 }
 
 /* ---------- stato UI ---------- */
@@ -1254,7 +1355,10 @@ function vDashboard(){
   const pagate  = db.fatture.filter(f=>f.statoPagamento==='Pagata');
   const daEmettere = db.fatture.filter(f=>f.statoPagamento==='Da emettere');
   const emesse = db.fatture.filter(f=>f.statoPagamento!=='Da emettere');
-  const totAcc = arrot(somma(pagate, accantonare));
+  // Tasse dell'anno d'imposta in corso, al netto di quanto già versato: il totale
+  // di sempre non serviva a niente, perché non scendeva mai.
+  const annoFisc = new Date().getFullYear();
+  const sd = salvadanaio(annoFisc);
 
   return `
   <div class="sec-head"><h2>Dashboard</h2><span class="sub">${fmtData(oggi())}</span></div>
@@ -1285,9 +1389,11 @@ function vDashboard(){
       <div class="det">${inCorso.length} ${inCorso.length===1?'progetto in corso':'progetti in corso'}</div>
     </div>
     <div class="stat">
-      <div class="toprow"><div class="lbl">Da accantonare tasse</div><button class="info-i" onclick="apriInfoTasse()" title="Come viene calcolato">i</button></div>
-      <div class="big">${eur(totAcc)}</div>
-      <div class="det">~23,22% di ogni incasso</div>
+      <div class="toprow"><div class="lbl">Tasse ${annoFisc}</div><button class="info-i" onclick="apriInfoTasse()" title="Come viene calcolato">i</button></div>
+      <div class="big">${eur(sd.residuo)}</div>
+      <div class="det">${sd.versato
+        ? 'accantonato '+eur(sd.accantonato)+' · versato '+eur(sd.versato)
+        : 'da tenere da parte · ~23,22% di ogni incasso'}<button class="linkino-btn" onclick="apriSalvadanaio()">Salvadanaio</button></div>
     </div>
   </div>
 
@@ -1408,7 +1514,135 @@ window.apriInfoTasse = function(){
     <div class="taxpill">Accantonamento consigliato<b>~23% dell'incasso</b></div>
   </div>
   <div class="avviso">⚠ <b>Stima indicativa per pianificare i versamenti, non un calcolo ufficiale:</b> aliquota e INPS da confermare con il commercialista.</div>
-  <div class="frm" style="margin-top:14px"><div class="frm-foot"><button class="btn primary" onclick="chiudiModal()">Ho capito</button></div></div>`);
+  <div class="frm" style="margin-top:14px"><div class="frm-foot">
+    <button class="btn" onclick="apriSalvadanaio()">Vai al salvadanaio</button>
+    <button class="btn primary" onclick="chiudiModal()">Ho capito</button>
+  </div></div>`);
+};
+
+/* ============================================================
+   SALVADANAIO TASSE — accantonato − versato = quanto tenere da parte
+   La card in dashboard mostrava la somma del 23,22% su TUTTE le fatture
+   pagate da sempre: un numero che non scendeva mai, nemmeno dopo aver
+   pagato l'F24. Qui si registrano i versamenti, legati all'anno d'imposta
+   (l'anno degli incassi), e il residuo torna a dire una cosa vera.
+   ============================================================ */
+window.apriSalvadanaio = function(anno){
+  const a = parseInt(anno, 10);
+  const annoSel = isFinite(a) ? a : (ui.annoTasse || new Date().getFullYear());
+  ui.annoTasse = annoSel;
+  const s = salvadanaio(annoSel);
+  const saldato = s.residuo <= 0 && s.accantonato > 0;
+  const perc = s.accantonato > 0
+    ? Math.max(0, Math.min(100, Math.round(s.versato / s.accantonato * 100)))
+    : (s.versato > 0 ? 100 : 0);
+
+  const versamenti = db.versamenti.filter(v=>v.anno===annoSel)
+    .sort((x,y)=>String(y.data||'').localeCompare(String(x.data||'')));
+
+  // Vuoto che spiega cosa fare, non una riga grigia muta
+  const righe = versamenti.length
+    ? versamenti.map(v=>`<div class="mini-item">
+        <span class="tt">${esc(v.tipo)}${v.note?'<span class="nota-campo" style="display:block">'+esc(v.note)+'</span>':''}</span>
+        <span style="font-size:12.5px;color:var(--muted)">${fmtData(v.data)}</span>
+        <span class="euro">${eur(v.importo)}</span>
+        <button class="icon" onclick="apriFormVersamento('${v.id}')" title="Modifica" aria-label="Modifica versamento del ${fmtData(v.data)}">${ICO.pen}</button>
+        <button class="icon danger" onclick="eliminaVersamento('${v.id}')" title="Elimina" aria-label="Elimina versamento del ${fmtData(v.data)}">${ICO.trash}</button>
+      </div>`).join('')
+    : `<div class="mini-item" style="color:var(--muted);display:block">
+        Nessun versamento registrato per il ${annoSel}.<br>Quando paghi l'F24, segnalo qui: il residuo scende di conseguenza.
+      </div>`;
+
+  const pross = prossimaScadenzaFiscale(annoSel);
+  const avvisoScad = pross
+    ? `<div class="avviso">Prossima scadenza: <b>${fmtData(pross.data)}</b> (${tempoFa(pross.data)}) — ${esc(pross.cosa)}.</div>`
+    : `<div class="avviso">Le scadenze del ${annoSel} (30 giugno e 30 novembre ${annoSel+1}) sono passate.</div>`;
+
+  apriModal(`<h3>Salvadanaio tasse</h3>
+    <p class="cloud-desc">Quanto hai messo da parte per l'anno d'imposta, quanto hai già versato, quanto resta. Il forfettario tassa per cassa: conta l'anno in cui il soldo è <b>entrato</b>, non quello della fattura.</p>
+
+    <div class="sd-nav">
+      <button class="btn neutro" onclick="apriSalvadanaio(${annoSel-1})" aria-label="Anno precedente">‹</button>
+      <b>${annoSel}</b>
+      <button class="btn neutro" onclick="apriSalvadanaio(${annoSel+1})" aria-label="Anno successivo">›</button>
+    </div>
+
+    <div class="sd-cifre">
+      <div><span class="k">Accantonato</span><span class="v">${eur(s.accantonato)}</span></div>
+      <div><span class="k">Versato</span><span class="v">${eur(s.versato)}</span></div>
+      <div class="${saldato?'sd-saldo':'sd-res'}"><span class="k">${saldato?'In pari':'Da tenere da parte'}</span><span class="v">${eur(Math.abs(s.residuo))}</span></div>
+    </div>
+    <div class="sd-bar"><i style="width:${perc}%"></i></div>
+    <div class="sd-perc">${s.accantonato > 0
+      ? 'Versato il <b>'+perc+'%</b> di quanto accantonato nel '+annoSel+'.'
+      : 'Nessun incasso registrato nel '+annoSel+': non c\'è ancora niente da accantonare.'}${
+      s.residuo < 0 ? ' Hai versato <b>'+eur(-s.residuo)+'</b> più di quanto accantonato.' : ''}</div>
+
+    ${avvisoScad}
+
+    <div class="sec-head" style="margin:18px 0 10px"><h2 style="font-size:16px">Versamenti ${annoSel}</h2></div>
+    <div class="mini-list">${righe}</div>
+
+    <div class="frm" style="margin-top:16px"><div class="frm-foot">
+      <button type="button" class="btn neutro" onclick="chiudiModal()">Chiudi</button>
+      <button type="button" class="btn" onclick="apriInfoTasse()">Come si calcola</button>
+      <button type="button" class="btn primary" onclick="apriFormVersamento()">${ICO.plus}Registra versamento</button>
+    </div></div>`);
+};
+
+window.apriFormVersamento = function(id){
+  const v = id ? db.versamenti.find(x=>x.id===id) : {};
+  if(id && !v){ toast('Versamento non trovato'); return; }
+  const annoSel = id ? v.anno : (ui.annoTasse || new Date().getFullYear());
+  apriModal(`<h3>${id?'Modifica versamento':'Registra versamento'}</h3>
+  <p class="cloud-desc">Un pagamento fatto allo Stato (F24) per l'anno d'imposta indicato.</p>
+  <form class="frm" onsubmit="salvaVersamento(event)" autocomplete="off">
+    <input type="hidden" name="_id" value="${id||''}">
+    <div><label>Anno d'imposta *</label><input type="number" name="anno" required min="2000" max="2100" step="1" inputmode="numeric" value="${annoSel}">
+      <div class="nota-campo">L'anno degli incassi a cui si riferisce, non quello in cui paghi.</div></div>
+    <div><label>Importo (€) *</label><input type="number" name="importo" required min="0" step="0.01" inputmode="decimal" value="${v.importo!=null?v.importo:''}"></div>
+    <div><label>Data del versamento</label><input type="date" name="data" value="${esc(v.data||oggi())}"></div>
+    <div><label>Tipo</label><select name="tipo">${opzioni(TIPI_VERSAMENTO, v.tipo||'Imposta sostitutiva')}</select></div>
+    <div class="full"><label>Note</label><input type="text" name="note" maxlength="200" value="${esc(v.note)}" placeholder="es. F24 saldo + primo acconto"></div>
+    <div class="frm-foot">
+      <button type="button" class="btn neutro" onclick="apriSalvadanaio(${annoSel})">Annulla</button>
+      <button type="submit" class="btn primary">Salva</button>
+    </div>
+  </form>`);
+};
+
+window.salvaVersamento = function(ev){
+  ev.preventDefault();
+  const f = ev.target, val = n => f.elements[n].value.trim();
+  const id = val('_id');
+  const imp = numOK(f.elements.importo.value);
+  const a = parseInt(f.elements.anno.value, 10);
+  const dati = {
+    anno: isFinite(a) ? a : new Date().getFullYear(),
+    importo: (imp == null || imp < 0) ? 0 : arrot(imp),
+    data: val('data'),
+    tipo: TIPI_VERSAMENTO.includes(val('tipo')) ? val('tipo') : 'Altro',
+    note: val('note')
+  };
+  if(id){
+    const rec = db.versamenti.find(x=>x.id===id);
+    if(!rec){ alert('Questo versamento non esiste più (probabilmente modificato da un altro dispositivo). Chiudi e ricontrolla.'); return; }
+    Object.assign(rec, dati);
+  } else {
+    db.versamenti.push(Object.assign({ id:uid() }, dati));
+  }
+  ui.annoTasse = dati.anno;
+  salva(); toast('Versamento salvato');
+  apriSalvadanaio(dati.anno); render();
+};
+
+window.eliminaVersamento = function(id){
+  const v = db.versamenti.find(x=>x.id===id); if(!v) return;
+  if(!confirm('Eliminare il versamento di '+eur(v.importo)+' del '+fmtData(v.data)+'?\n\nIl residuo da tenere da parte risalirà di conseguenza.')) return;
+  const anno = v.anno;
+  db.versamenti = db.versamenti.filter(x=>x.id!==id);
+  salva(); toast('Versamento eliminato');
+  apriSalvadanaio(anno); render();
 };
 
 /* ---------- CLIENTI ---------- */
@@ -1598,8 +1832,16 @@ function vClienteDettaglio(){
 }
 
 /* ---------- frecce sposta-stato (touch friendly) ---------- */
-function frecce(entity, statiArr, stato, id){
+/* Posizione di uno stato dentro il flusso delle frecce. Uno stato fuori dal
+   flusso (la fattura "Scaduta", che non è un passo ma una condizione) viene
+   trattato come "Emessa": ‹ la rimette in corsa, › la porta a Pagata. */
+function indiceFlusso(statiArr, stato){
   const i = statiArr.indexOf(stato);
+  if(i > -1) return i;
+  return stato === 'Scaduta' ? statiArr.indexOf('Emessa') : 0;
+}
+function frecce(entity, statiArr, stato, id){
+  const i = indiceFlusso(statiArr, stato);
   return `<span class="mover">
     <button class="mv" ${i<=0?'disabled':''} onclick="muovi('${entity}','${id}',-1)" aria-label="Sposta indietro">‹</button>
     <button class="mv" ${i>=statiArr.length-1?'disabled':''} onclick="muovi('${entity}','${id}',1)" aria-label="Sposta avanti">›</button>
@@ -1609,11 +1851,11 @@ window.muovi = function(entity, id, dir){
   const cfg = {
     preventivo:{arr:db.preventivi, stati:STATI_PREVENTIVO, campo:'stato'},
     progetto:{arr:db.progetti, stati:STATI_PROGETTO, campo:'stato'},
-    fattura:{arr:db.fatture, stati:STATI_FATTURA, campo:'statoPagamento'}
+    fattura:{arr:db.fatture, stati:FLUSSO_FATTURA, campo:'statoPagamento'}
   }[entity];
   if(!cfg) return;
   const r = cfg.arr.find(x=>x.id===id); if(!r) return;
-  const i = cfg.stati.indexOf(r[cfg.campo]) + dir;
+  const i = indiceFlusso(cfg.stati, r[cfg.campo]) + dir;
   if(i<0 || i>=cfg.stati.length) return;
   spostaStato(entity, id, cfg.stati[i]);
 };
@@ -1697,7 +1939,7 @@ function cardFattura(f){
     <div class="kcard-sub">${esc(nomeCliente(f.clienteId))} · ${esc(f.tipoDoc)}</div>
     ${f.scadenzaPagamento?'<div class="kcard-date '+(fatturaScaduta(f)?'rossa':'')+'">scad. pagamento '+fmtData(f.scadenzaPagamento)+(fatturaScaduta(f)?' ⚠':'')+'</div>':''}
     ${acc?'<div class="kcard-date" style="color:var(--accent);font-weight:600">accantona '+eur(acc)+'</div>':''}
-    <div class="kcard-actions">${frecce('fattura',STATI_FATTURA,f.statoPagamento,f.id)}<span class="spacer"></span>
+    <div class="kcard-actions">${frecce('fattura',FLUSSO_FATTURA,f.statoPagamento,f.id)}<span class="spacer"></span>
       <button class="icon" onclick="apriDocumento('fattura','${f.id}')" title="Documento: PDF e XML">${ICO.doc}</button>
       ${bottoneAllegati('fattura', f)}
       <button class="icon" onclick="apriFormFattura('${f.id}')" title="Modifica">${ICO.pen}</button>
@@ -1780,6 +2022,15 @@ function spostaStato(entity, id, stato){
     const r=db.fatture.find(x=>x.id===id);
     if(r){
       r.statoPagamento=stato;
+      // Uscendo da "Da emettere" la fattura è emessa: senza una data di emissione
+      // risulterebbe "senza data" nel Resoconto e nel grafico, mentre la dashboard
+      // (che conta per stato) la darebbe già emessa — due numeri diversi per la
+      // stessa fattura. La scadenza a 30 giorni è solo una proposta, si corregge
+      // dal form.
+      if(stato!=='Da emettere'){
+        if(!r.dataEmissione) r.dataEmissione = oggi();
+        if(!r.scadenzaPagamento) r.scadenzaPagamento = fraGiorni(30, r.dataEmissione);
+      }
       if(stato==='Pagata' && !r.dataIncasso) r.dataIncasso=oggi();
       // Se esce da "Pagata" la data d'incasso non è più vera: lasciarla lì
       // disallineava "Incassato" nel Resoconto (guarda dataIncasso) dalla
@@ -2082,7 +2333,11 @@ window.salvaPreventivo = function(ev){
 };
 window.eliminaPreventivo = function(id){
   const p=db.preventivi.find(x=>x.id===id); if(!p) return;
-  if(!confirm('Eliminare il preventivo '+p.numero+'?')) return;
+  const n=(p.allegati||[]).length;
+  if(!confirm('Eliminare il preventivo '+p.numero+'?'
+    + (n ? '\n\n'+plurale(n,'file allegato verrà cancellato','file allegati verranno cancellati')+' dal cloud.' : '')
+    + (allegatiNonEliminabili(p) ? '\n\n⚠ Non sei connesso al cloud: i file allegati resteranno lì senza più niente che li colleghi a questo preventivo.' : ''))) return;
+  rimuoviAllegatiDi(p);
   db.preventivi = db.preventivi.filter(x=>x.id!==id);
   salva(); toast('Preventivo eliminato'); render();
 };
@@ -2220,7 +2475,11 @@ window.salvaFattura = function(ev){
 };
 window.eliminaFattura = function(id){
   const f=db.fatture.find(x=>x.id===id); if(!f) return;
-  if(!confirm('Eliminare la fattura '+f.numero+'?')) return;
+  const n=(f.allegati||[]).length;
+  if(!confirm('Eliminare la fattura '+f.numero+'?'
+    + (n ? '\n\n'+plurale(n,'file allegato verrà cancellato','file allegati verranno cancellati')+' dal cloud.' : '')
+    + (allegatiNonEliminabili(f) ? '\n\n⚠ Non sei connesso al cloud: i file allegati resteranno lì senza più niente che li colleghi a questa fattura.' : ''))) return;
+  rimuoviAllegatiDi(f);
   db.fatture = db.fatture.filter(x=>x.id!==id);
   salva(); toast('Fattura eliminata'); render();
 };
@@ -2934,6 +3193,20 @@ function verificaDatiXML(f){
   else if(t.voci.some(v=>!v.descrizione || !v.descrizione.trim())) err.push('Una voce non ha descrizione: il SdI scarta una riga senza descrizione.');
   if(!(t.totale > 0)) err.push('Il totale della fattura è zero.');
   if(f.tipoDoc === 'Prestazione occasionale') err.push('Le prestazioni occasionali non si trasmettono come fattura elettronica: cambia il tipo documento o non generare l\'XML.');
+  /* I conti devono tornare, non solo esserci: il SdI rifiuta il file se la somma
+     delle righe non fa l'imponibile del riepilogo, o se il totale del documento
+     non è imponibile + imposta (qui zero, più gli eventuali 2 € di bollo in
+     rivalsa). Succede appena si corregge a mano "Imponibile" o "Totale" nel form
+     dopo aver scritto le voci: a schermo il documento sembra giusto, ma il file
+     verrebbe scartato. */
+  if(t.voci.length){
+    const sommaVoci = arrot(totaleVoci(t.voci));
+    if(sommaVoci !== t.imponibile)
+      err.push('I conti non tornano: le voci sommano ' + eur(sommaVoci) + ' ma il campo Imponibile dice ' + eur(t.imponibile) + '. Correggi uno dei due nella fattura.');
+    const atteso = arrot(t.imponibile + (t.bolloDovuto && f.rivalsaBollo ? IMPORTO_BOLLO : 0));
+    if(t.totale !== atteso)
+      err.push('I conti non tornano: con questo imponibile il totale dovrebbe essere ' + eur(atteso) + ', mentre nella fattura è ' + eur(t.totale) + '.');
+  }
   return err;
 }
 
@@ -3262,11 +3535,31 @@ function firmaDb(d){
   return [(d.clienti||[]).length, (d.fatture||[]).length, (d.preventivi||[]).length, (d.progetti||[]).length].join(',');
 }
 function dbHaDatiReali(d){ return !!d && firmaDb(d) !== '0,0,0,0'; }
+/* Targhetta con il proprietario dei dati che stanno su questo dispositivo.
+   Senza, uscire da un account ed entrare in un altro (dal demo al tuo) faceva
+   comparire la domanda "tieni i dati locali o quelli del cloud?": un OK distratto
+   e i dati dell'altro account finivano sul cloud sopra i tuoi. Con la targhetta,
+   se i dati locali sono di qualcun altro non si chiede niente — si scarica e
+   basta, perché non c'è nessun lavoro offline da salvare. */
+function ownerLocale(){
+  if(!lsOk) return '';
+  try{ return localStorage.getItem(OWNER_KEY) || ''; }catch(e){ return ''; }
+}
+function segnaOwner(id){
+  if(!lsOk) return;
+  try{ id ? localStorage.setItem(OWNER_KEY, id) : localStorage.removeItem(OWNER_KEY); }catch(e){}
+}
+function datiDiUnAltroAccount(){
+  const o = ownerLocale();
+  return !!(o && utente && o !== utente.id);
+}
+function dbVuoto(){ return { clienti:[], preventivi:[], progetti:[], fatture:[], cantieri:[], listino:[], versamenti:[], counters:{pr:0,ft:0,xml:0} }; }
 function applicaRemoto(remoto){
   db = remoto.dati || db;
   db.counters = db.counters || {pr:0,ft:0};
   migraDati();
   cloudStamp = remoto.updated_at;
+  segnaOwner(utente ? utente.id : '');
   salvaLocale();
   render();
 }
@@ -3285,6 +3578,7 @@ async function pushCloud(){
     if(data && data.length){
       cloudStamp = data[0].updated_at;
       modifichePendenti = false;
+      segnaOwner(utente.id);
       setSync('ok');
       return true;
     }
@@ -3317,6 +3611,7 @@ async function pushCloud(){
       }
     }
     modifichePendenti = false;
+    segnaOwner(utente.id);
     setSync('ok');
     return true;
   }catch(e){ setSync('err'); return false; }
@@ -3329,10 +3624,17 @@ async function pullCloud(){
     const { data, error } = await supa.from('gestionale')
       .select('dati,updated_at').eq('user_id', utente.id).maybeSingle();
     if(error) throw error;
+    const altroAccount = datiDiUnAltroAccount();
     if(data){
       if(data.updated_at !== cloudStamp){
         const primoPullDiSessione = cloudStamp == null;
-        if(primoPullDiSessione && dbHaDatiReali(db) && firmaDb(data.dati)!==firmaDb(db)){
+        if(primoPullDiSessione && altroAccount){
+          // I dati locali sono di un altro account (es. si è usciti dal demo):
+          // non sono lavoro offline da salvare, sono roba di qualcun altro.
+          // Si scarica e basta, senza chiedere niente.
+          applicaRemoto(data);
+        }
+        else if(primoPullDiSessione && dbHaDatiReali(db) && firmaDb(data.dati)!==firmaDb(db)){
           // Questo dispositivo ha dati locali "veri" (probabilmente lavorati offline
           // o senza account) diversi da quelli già sul cloud: non sovrascriverli in
           // silenzio con il primo pull dopo il login.
@@ -3349,6 +3651,10 @@ async function pullCloud(){
       }
       setSync('ok');
     } else {
+      // Nessuna riga sul cloud per questo account. Se i dati locali sono di un
+      // altro account, caricarli qui vorrebbe dire copiare i dati di uno nell'altro:
+      // si riparte puliti.
+      if(altroAccount){ db = dbVuoto(); migraDati(); segnaOwner(utente.id); salvaLocale(); render(); }
       await pushCloud();   // primo dispositivo: carica i dati locali sul cloud
     }
     return true;
@@ -3977,7 +4283,15 @@ if(!lsOk) $('#bannerMem').style.display='block';
     .kbwrap.compact .kcard-val{font-size:13.5px}
     .kbwrap.compact .kcard .chip{display:none}
     .kbwrap.compact .kcard-date{display:none}
-    .kbwrap.compact .kcard-actions{display:none}
+    /* In compatta si nascondono le icone, MAI le frecce ‹ ›: su touch il drag &
+       drop non esiste e senza di loro la scheda non si può più spostare di stato.
+       La scheda intera diventa cliccabile e apre la modifica (vedi il listener
+       delegato più sotto), così non si perde nemmeno una funzione. */
+    .kbwrap.compact .kcard{cursor:pointer}
+    .kbwrap.compact .kcard-actions{margin-top:7px;gap:5px}
+    .kbwrap.compact .kcard-actions > *{display:none}
+    .kbwrap.compact .kcard-actions > .mover{display:flex}
+    .kbwrap.compact .mv{width:24px;height:24px;font-size:14px}
     /* schede concluse: attenuate in ogni modalità, piene al passaggio del mouse */
     .kbwrap .kb-col[data-stato="Accettato"] .kcard,
     .kbwrap .kb-col[data-stato="Fatto"] .kcard,
@@ -4043,6 +4357,26 @@ if(!lsOk) $('#bannerMem').style.display='block';
     render();
   };
   window.kbOggi = function(){ const t=new Date(); ui.kbY=t.getFullYear(); ui.kbM=t.getMonth(); render(); };
+
+  /* --- in compatta la scheda apre la modifica ---
+     Le icone sono nascoste, quindi senza questo la scheda sarebbe muta: niente
+     matita, niente documento, niente cestino. Il listener sta su #app e non
+     sulle schede, così sopravvive ai render() che ne riscrivono il contenuto. */
+  const _app = document.getElementById('app');
+  if(_app && !_app.dataset.tapCard){
+    _app.dataset.tapCard = '1';
+    _app.addEventListener('click', e=>{
+      if(!ui.kbCompact) return;
+      if(e.target.closest('button, a, input, select, textarea')) return;   // frecce e simili fanno già il loro
+      const card = e.target.closest('.kbwrap.compact .kcard');
+      if(!card) return;
+      const id = card.dataset.id;
+      if(!idValido(id)) return;
+      if(card.dataset.entity === 'preventivo')    apriFormPreventivo(id);
+      else if(card.dataset.entity === 'progetto') apriFormProgetto(id);
+      else if(card.dataset.entity === 'fattura')  apriFormFattura(id);
+    });
+  }
 
   /* --- barra strumenti sopra ogni board --- */
   function toolbar(){
