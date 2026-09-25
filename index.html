@@ -47,6 +47,7 @@
 <title>Gestionale P.IVA — Niccolò Busato</title>
 <meta name="theme-color" content="#f5f5f3">
 <link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -121,8 +122,9 @@ header{
   border-bottom:.5px solid var(--line);
 }
 .topbar{max-width:1240px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:14px}
-.brand{font-weight:800;font-size:17px;letter-spacing:-.03em;white-space:nowrap}
+.brand{font-weight:800;font-size:17px;letter-spacing:-.03em;white-space:nowrap;display:flex;align-items:center;gap:7px}
 .brand small{color:var(--muted);font-weight:500;letter-spacing:0}
+.brand-mark{height:22px;width:auto;flex-shrink:0}
 .seg{display:flex;background:var(--btn);border-radius:99px;padding:3px;gap:2px;margin:0 auto}
 .seg button{
   border:none;background:none;border-radius:99px;padding:7px 16px;
@@ -733,7 +735,7 @@ body.doc-aperto{overflow:hidden}
 
 <header>
   <div class="topbar">
-    <div class="brand">NB <small>· Gestionale P.IVA</small></div>
+    <div class="brand"><svg class="brand-mark" viewBox="0 0 193 184" aria-hidden="true" focusable="false"><defs><linearGradient id="nbGrad" x1="6" y1="0" x2="187" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#D67A52"/><stop offset="1" stop-color="#D77E6E"/></linearGradient></defs><path fill="url(#nbGrad)" d="M36.75,6.12 C33.69,6.44 30.42,6.90 27.25,8.25 C24.08,9.60 20.42,11.98 17.75,14.25 C15.08,16.52 13.06,18.96 11.25,21.88 C9.44,24.79 7.75,29.00 6.88,31.75 C6.00,34.50 6.15,19.12 6.00,38.38 C5.85,57.62 5.62,127.42 6.00,147.25 C6.38,167.08 7.31,154.65 8.25,157.38 C9.19,160.10 10.19,161.58 11.62,163.62 C13.06,165.67 14.29,167.54 16.88,169.62 C19.46,171.71 24.33,174.75 27.12,176.12 C29.92,177.50 31.23,177.52 33.62,177.88 C36.02,178.23 38.75,178.44 41.50,178.25 C44.25,178.06 47.17,177.79 50.12,176.75 C53.08,175.71 56.56,173.94 59.25,172.00 C61.94,170.06 64.15,168.04 66.25,165.12 C68.35,162.21 70.71,157.56 71.88,154.50 C73.04,151.44 73.02,157.46 73.25,146.75 C73.48,136.04 73.08,100.56 73.25,90.25 C73.42,79.94 73.67,86.62 74.25,84.88 C74.83,83.12 75.31,81.69 76.75,79.75 C78.19,77.81 80.56,74.94 82.88,73.25 C85.19,71.56 87.85,70.31 90.62,69.62 C93.40,68.94 96.81,68.81 99.50,69.12 C102.19,69.44 105.23,71.15 106.75,71.50 C108.27,71.85 108.25,71.48 108.62,71.25 C109.00,71.02 116.73,79.56 109.00,70.12 C101.27,60.69 71.73,24.94 62.25,14.62 C52.77,4.31 54.90,9.62 52.12,8.25 C49.35,6.88 48.19,6.73 45.62,6.38 C43.06,6.02 39.81,5.81 36.75,6.12Z"/><path fill="url(#nbGrad)" d="M151.50,6.00 C148.85,6.15 146.44,6.33 143.62,7.25 C140.81,8.17 137.44,9.56 134.62,11.50 C131.81,13.44 128.90,16.15 126.75,18.88 C124.60,21.60 122.96,24.56 121.75,27.88 C120.54,31.19 119.88,27.83 119.50,38.75 C119.12,49.67 119.94,82.60 119.50,93.38 C119.06,104.15 118.00,100.81 116.88,103.38 C115.75,105.94 114.85,106.98 112.75,108.75 C110.65,110.52 107.35,112.92 104.25,114.00 C101.15,115.08 97.35,115.44 94.12,115.25 C90.90,115.06 86.56,112.98 84.88,112.88 C83.19,112.77 76.46,105.21 84.00,114.62 C91.54,124.04 120.69,159.12 130.12,169.38 C139.56,179.62 136.58,174.62 140.62,176.12 C144.67,177.62 150.25,178.35 154.38,178.38 C158.50,178.40 162.23,177.35 165.38,176.25 C168.52,175.15 170.62,173.88 173.25,171.75 C175.88,169.62 179.00,166.69 181.12,163.50 C183.25,160.31 185.02,155.44 186.00,152.62 C186.98,149.81 186.83,165.73 187.00,146.62 C187.17,127.52 187.46,58.10 187.00,38.00 C186.54,17.90 185.27,28.98 184.25,26.00 C183.23,23.02 182.33,22.10 180.88,20.12 C179.42,18.15 177.98,16.10 175.50,14.12 C173.02,12.15 168.67,9.54 166.00,8.25 C163.33,6.96 161.92,6.75 159.50,6.38 C157.08,6.00 154.15,5.85 151.50,6.00Z"/></svg>NB <small>· Gestionale P.IVA</small></div>
     <div class="seg" id="segnav"></div>
     <div class="top-actions">
       <button class="iconbtn" id="btnCloud" title="Sincronizzazione cloud" aria-label="Sincronizzazione cloud"><svg viewBox="0 0 24 24"><path d="M7 18.5a4.6 4.6 0 1 1 .8-9.1A6.2 6.2 0 0 1 19.6 11.4 3.9 3.9 0 0 1 18.2 18.5z"/></svg></button>
