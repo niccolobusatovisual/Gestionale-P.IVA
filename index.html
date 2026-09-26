@@ -44,14 +44,14 @@
 
 <!-- ============ FINE BLOCCO SICUREZZA ============ -->
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Gestionale P.IVA — Niccolò Busato</title>
+<title>Gestionale Nick</title>
 <meta name="theme-color" content="#f5f5f3">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Gestionale">
+<meta name="apple-mobile-web-app-title" content="Gestionale Nick">
 <style>
 /* ============ DESIGN TOKENS — Minimalism & Swiss Style ============
    Direzione confermata dalla skill ui-ux-pro-max (--domain style →
@@ -176,7 +176,6 @@ main{max-width:1240px;margin:0 auto;padding:20px 16px 60px}
 .btn.mini{padding:6px 12px;font-size:12.5px}
 .ico{width:13px;height:13px;display:inline-block;vertical-align:-2px;margin-right:6px}
 .icon .ico{width:15px;height:15px;margin-right:0;vertical-align:middle}
-.iconbtn .ico-gear{width:17px;height:17px;fill:currentColor;stroke:none}
 .btn.mini .ico{width:11px;height:11px;margin-right:5px;vertical-align:-1px}
 .btn.danger{color:var(--danger);background:var(--danger-soft)}
 .btn.neutro{color:var(--ink)}
@@ -263,12 +262,18 @@ main{max-width:1240px;margin:0 auto;padding:20px 16px 60px}
    schede di stato col conteggio (.kb-tabs), e si vedono TUTTI gli stati
    invece di due su cinque. Lo scorrimento orizzontale è classificato
    dalla skill come problema di gravità alta.
-   Le colonne non sono più interamente colorate: in uno stile Swiss il
-   colore è un segnale, non un fondale. Resta una barretta di stato. */
+   Le colonne sono colorate per intero secondo lo stato (richiesta esplicita),
+   con i toni tenui *-soft già usati dai badge: restano leggibili sia in
+   chiaro sia in scuro. Resta anche la barretta di stato sul titolo. */
 .kb{display:grid;gap:10px;padding:2px 2px 10px;align-items:start}
 .kb-col{
   background:var(--kb);border-radius:var(--r-lg);padding:9px;min-width:0;transition:background .15s;
 }
+.kb-col.kg{background:var(--grigio-soft)}
+.kb-col.kb-b{background:var(--blu-soft)}
+.kb-col.kv{background:var(--ok-soft)}
+.kb-col.kr{background:var(--danger-soft)}
+.kb-col.ka{background:var(--warn-soft)}
 .kb-title{font-size:12.5px;font-weight:700;letter-spacing:.01em;display:flex;align-items:center;gap:7px}
 .kb-title::before{content:"";width:3px;height:13px;border-radius:2px;background:var(--grigio);flex:none}
 .kb-b .kb-title::before{background:var(--blu)}
@@ -291,10 +296,29 @@ main{max-width:1240px;margin:0 auto;padding:20px 16px 60px}
 }
 .kb-tabs button .n{
   font-size:11.5px;font-weight:700;padding:1px 7px;border-radius:99px;
-  background:var(--btn);color:var(--muted);font-variant-numeric:tabular-nums;
+  font-variant-numeric:tabular-nums;background:var(--card);color:inherit;
 }
-.kb-tabs button[aria-pressed="true"]{background:var(--emph-bg);border-color:var(--emph-bg);color:var(--emph-ink)}
-.kb-tabs button[aria-pressed="true"] .n{background:var(--emph-line);color:var(--emph-ink)}
+/* pallino di stato: stesso segnale della barretta delle colonne (kb-title::before),
+   così anche sotto i 900px — dove il kb-head con la barretta è nascosto — si vede
+   a colpo d'occhio a che fase appartiene ogni scheda. */
+.kb-tabs button::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--grigio);flex:none}
+.kb-tabs button.kb-b::before{background:var(--blu)}
+.kb-tabs button.kv::before{background:var(--ok)}
+.kb-tabs button.kr::before{background:var(--danger)}
+.kb-tabs button.ka::before{background:var(--warn)}
+/* ricolorate per intero come le colonne: ogni scheda porta sempre il tono
+   tenue del suo stato, non solo quella selezionata. La selezione si legge
+   dal bordo pieno (stesso colore, più saturo) invece che da un secondo sfondo. */
+.kb-tabs button.kg{background:var(--grigio-soft);border-color:var(--grigio-soft);color:var(--grigio)}
+.kb-tabs button.kb-b{background:var(--blu-soft);border-color:var(--blu-soft);color:var(--blu)}
+.kb-tabs button.kv{background:var(--ok-soft);border-color:var(--ok-soft);color:var(--ok)}
+.kb-tabs button.kr{background:var(--danger-soft);border-color:var(--danger-soft);color:var(--danger)}
+.kb-tabs button.ka{background:var(--warn-soft);border-color:var(--warn-soft);color:var(--warn)}
+.kb-tabs button.kg[aria-pressed="true"]{border-color:var(--grigio)}
+.kb-tabs button.kb-b[aria-pressed="true"]{border-color:var(--blu)}
+.kb-tabs button.kv[aria-pressed="true"]{border-color:var(--ok)}
+.kb-tabs button.kr[aria-pressed="true"]{border-color:var(--danger)}
+.kb-tabs button.ka[aria-pressed="true"]{border-color:var(--warn)}
 @media(min-width:900px){ .kb-tabs{display:none} .kb{grid-template-columns:repeat(var(--kb-n,5),minmax(0,1fr))} }
 @media(max-width:899px){ .kb{grid-template-columns:minmax(0,1fr)} .kb-col.nascosta{display:none} .kb-col{background:none;padding:0} .kb-col .kb-head{display:none} }
 .kcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r-md);padding:12px 13px;cursor:grab;box-shadow:none}
@@ -493,9 +517,6 @@ input[type=color].colore-cliente{width:100%;height:41px;border:none;border-radiu
 #btnCloud.c-sync{color:var(--warn);animation:pulsa 1s infinite}
 #btnCloud.c-err{color:var(--danger)}
 @keyframes pulsa{50%{opacity:.4}}
-#btnSync svg{transition:transform .2s}
-#btnSync.girando svg{animation:ruota .8s linear infinite}
-@keyframes ruota{to{transform:rotate(360deg)}}
 .cloud-desc{color:var(--muted);font-size:13.5px;margin:-8px 0 16px;line-height:1.5}
 .auth-err{grid-column:1/-1;display:none;font-size:13px;color:var(--danger);background:var(--danger-soft);border-radius:13px;padding:10px 13px;font-weight:500}
 .auth-link{grid-column:1/-1;text-align:center;margin-top:4px}
@@ -723,9 +744,6 @@ body.doc-aperto{overflow:hidden}
   .d-foot{flex-direction:column;gap:16px}
   .doc-scroll{padding:12px 8px 60px}
 }
-@media (max-width:400px){
-  .brand small{display:none}
-}
 @media (prefers-reduced-motion: reduce){
   *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}
 }
@@ -735,13 +753,11 @@ body.doc-aperto{overflow:hidden}
 
 <header>
   <div class="topbar">
-    <div class="brand"><svg class="brand-mark" viewBox="0 0 193 184" aria-hidden="true" focusable="false"><defs><linearGradient id="nbGrad" x1="6" y1="0" x2="187" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#D67A52"/><stop offset="1" stop-color="#D77E6E"/></linearGradient></defs><path fill="url(#nbGrad)" d="M36.75,6.12 C33.69,6.44 30.42,6.90 27.25,8.25 C24.08,9.60 20.42,11.98 17.75,14.25 C15.08,16.52 13.06,18.96 11.25,21.88 C9.44,24.79 7.75,29.00 6.88,31.75 C6.00,34.50 6.15,19.12 6.00,38.38 C5.85,57.62 5.62,127.42 6.00,147.25 C6.38,167.08 7.31,154.65 8.25,157.38 C9.19,160.10 10.19,161.58 11.62,163.62 C13.06,165.67 14.29,167.54 16.88,169.62 C19.46,171.71 24.33,174.75 27.12,176.12 C29.92,177.50 31.23,177.52 33.62,177.88 C36.02,178.23 38.75,178.44 41.50,178.25 C44.25,178.06 47.17,177.79 50.12,176.75 C53.08,175.71 56.56,173.94 59.25,172.00 C61.94,170.06 64.15,168.04 66.25,165.12 C68.35,162.21 70.71,157.56 71.88,154.50 C73.04,151.44 73.02,157.46 73.25,146.75 C73.48,136.04 73.08,100.56 73.25,90.25 C73.42,79.94 73.67,86.62 74.25,84.88 C74.83,83.12 75.31,81.69 76.75,79.75 C78.19,77.81 80.56,74.94 82.88,73.25 C85.19,71.56 87.85,70.31 90.62,69.62 C93.40,68.94 96.81,68.81 99.50,69.12 C102.19,69.44 105.23,71.15 106.75,71.50 C108.27,71.85 108.25,71.48 108.62,71.25 C109.00,71.02 116.73,79.56 109.00,70.12 C101.27,60.69 71.73,24.94 62.25,14.62 C52.77,4.31 54.90,9.62 52.12,8.25 C49.35,6.88 48.19,6.73 45.62,6.38 C43.06,6.02 39.81,5.81 36.75,6.12Z"/><path fill="url(#nbGrad)" d="M151.50,6.00 C148.85,6.15 146.44,6.33 143.62,7.25 C140.81,8.17 137.44,9.56 134.62,11.50 C131.81,13.44 128.90,16.15 126.75,18.88 C124.60,21.60 122.96,24.56 121.75,27.88 C120.54,31.19 119.88,27.83 119.50,38.75 C119.12,49.67 119.94,82.60 119.50,93.38 C119.06,104.15 118.00,100.81 116.88,103.38 C115.75,105.94 114.85,106.98 112.75,108.75 C110.65,110.52 107.35,112.92 104.25,114.00 C101.15,115.08 97.35,115.44 94.12,115.25 C90.90,115.06 86.56,112.98 84.88,112.88 C83.19,112.77 76.46,105.21 84.00,114.62 C91.54,124.04 120.69,159.12 130.12,169.38 C139.56,179.62 136.58,174.62 140.62,176.12 C144.67,177.62 150.25,178.35 154.38,178.38 C158.50,178.40 162.23,177.35 165.38,176.25 C168.52,175.15 170.62,173.88 173.25,171.75 C175.88,169.62 179.00,166.69 181.12,163.50 C183.25,160.31 185.02,155.44 186.00,152.62 C186.98,149.81 186.83,165.73 187.00,146.62 C187.17,127.52 187.46,58.10 187.00,38.00 C186.54,17.90 185.27,28.98 184.25,26.00 C183.23,23.02 182.33,22.10 180.88,20.12 C179.42,18.15 177.98,16.10 175.50,14.12 C173.02,12.15 168.67,9.54 166.00,8.25 C163.33,6.96 161.92,6.75 159.50,6.38 C157.08,6.00 154.15,5.85 151.50,6.00Z"/></svg>NB <small>· Gestionale P.IVA</small></div>
+    <div class="brand"><svg class="brand-mark" viewBox="0 0 193 184" aria-hidden="true" focusable="false"><defs><linearGradient id="nbGrad" x1="6" y1="0" x2="187" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#D67A52"/><stop offset="1" stop-color="#D77E6E"/></linearGradient></defs><path fill="url(#nbGrad)" d="M36.75,6.12 C33.69,6.44 30.42,6.90 27.25,8.25 C24.08,9.60 20.42,11.98 17.75,14.25 C15.08,16.52 13.06,18.96 11.25,21.88 C9.44,24.79 7.75,29.00 6.88,31.75 C6.00,34.50 6.15,19.12 6.00,38.38 C5.85,57.62 5.62,127.42 6.00,147.25 C6.38,167.08 7.31,154.65 8.25,157.38 C9.19,160.10 10.19,161.58 11.62,163.62 C13.06,165.67 14.29,167.54 16.88,169.62 C19.46,171.71 24.33,174.75 27.12,176.12 C29.92,177.50 31.23,177.52 33.62,177.88 C36.02,178.23 38.75,178.44 41.50,178.25 C44.25,178.06 47.17,177.79 50.12,176.75 C53.08,175.71 56.56,173.94 59.25,172.00 C61.94,170.06 64.15,168.04 66.25,165.12 C68.35,162.21 70.71,157.56 71.88,154.50 C73.04,151.44 73.02,157.46 73.25,146.75 C73.48,136.04 73.08,100.56 73.25,90.25 C73.42,79.94 73.67,86.62 74.25,84.88 C74.83,83.12 75.31,81.69 76.75,79.75 C78.19,77.81 80.56,74.94 82.88,73.25 C85.19,71.56 87.85,70.31 90.62,69.62 C93.40,68.94 96.81,68.81 99.50,69.12 C102.19,69.44 105.23,71.15 106.75,71.50 C108.27,71.85 108.25,71.48 108.62,71.25 C109.00,71.02 116.73,79.56 109.00,70.12 C101.27,60.69 71.73,24.94 62.25,14.62 C52.77,4.31 54.90,9.62 52.12,8.25 C49.35,6.88 48.19,6.73 45.62,6.38 C43.06,6.02 39.81,5.81 36.75,6.12Z"/><path fill="url(#nbGrad)" d="M151.50,6.00 C148.85,6.15 146.44,6.33 143.62,7.25 C140.81,8.17 137.44,9.56 134.62,11.50 C131.81,13.44 128.90,16.15 126.75,18.88 C124.60,21.60 122.96,24.56 121.75,27.88 C120.54,31.19 119.88,27.83 119.50,38.75 C119.12,49.67 119.94,82.60 119.50,93.38 C119.06,104.15 118.00,100.81 116.88,103.38 C115.75,105.94 114.85,106.98 112.75,108.75 C110.65,110.52 107.35,112.92 104.25,114.00 C101.15,115.08 97.35,115.44 94.12,115.25 C90.90,115.06 86.56,112.98 84.88,112.88 C83.19,112.77 76.46,105.21 84.00,114.62 C91.54,124.04 120.69,159.12 130.12,169.38 C139.56,179.62 136.58,174.62 140.62,176.12 C144.67,177.62 150.25,178.35 154.38,178.38 C158.50,178.40 162.23,177.35 165.38,176.25 C168.52,175.15 170.62,173.88 173.25,171.75 C175.88,169.62 179.00,166.69 181.12,163.50 C183.25,160.31 185.02,155.44 186.00,152.62 C186.98,149.81 186.83,165.73 187.00,146.62 C187.17,127.52 187.46,58.10 187.00,38.00 C186.54,17.90 185.27,28.98 184.25,26.00 C183.23,23.02 182.33,22.10 180.88,20.12 C179.42,18.15 177.98,16.10 175.50,14.12 C173.02,12.15 168.67,9.54 166.00,8.25 C163.33,6.96 161.92,6.75 159.50,6.38 C157.08,6.00 154.15,5.85 151.50,6.00Z"/></svg>Niccolò Busato</div>
     <div class="seg" id="segnav"></div>
     <div class="top-actions">
-      <button class="iconbtn" id="btnCloud" title="Sincronizzazione cloud" aria-label="Sincronizzazione cloud"><svg viewBox="0 0 24 24"><path d="M7 18.5a4.6 4.6 0 1 1 .8-9.1A6.2 6.2 0 0 1 19.6 11.4 3.9 3.9 0 0 1 18.2 18.5z"/></svg></button>
-      <button class="iconbtn" id="btnSync" title="Sincronizza adesso" aria-label="Sincronizza adesso"><svg class="ico-gear" viewBox="0 0 16 16" fill="currentColor" stroke="none"><path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872zM8 10.93a2.93 2.93 0 1 1 0-5.86 2.93 2.93 0 0 1 0 5.86z"/><circle cx="8" cy="8" r="1.5"/></svg></button>
-      <button class="iconbtn" id="btnExport" title="Esporta backup JSON" aria-label="Esporta backup JSON"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 19h16"/></svg></button>
-      <button class="iconbtn" id="btnImport" title="Importa backup JSON" aria-label="Importa backup JSON"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 19h16"/></svg></button>
+      <button class="iconbtn" id="btnCloud" title="Account" aria-label="Account e sincronizzazione cloud"><svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/></svg></button>
+      <button class="iconbtn" id="btnBackup" title="Backup: importa o esporta" aria-label="Backup: importa o esporta"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="5"/><path d="M3 9v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9"/><line x1="10" y1="13" x2="14" y2="13"/></svg></button>
     </div>
   </div>
   <div class="banner-mem" id="bannerMem" style="display:none">⚠ localStorage non disponibile: i dati vivono solo in questa sessione. Usa Esporta per non perderli.</div>
@@ -2096,7 +2112,7 @@ function kanban(entity, stati, records, campo, cardFn){
   // Le schede di stato sostituiscono lo scorrimento orizzontale: prima si
   // vedevano 2 colonne su 5 e niente diceva che le altre esistessero.
   const schede = '<div class="kb-tabs" role="group" aria-label="Filtra per stato">' + stati.map((st,i)=>
-    `<button type="button" aria-pressed="${st===attivo}" onclick="kbStato('${entity}',${i})">${esc(st)}<span class="n">${conta(st)}</span></button>`
+    `<button type="button" class="${CLASSE_COLONNA[STATO_CLASSE[st]] || 'kg'}" aria-pressed="${st===attivo}" onclick="kbStato('${entity}',${i})">${esc(st)}<span class="n">${conta(st)}</span></button>`
   ).join('') + '</div>';
   const colonne = stati.map(st=>{
     const recs = records.filter(r=>r[campo]===st);
@@ -3574,7 +3590,7 @@ window.stampaDocumento = function(){
 };
 
 /* ---------- export / import ---------- */
-$('#btnExport').addEventListener('click', ()=>{
+window.esportaBackup = function(){
   const blob = new Blob([JSON.stringify(db,null,2)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -3582,8 +3598,16 @@ $('#btnExport').addEventListener('click', ()=>{
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href), 500);
   toast('Backup esportato');
-});
-$('#btnImport').addEventListener('click', ()=>$('#importFile').click());
+};
+window.apriBackupSheet = function(){
+  apriModal(`<h3>Backup</h3>
+    <p class="cloud-desc">Scarica una copia di tutti i dati, oppure ripristina un backup salvato in precedenza.</p>
+    <div class="frm"><div class="frm-foot">
+      <button class="btn" onclick="chiudiModal();$('#importFile').click()">Importa</button>
+      <button class="btn primary" onclick="chiudiModal();esportaBackup()">Esporta</button>
+    </div></div>`);
+};
+$('#btnBackup').addEventListener('click', ()=>apriBackupSheet());
 $('#importFile').addEventListener('change', e=>{
   const file = e.target.files[0]; if(!file) return;
   const r = new FileReader();
@@ -3602,21 +3626,13 @@ $('#importFile').addEventListener('change', e=>{
   e.target.value='';
 });
 
-/* ---------- sincronizzazione manuale (rotellina) ---------- */
+/* ---------- sincronizzazione manuale (bottone "Aggiorna adesso" nella scheda account) ---------- */
 window.sincronizzaOra = async function(){
   if(!supa || !utente){ apriLoginSheet(); return; }
-  const b = $('#btnSync');
-  b.classList.add('girando');
   clearTimeout(pushTimer);
-  let ok = false;
-  try{
-    ok = modifichePendenti ? await pushCloud() : await pullCloud();
-  } finally {
-    b.classList.remove('girando');
-  }
+  const ok = modifichePendenti ? await pushCloud() : await pullCloud();
   toast(ok ? 'Sincronizzato' : 'Errore di rete: riprova');
 };
-$('#btnSync').addEventListener('click', ()=>sincronizzaOra());
 
 /* ============================================================
    SINCRONIZZAZIONE CLOUD (Supabase)
