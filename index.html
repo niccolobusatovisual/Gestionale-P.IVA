@@ -174,7 +174,7 @@ main{max-width:1240px;margin:0 auto;padding:20px 16px 60px}
 .btn:active{transform:scale(.96)}
 .btn.primary{background:var(--accent);color:#fff}
 .btn.mini{padding:6px 12px;font-size:12.5px}
-.ico{width:13px;height:13px;display:inline-block;vertical-align:-2px;margin-right:6px}
+.ico{width:13px;height:13px;display:inline-block;vertical-align:-2px;margin-right:6px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .icon .ico{width:15px;height:15px;margin-right:0;vertical-align:middle}
 .btn.mini .ico{width:11px;height:11px;margin-right:5px;vertical-align:-1px}
 .btn.danger{color:var(--danger);background:var(--danger-soft)}
@@ -554,10 +554,14 @@ body.doc-aperto{overflow:hidden}
 .doc-avviso .btn{color:var(--ink);font-weight:600}
 .doc-scroll{padding:16px 12px 60px}
 
-/* Il foglio: colori fissi NB, non seguono il tema chiaro/scuro */
+/* Il foglio: un A4 vero (210×297 mm, margini da 1 pollice come nei template
+   NB), misure in mm e pt così l'anteprima coincide con la stampa. Su schermi
+   stretti non si ricompone in colonna: adattaFoglio() lo rimpicciolisce in
+   proporzione (zoom), come la miniatura di una pagina. Colori fissi NB, non
+   seguono il tema chiaro/scuro. */
 .doc{background:#FFFFFF;color:#1A1A1A;font-family:Arial,Helvetica,sans-serif;
-  font-size:12px;line-height:1.5;max-width:210mm;margin:0 auto;padding:26px 28px 34px;
-  border-radius:10px;box-shadow:0 6px 26px rgba(0,0,0,.16)}
+  font-size:9pt;line-height:1.5;box-sizing:border-box;width:210mm;min-height:297mm;
+  margin:0 auto;padding:25.4mm;box-shadow:0 4px 24px rgba(0,0,0,.18)}
 /* Reset: il foglio è un'isola. Le regole globali dell'app su table/th/td
    (width:100%, min-width:780px, padding 11px, border-bottom su ogni cella)
    sfonderebbero il margine A4 e disegnerebbero righe che nel template non
@@ -566,46 +570,54 @@ body.doc-aperto{overflow:hidden}
 .doc th,.doc td{padding:0;border:0;background:none;font-size:inherit;font-weight:400;
   text-transform:none;letter-spacing:normal;text-align:left;vertical-align:top;
   white-space:normal;color:#1A1A1A}
-.d-hdr{display:flex;justify-content:space-between;gap:26px;align-items:flex-start}
+/* Misure in pt dalle skill "fatture" e "preventivo" (le differenze fra i due
+   template sono nelle regole .doc-preventivo più sotto). */
+.d-hdr{display:flex;justify-content:space-between;gap:8mm;align-items:flex-start}
 .d-hdr-l{flex:1;min-width:0}
 .d-hdr-r{text-align:right;flex:0 0 auto;max-width:52%}
-.d-nome{font-size:23px;font-weight:700;line-height:1.15;margin-bottom:12px}
-.d-meta div{font-size:11px;line-height:1.75}
-.d-meta span{color:#6B6B6B;display:inline-block;min-width:66px}
-.d-tipo{font-size:32px;font-weight:700;line-height:1;margin-bottom:8px}
-.d-num{font-size:14px;font-weight:700;color:#C49A3C;line-height:1.35}
-.d-prev-num{font-size:14px;color:#1A1A1A;line-height:1.35}
-.d-riga{font-size:11px;line-height:1.7}
-.d-label{color:#6B6B6B;font-size:10px;text-transform:uppercase;letter-spacing:.06em;margin-top:14px}
-.d-cli{font-size:13px;font-weight:600;margin-top:2px}
-.d-cli-grande{font-size:16px;font-weight:700;margin-top:14px}
-.d-sottotitolo{font-size:12.5px;font-style:italic;font-weight:700;color:#C49A3C;line-height:1.4;margin-top:4px}
-.d-sec{font-size:13px;font-weight:700;margin-top:26px}
-.d-sec-sp{margin-top:22px}
-.d-hr{height:1px;background:#CCCCCC;margin:6px 0 10px}
-.d-sp{height:14px}
-.d-par{font-size:12px;line-height:1.65;margin-bottom:8px}
+.d-nome{font-size:18pt;font-weight:700;line-height:1.15;margin-bottom:9pt}
+.d-meta div{font-size:9pt;line-height:1.7}
+.d-meta span{color:#6B6B6B;display:inline-block;min-width:17mm}
+.d-tipo{font-size:26pt;font-weight:700;line-height:1;margin-bottom:6pt}
+.d-num{font-size:11pt;font-weight:700;color:#C49A3C;line-height:1.35}
+.d-prev-num{font-size:10.5pt;color:#1A1A1A;line-height:1.35}
+.d-riga{font-size:9pt;line-height:1.6}
+.d-label{color:#6B6B6B;font-size:8pt;text-transform:uppercase;letter-spacing:.06em;margin-top:10pt}
+.d-cli{font-size:10pt;font-weight:600;margin-top:1pt}
+.d-cli-grande{font-size:14pt;font-weight:700;margin-top:10pt}
+.d-sottotitolo{font-size:10pt;font-style:italic;font-weight:700;color:#C49A3C;line-height:1.4;margin-top:3pt}
+.d-sec{font-size:10.5pt;font-weight:700;margin-top:18pt}
+.d-sec-sp{margin-top:16pt}
+.d-hr{height:1px;background:#CCCCCC;margin:4pt 0 7pt}
+.d-sp{height:10pt}
+.d-par{font-size:10pt;line-height:1.55;margin-bottom:6pt}
 /* Tabelle del foglio: selettori a due classi per stare sopra al reset qui sopra */
 .doc .d-tab{width:100%}
-.doc .d-tab td{padding:5px 0;font-size:12px}
-.doc .d-tab .d-imp{text-align:right;font-weight:700;white-space:nowrap;width:120px;padding-left:16px}
-.d-det{color:#6B6B6B;font-size:11px}
+.doc .d-tab td{padding:3.5pt 0;font-size:10pt}
+.doc .d-tab .d-imp{text-align:right;font-weight:700;white-space:nowrap;width:32mm;padding-left:4mm}
+.d-det{color:#6B6B6B;font-size:9pt}
 .d-vuoto{color:#6B6B6B;font-style:italic}
-.d-nota{color:#6B6B6B;font-style:italic;font-size:10.5px;line-height:1.6;margin:10px 0 0}
+.d-nota{color:#6B6B6B;font-style:italic;font-size:8pt;line-height:1.55;margin:7pt 0 0}
 .d-nota-sx{text-align:left}
-.doc .d-tot{margin:14px 0 0 auto}
-.doc .d-tot td{padding:3px 0;font-size:12px}
-.doc .d-tot .d-tot-lab{color:#6B6B6B;padding-right:26px;white-space:nowrap}
+.doc .d-tot{margin:10pt 0 0 auto}
+.doc .d-tot td{padding:2pt 0;font-size:10pt}
+.doc .d-tot .d-tot-lab{color:#6B6B6B;padding-right:7mm;white-space:nowrap}
 .doc .d-tot .d-tot-val{text-align:right;white-space:nowrap;font-weight:600}
-.doc .d-tot .d-grande{font-size:17px;font-weight:700;color:#C49A3C}
-.doc .d-tot .d-nero{color:#1A1A1A;font-size:12px;font-weight:600}
-.d-cli-min{color:#6B6B6B;font-size:10.5px}
-.d-foot{display:flex;gap:34px;margin-top:16px}
+.doc .d-tot .d-grande{font-size:13pt;font-weight:700;color:#C49A3C}
+.doc .d-tot .d-nero{color:#1A1A1A;font-size:10pt;font-weight:600}
+.d-cli-min{color:#6B6B6B;font-size:8pt}
+.d-foot{display:flex;gap:9mm;margin-top:11pt}
 .d-foot>div{flex:1}
-.d-foot-t{font-weight:700;font-size:12px;margin-bottom:5px}
-.doc .d-estremi{margin:0 0 7px}
-.doc .d-estremi td{padding:1px 0;font-size:11px;line-height:1.7}
-.doc .d-estremi .d-estremi-lab{color:#6B6B6B;padding-right:14px;white-space:nowrap}
+.d-foot-t{font-weight:700;font-size:10pt;margin-bottom:4pt}
+.doc .d-estremi{margin:0 0 5pt}
+.doc .d-estremi td{padding:1px 0;font-size:9pt;line-height:1.6}
+.doc .d-estremi .d-estremi-lab{color:#6B6B6B;padding-right:4mm;white-space:nowrap}
+/* preventivo: nome più grande, dati NB in grigio 10pt, sezioni 11pt, totale 14pt, nota 9pt */
+.doc-preventivo .d-nome{font-size:28pt}
+.doc-preventivo .d-meta div{font-size:10pt;color:#6B6B6B}
+.doc-preventivo .d-sec{font-size:11pt}
+.doc-preventivo .d-tot .d-grande{font-size:14pt}
+.doc-preventivo .d-nota{font-size:9pt}
 
 /* ============ STAMPA: esce solo il foglio ============ */
 @media print{
@@ -615,12 +627,12 @@ body.doc-aperto{overflow:hidden}
   #docOverlay{display:block !important;position:static !important;overflow:visible !important;background:#fff !important;inset:auto}
   .doc-bar,.doc-hint,.doc-avviso{display:none !important}
   .doc-scroll{padding:0 !important}
-  .doc{max-width:none !important;width:auto !important;margin:0 !important;padding:0 !important;
-    border-radius:0 !important;box-shadow:none !important;font-size:10pt !important}
+  .doc{width:auto !important;min-height:0 !important;margin:0 !important;padding:0 !important;
+    box-shadow:none !important;zoom:1 !important}
   .doc .d-hr{background:#CCCCCC !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .doc .d-num,.doc .d-grande,.doc .d-sottotitolo{color:#C49A3C !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .d-foot{page-break-inside:avoid}
-  @page{size:A4;margin:18mm 16mm}
+  @page{size:A4;margin:25.4mm}
 }
 
 /* ============ CANTIERI (documenti in costruzione) ============ */
@@ -708,6 +720,78 @@ body.doc-aperto{overflow:hidden}
 .cv-sconto input:focus,.cv-sconto select:focus{outline:none;box-shadow:0 0 0 2.5px var(--accent)}
 .cv-sconto .val{margin-left:auto;color:var(--danger);font-weight:800;font-variant-numeric:tabular-nums}
 
+/* ---------- Resoconto (dentro la Dashboard) ---------- */
+.res-sep{height:1px;background:var(--line);margin:30px 0 18px;border:0}
+.res-wrap{background:var(--card);border:1px solid var(--line);border-radius:var(--r-xl)}
+.res-wrap>summary{cursor:pointer;padding:15px 17px;list-style:none;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.res-wrap>summary::-webkit-details-marker{display:none}
+.res-wrap>summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:var(--r-xl)}
+.res-tt{font-weight:800;font-size:17px;letter-spacing:-.02em}
+.res-hint{font-size:13px;color:var(--muted)}
+.res-ch{color:var(--muted);font-size:17px;font-weight:700;transition:transform .2s;display:inline-block}
+.res-wrap[open]>summary .res-ch{transform:rotate(90deg)}
+.res-in{padding:2px 17px 18px;border-top:1px solid var(--line);margin-top:2px;padding-top:16px}
+@media(prefers-reduced-motion:reduce){.res-ch{transition:none}}
+:root{--chart-1:var(--accent);--chart-2:var(--blu);--tooltip-bg:#1c1c1e;--tooltip-ink:#f2f2f7;--chart-hl:rgba(120,120,128,.26)}
+[data-theme=dark]{--tooltip-bg:#4a4a4d;--tooltip-ink:#f2f2f7;--chart-hl:rgba(170,170,178,.22)}
+.chart-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-xl);padding:18px 18px 20px;margin-bottom:22px}
+.chart-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:8px}
+.chart-title{font-weight:800;font-size:16px}
+.chart-sub{color:var(--muted);font-size:12.5px;margin-top:2px}
+.chart-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.chart-legend b{color:var(--ink);font-weight:700;margin-left:4px}
+.chart-legend .lk{position:relative;padding-left:15px}
+.chart-legend .lk::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);width:9px;height:9px;border-radius:3px}
+.chart-legend .lk-1::before{background:var(--chart-1)}
+.chart-legend .lk-2::before{background:var(--chart-2)}
+.chart-svg{width:100%;height:auto;display:block;overflow:visible}
+.chart-bar-1{fill:var(--chart-1);transition:opacity .15s}
+.chart-bar-2{fill:var(--chart-2);transition:opacity .15s}
+.chart-bar-1.dim,.chart-bar-2.dim{opacity:.3}
+.chart-grid{stroke:var(--line);stroke-width:1}
+.chart-axisline{stroke:var(--line);stroke-width:1}
+.chart-axis{fill:var(--muted);font-size:11px;transition:opacity .15s}
+.chart-axis.dim{opacity:.7}
+.chart-axis.sel{fill:var(--ink);font-weight:700}
+.chart-mese{cursor:pointer}
+@media (hover:hover){ .chart-mese:hover .chart-bar-1:not(.dim){opacity:.82} .chart-mese:hover .chart-bar-2:not(.dim){opacity:.82} }
+.chart-hl{fill:var(--chart-hl)}
+.chart-tip-bg{fill:var(--tooltip-bg);stroke:var(--line);stroke-width:1}
+.chart-tip-txt{fill:var(--tooltip-ink);font-size:11px;font-weight:700}
+.chart-tip-sw1{fill:var(--chart-1)}
+.chart-tip-sw2{fill:var(--chart-2)}
+.chart-nav{display:flex;align-items:center;gap:8px;font-size:14px}
+.chart-nav b{min-width:112px;text-align:center;font-weight:700}
+.chart-nav .btn{min-width:44px;min-height:44px;padding:5px 10px;display:inline-flex;align-items:center;justify-content:center}
+
+/* ---------- board compatte + filtro periodo (Preventivi/Progetti/Fatture) ---------- */
+.kb-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 14px}
+.kb-toolbar select{padding:8px 11px;border-radius:11px;border:1px solid var(--line);background:var(--input);color:var(--ink);font-size:14px;font-weight:600}
+/* modalità compatta: massima densità (niente chip, date, icone) */
+.kbwrap.compact .kb-cards{gap:6px}
+.kbwrap.compact .kcard{padding:8px 11px;border-radius:12px}
+.kbwrap.compact .kcard-title{font-size:13px;margin-top:2px;line-height:1.25}
+.kbwrap.compact .kcard-sub{font-size:11.5px;margin-top:1px}
+.kbwrap.compact .kcard-val{font-size:13.5px}
+.kbwrap.compact .kcard .chip{display:none}
+.kbwrap.compact .kcard-date{display:none}
+/* In compatta si nascondono le icone, MAI le frecce ‹ ›: su touch il drag &
+   drop non esiste e senza di loro la scheda non si può più spostare di stato.
+   La scheda intera diventa cliccabile e apre la modifica (vedi il listener
+   delegato in fondo allo script), così non si perde nemmeno una funzione. */
+.kbwrap.compact .kcard{cursor:pointer}
+.kbwrap.compact .kcard-actions{margin-top:7px;gap:5px}
+.kbwrap.compact .kcard-actions > *{display:none}
+.kbwrap.compact .kcard-actions > .mover{display:flex}
+.kbwrap.compact .mv{width:24px;height:24px;font-size:14px}
+/* schede concluse: attenuate in ogni modalità, piene al passaggio del mouse */
+.kbwrap .kb-col[data-stato="Accettato"] .kcard,
+.kbwrap .kb-col[data-stato="Fatto"] .kcard,
+.kbwrap .kb-col[data-stato="Pagata"] .kcard{opacity:.6}
+.kbwrap .kb-col[data-stato="Accettato"] .kcard:hover,
+.kbwrap .kb-col[data-stato="Fatto"] .kcard:hover,
+.kbwrap .kb-col[data-stato="Pagata"] .kcard:hover{opacity:1}
+
 /* ============ RESPONSIVE ============ */
 @media (max-width:768px){
   .seg{display:none}
@@ -737,11 +821,6 @@ body.doc-aperto{overflow:hidden}
   .cv-riga{padding:11px 12px;gap:8px}
   .cv-main{flex-basis:100%}
   .cv-imp{margin-left:auto}
-  .doc{padding:18px 16px 26px;font-size:11.5px}
-  .d-hdr{flex-direction:column;gap:16px}
-  .d-hdr-r{text-align:left;max-width:none}
-  .d-tipo{font-size:26px}
-  .d-foot{flex-direction:column;gap:16px}
   .doc-scroll{padding:12px 8px 60px}
 }
 @media (prefers-reduced-motion: reduce){
@@ -804,9 +883,16 @@ const METODI_PAG = ['Bonifico','PayPal','Contanti','Altro'];
 const STATI_CANTIERE = ['Aperto','Chiuso'];
 const UNITA = ['a corpo','ora','giorno','mese','pezzo','pagina','post'];
 const TIPI_SCONTO = ['%','€'];
-const ALIQUOTA_ACC = 0.2322;      // ~23% di ogni incasso da accantonare
+const ALIQUOTA_ACC = 0.2322;      // default: ~23% di ogni incasso da accantonare (modificabile da Impostazioni tasse)
+const IMPOSTA_SOSTITUTIVA = 0.05; // default: 5% nei primi 5 anni di attività, poi 15% (modificabile da Impostazioni tasse)
 const SOGLIA_BOLLO = 77.47;
 const IMPORTO_BOLLO = 2;
+/* Soglie del regime forfettario, valutate sull'incassato dell'anno solare
+   (tassazione per cassa, come il salvadanaio tasse): oltre 85.000 € si esce
+   dal regime dall'anno successivo; oltre 100.000 € si esce subito, con
+   l'obbligo di applicare l'IVA da quel momento. */
+const SOGLIA_FORFETTARIO = 85000;
+const SOGLIA_FORFETTARIO_USCITA_IMMEDIATA = 100000;
 /* ---------- salvadanaio tasse ----------
    L'accantonamento è una somma che cresce a ogni incasso: senza registrare anche
    i versamenti, il numero non scende MAI: pagato l'F24 a giugno, la dashboard
@@ -873,13 +959,17 @@ const ICONS = {
   fatture:'<svg viewBox="0 0 24 24"><path d="M6.2 2.8h11.6v18.4l-1.9-1.5-1.9 1.5-2-1.5-2 1.5-1.9-1.5-1.9 1.5z"/><path d="M9.3 8h5.4M9.3 11.8h5.4"/></svg>'
 };
 
-/* ---------- icone personalizzate (SVG, ereditano il colore del contesto) ---------- */
+/* ---------- icone personalizzate (SVG, ereditano il colore del contesto) ----------
+   A contorno come le icone di ICONS/tabbar qui sopra (stroke, non fill): prima
+   erano piene (Bootstrap Icons), le due famiglie non si somigliavano. Lo
+   stile e il tratto arrotondato seguono lo stroke:currentColor della classe
+   .ico in CSS, non un fill inline sull'svg. */
 const ICO = {
-  plus: '<svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zm6.5 4.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3a.5.5 0 0 1 .5-.5z"/></svg>',
-  trash: '<svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/></svg>',
-  pen: '<svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M13.498.795l.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001z"/></svg>',
-  clip: '<svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0z"/></svg>',
-  doc: '<svg class="ico" viewBox="0 0 16 16" fill="currentColor"><path d="M4 0h5.5L14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm5 1.5V5h3.5zM5 8.5a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1zm0 2.5a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1z"/></svg>'
+  plus: '<svg class="ico" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  trash: '<svg class="ico" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/><path d="M6 7v13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>',
+  pen: '<svg class="ico" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="M15 5l4 4"/></svg>',
+  clip: '<svg class="ico" viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 1 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.48-8.49"/></svg>',
+  doc: '<svg class="ico" viewBox="0 0 24 24"><path d="M6 2.8h7.5L18.5 7.8v13.4H6z"/><path d="M13.5 2.8v5h5"/><path d="M9 13h6M9 16.5h6"/></svg>'
 };
 
 /* ---------- helper ---------- */
@@ -894,8 +984,20 @@ function numOK(x){
   return isFinite(n) ? n : null;
 }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function eur(n){ return (n==null || n==='' || isNaN(n)) ? '—' : new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(n); }
+/* Migliaia SEMPRE col punto (1.700,00): Intl in it-IT raggruppa solo da 5
+   cifre in su (1700,00 ma 10.000,00, regola CLDR), e useGrouping:'always' non
+   c'è sui Safari più vecchi. Formattato a mano, uguale su ogni browser.
+   Solo per ciò che si legge a schermo e nei PDF: l'XML usa num2(). */
+function numIT(n, decimali){
+  const s = Math.abs(n).toFixed(decimali);
+  const neg = n < 0 && Number(s) !== 0;
+  const [intera, dec] = s.split('.');
+  return (neg ? '-' : '') + intera.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + (dec ? ','+dec : '');
+}
+function eur(n){ return (n==null || n==='' || isNaN(n)) ? '—' : numIT(Number(n), 2)+' €'; }
 function arrot(x){ return Math.round(x*100)/100; }
+/* frazione (0.2322) -> "23,22" per le aliquote tasse, mostrate come percentuale */
+function fmtPerc(frazione){ return (arrot(frazione*10000)/100).toLocaleString('it-IT',{maximumFractionDigits:2}); }
 function oggi(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 // data ISO fra n giorni (n negativo = indietro). Serve alla scadenza di pagamento
 // proposta in automatico quando una fattura passa a "Emessa".
@@ -1020,11 +1122,11 @@ function seed(){
     note:'Nota di esempio.'};
   const pr3={id:uid(),numero:'PR-3',titolo:'Social Media Manager',clienteId:c3.id,progettoId:p3.id,importo:null,stato:'Bozza',dataInvio:'',validoFino:'',servizi:['Consulenza','Content Creation'],note:''};
 
-  return { clienti:[c1,c2,c3], preventivi:[pr1,pr2,pr3], progetti:[p1,p2,p3], fatture:[], cantieri:[], listino:[], counters:{pr:3,ft:0} };
+  return { clienti:[c1,c2,c3], preventivi:[pr1,pr2,pr3], progetti:[p1,p2,p3], fatture:[], cantieri:[], listino:[], counters:{pr:3} };
 }
 
 let db = caricaDB() || seed();
-db.counters = db.counters || {pr:0,ft:0};
+db.counters = db.counters || {pr:0};
 migraDati();
 salvaLocale();
 
@@ -1045,6 +1147,12 @@ function migraDati(){
   db.listino = Array.isArray(db.listino) ? db.listino : [];
   db.versamenti = Array.isArray(db.versamenti) ? db.versamenti : [];
   if(db.counters.xml == null) db.counters.xml = 0;   // progressivo di trasmissione SdI
+  // aliquote tasse: modificabili da Impostazioni (apriInfoTasse) per quando
+  // l'imposta sostitutiva passa dal 5% al 15% dopo i primi 5 anni di attività.
+  if(typeof db.aliquotaAccantonamento !== 'number' || !(db.aliquotaAccantonamento >= 0 && db.aliquotaAccantonamento <= 0.7))
+    db.aliquotaAccantonamento = ALIQUOTA_ACC;
+  if(typeof db.impostaSostitutiva !== 'number' || !(db.impostaSostitutiva >= 0 && db.impostaSostitutiva <= 0.5))
+    db.impostaSostitutiva = IMPOSTA_SOSTITUTIVA;
   db.clienti = db.clienti.filter(c => c && typeof c === 'object');
   (db.clienti||[]).forEach(c=>{
     if(!idValido(c.id)) c.id = uid();
@@ -1226,9 +1334,29 @@ function annoDaData(iso){
   const m = /^(\d{4})-\d{2}-\d{2}$/.exec(iso||'');
   return m ? parseInt(m[1],10) : new Date().getFullYear();
 }
+/* Il numero si assegna subito (anche alle bozze "Da emettere"), quindi da solo
+   non basta a garantire che la sequenza resti coerente con le date: una bozza
+   rimasta indietro, poi emessa tardi, può finire con un numero basso ma una
+   data più recente di fatture emesse nel frattempo. Non blocca il salvataggio
+   (un motivo legittimo può sempre esserci) ma segnala il primo conflitto
+   trovato, lasciando all'utente la scelta se correggere o forzare. */
+function fatturaFuoriOrdine(numero, dataEmissione, idEscluso){
+  const m = /^(\d+)-(\d{4})$/.exec(numero||'');
+  if(!m || !dataEmissione) return null;
+  const n = parseInt(m[1],10), anno = parseInt(m[2],10);
+  return db.fatture.find(f=>{
+    if(f.id===idEscluso || !f.dataEmissione) return false;
+    const mf = /^(\d+)-(\d{4})$/.exec(f.numero||'');
+    if(!mf || parseInt(mf[2],10)!==anno) return false;
+    const nf = parseInt(mf[1],10);
+    return (nf < n && f.dataEmissione > dataEmissione) || (nf > n && f.dataEmissione < dataEmissione);
+  }) || null;
+}
 
 /* ---------- progetti mensili ricorrenti ---------- */
 const MESI = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+const LEN_PERIODO = {mese:1, trimestre:3, semestre:6, anno:12};   // usato da Resoconto e dal filtro periodo delle board
+function pad2(n){ return String(n).padStart(2,'0'); }
 function meseKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 function nomeMese(key){ const p=key.split('-'); return MESI[parseInt(p[1],10)-1]+' '+p[0]; }
 function fatturaDelMese(prog, key){
@@ -1356,7 +1484,11 @@ function rimuoviAllegatiDi(rec){
 function segnoDoc(f){ return f.tipoDoc==='Nota di credito' ? -1 : 1; }
 function valoreDoc(f){ return (parseFloat(f.totale)||0) * segnoDoc(f); }
 function accantonare(f){
-  return f.statoPagamento==='Pagata' ? arrot(valoreDoc(f) * ALIQUOTA_ACC) : 0;
+  if(f.statoPagamento!=='Pagata') return 0;
+  // Il bollo addebitato in rivalsa (rivalsaBollo) è un rimborso, non reddito:
+  // l'imponibile, quando c'è, lo esclude già (il totale invece lo include).
+  const base = (f.imponibile!=null ? parseFloat(f.imponibile)||0 : (parseFloat(f.totale)||0)) * segnoDoc(f);
+  return arrot(base * (db.aliquotaAccantonamento!=null ? db.aliquotaAccantonamento : ALIQUOTA_ACC));
 }
 
 /* ---------- salvadanaio: accantonato − versato = quanto tenere da parte ----------
@@ -1394,7 +1526,10 @@ function prossimaScadenzaFiscale(anno){
 }
 
 /* ---------- stato UI ---------- */
-const ui = { view:'dashboard', clienteId:null, cantiereId:null, cantieriChiusi:false, cantiereDaCollegare:null };
+const ui = { view:'dashboard', clienteId:null, cantiereId:null, cantieriChiusi:false, cantiereDaCollegare:null,
+  resMode:'mese', resAperto:false,      // periodo selezionato nel Resoconto (dentro la Dashboard)
+  kbCompact:true, kbMode:'tutto' };     // board compatte + filtro periodo su Preventivi/Progetti/Fatture
+(function(){ const o=new Date(); ui.resY=o.getFullYear(); ui.resM=o.getMonth(); ui.kbY=ui.resY; ui.kbM=ui.resM; })();
 
 /* ============================================================
    NAVIGAZIONE (segmented desktop + tab bar mobile)
@@ -1491,13 +1626,389 @@ function vDashboard(){
       <div class="big">${eur(sd.residuo)}</div>
       <div class="det">${sd.versato
         ? 'accantonato '+eur(sd.accantonato)+' · versato '+eur(sd.versato)
-        : 'da tenere da parte · ~23,22% di ogni incasso'}<button class="linkino-btn" onclick="apriSalvadanaio()">Salvadanaio</button></div>
+        : 'da tenere da parte · ~'+fmtPerc(db.aliquotaAccantonamento)+'% di ogni incasso'}<button class="linkino-btn" onclick="apriSalvadanaio()">Salvadanaio</button></div>
     </div>
   </div>
 
   ${promemoriaHTML()}
   ${scadenzarioHTML(true)}
   ${avvisiHTML()}
+  ${vResoconto()}
+  `;
+}
+
+/* ---------- Resoconto per periodo (dentro la Dashboard) ----------
+   Grafico "Andamento fatturato" (barre Emesso/Incassato, SVG disegnato a
+   mano) + tabelle del periodo selezionato. ui.resMode/resY/resM sono
+   condivisi anche dai controlli del grafico (chartSelMese/chartNav). */
+function fmtISO(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+function resBounds(mode, anchor){
+  const y = anchor.getFullYear(), m = anchor.getMonth();
+  let sm;
+  if(mode==='mese')           sm = m;
+  else if(mode==='trimestre') sm = Math.floor(m/3)*3;
+  else if(mode==='semestre')  sm = Math.floor(m/6)*6;
+  else                        sm = 0;
+  const len = LEN_PERIODO[mode];
+  const start = new Date(y, sm, 1), end = new Date(y, sm+len, 1);
+  return { from: fmtISO(start), to: fmtISO(end), start: start };
+}
+function resLabel(mode, b){
+  const y = b.start.getFullYear(), sm = b.start.getMonth();
+  if(mode==='mese')      return MESI[sm]+' '+y;
+  if(mode==='trimestre') return 'T'+(sm/3+1)+' '+y;
+  if(mode==='semestre')  return (sm===0?'1º':'2º')+' semestre '+y;
+  return ''+y;
+}
+function inP(d, b){ return !!d && d>=b.from && d<b.to; }
+function resDelta(cur, prev){
+  if(!prev) return '';
+  const p = Math.round((cur-prev)/prev*100);
+  if(p===0) return ' · = periodo prec.';
+  const su = p>0;
+  return ' · <b style="color:'+(su?'var(--ok)':'var(--danger)')+'">'+(su?'▲':'▼')+' '+Math.abs(p)+'%</b> vs prec.';
+}
+/* resRender mantiene la posizione di scroll: il Resoconto sta in fondo alla
+   Dashboard, un salto in cima a ogni cambio periodo sarebbe fastidioso. */
+function resRender(){
+  const y = window.scrollY;
+  render();
+  try{ window.scrollTo(0, y); }catch(e){}
+}
+window.resSetMode = function(m){ ui.resMode = m; resRender(); };
+window.resNav = function(dir){
+  const len = LEN_PERIODO[ui.resMode];
+  const a = new Date(ui.resY, ui.resM + dir*len, 1);
+  ui.resY = a.getFullYear(); ui.resM = a.getMonth();
+  resRender();
+};
+window.resOggi = function(){
+  const t = new Date(); ui.resY = t.getFullYear(); ui.resM = t.getMonth();
+  resRender();
+};
+window.chartSelMese = function(anno, mese){
+  ui.resMode = 'mese'; ui.resY = anno; ui.resM = mese;
+  resRender();
+};
+window.chartNav = function(dir){
+  const a = new Date(ui.resY, ui.resM + dir, 1);
+  ui.resMode = 'mese'; ui.resY = a.getFullYear(); ui.resM = a.getMonth();
+  resRender();
+};
+/* costruttore tabelle del Resoconto (riusa gli stili esistenti) */
+function tabella(intestazioni, righeHtml, vuotoMsg){
+  if(!righeHtml){
+    return '<div class="twrap"><div class="vuoto" style="padding:14px">'+vuotoMsg+'</div></div>';
+  }
+  return '<div class="twrap"><table><thead><tr>'
+    + intestazioni.map(h=>'<th>'+h+'</th>').join('')
+    + '</tr></thead><tbody>'+righeHtml+'</tbody></table></div>';
+}
+/* grafico "Andamento fatturato" — barre Emesso/Incassato, finestra di 12
+   mesi che di default mostra gli ultimi 12 rispetto a oggi, ma scorre
+   (finestraFine) per includere sempre il mese selezionato (ui.resY/ui.resM,
+   condiviso col Resoconto): cliccare una colonna o le frecce del grafico
+   chiama chartSelMese/chartNav, che impostano anche il periodo del
+   Resoconto sotto, e viceversa. SVG disegnato a mano, nessuna libreria. */
+function eur0(n){ return numIT(Number(n)||0, 0)+' €'; }
+function niceMax(v){
+  if(v<=0) return 100;
+  const exp = Math.floor(Math.log10(v));
+  const f = v / Math.pow(10, exp);
+  const nf = f<=1?1 : f<=2?2 : f<=5?5 : 10;
+  return nf * Math.pow(10, exp);
+}
+function finestraFine(sel){
+  const oggi = new Date(), oggiM = new Date(oggi.getFullYear(), oggi.getMonth(), 1);
+  const inizioDefault = new Date(oggiM.getFullYear(), oggiM.getMonth()-11, 1);
+  if(sel > oggiM) return new Date(sel.getFullYear(), sel.getMonth(), 1);
+  if(sel < inizioDefault) return new Date(sel.getFullYear(), sel.getMonth()+11, 1);
+  return oggiM;
+}
+function datiAndamento12m(){
+  const fine = finestraFine(new Date(ui.resY, ui.resM, 1));
+  const out = [];
+  for(let i=11; i>=0; i--){
+    const d = new Date(fine.getFullYear(), fine.getMonth()-i, 1);
+    const y = d.getFullYear(), m = d.getMonth();
+    const from = fmtISO(new Date(y,m,1)), to = fmtISO(new Date(y,m+1,1));
+    const dentro = dt => dt>=from && dt<to;
+    out.push({
+      label: MESI[m].slice(0,3),
+      mese: m,
+      anno: y,
+      emesso:    somma(db.fatture.filter(f=>dentro(f.dataEmissione||'')), valoreDoc),
+      incassato: somma(db.fatture.filter(f=>f.statoPagamento==='Pagata' && dentro(f.dataIncasso||'')), valoreDoc),
+    });
+  }
+  return out;
+}
+// Il testo dentro un SVG scala con l'intero disegno (viewBox): con un viewBox
+// fisso a 900 unità, su un telefono (SVG renderizzato ~300px) un "font-size:11px"
+// diventa realmente ~3-4px, illeggibile. Costruendo il viewBox sulla larghezza
+// reale del contenitore, il fattore di scala resta vicino a 1 su ogni schermo.
+function larghezzaGraficoSvg(){
+  const card = document.querySelector('.chart-card');
+  if(card){
+    const cs = getComputedStyle(card);
+    const w = card.clientWidth - (parseFloat(cs.paddingLeft)||0) - (parseFloat(cs.paddingRight)||0);
+    if(w > 0) return Math.round(w);
+  }
+  const padMain = (window.innerWidth||900) <= 640 ? 24 : 32;
+  return Math.max(280, Math.round((window.innerWidth||900) - padMain - 36));
+}
+function svgAndamento(mesi){
+  const max = Math.max(1, ...mesi.map(m=>Math.max(m.emesso, m.incassato)));
+  const top = niceMax(max);
+  const W=larghezzaGraficoSvg(), H=280, ml=54, mr=10, mt=16, mb=28;
+  const pw = W-ml-mr, ph = H-mt-mb, y0 = mt+ph;
+  const y = v => mt + ph - (v/top)*ph;
+  const gw = pw/mesi.length, bw = Math.min(27, gw*0.38), gap = 2;
+  const selIdx = mesi.findIndex(m=>m.anno===ui.resY && m.mese===ui.resM);
+
+  const grid = [top/2, top].map(v=>{
+    const yy = y(v);
+    return `<line x1="${ml}" y1="${yy}" x2="${W-mr}" y2="${yy}" class="chart-grid"/>`
+         + `<text x="${ml-8}" y="${yy+4}" text-anchor="end" class="chart-axis">${eur0(v)}</text>`;
+  }).join('');
+
+  function barra(x, yTop, w, h){
+    if(h<=0) return '';
+    const r = Math.min(4, w/2, h);
+    return `M${x},${y0} L${x},${yTop+r} Q${x},${yTop} ${x+r},${yTop} `
+         + `L${x+w-r},${yTop} Q${x+w},${yTop} ${x+w},${yTop+r} L${x+w},${y0} Z`;
+  }
+
+  const gruppi = mesi.map((m,i)=>{
+    const cx = ml + i*gw + gw/2;
+    const x1 = cx - gap/2 - bw, x2 = cx + gap/2;
+    const y1 = y(m.emesso), y2 = y(m.incassato);
+    const sel = i===selIdx;
+    const dim = selIdx!==-1 && !sel;
+    const cls = c => dim ? c+' dim' : c;
+    // Le cifre del mese selezionato vanno in un tooltip scuro (badge colorato +
+    // valore, una riga per serie) ancorato al gruppo, non a ciascuna barra: così
+    // quando i due valori coincidono (o sono vicini) non si sovrappongono mai.
+    let cifre = '';
+    if(sel){
+      const testi = [eur0(m.emesso), eur0(m.incassato)];
+      const padX=10, padY=7, sw=9, gap=7, rowH=17;
+      const maxLen = Math.max(testi[0].length, testi[1].length);
+      const boxW = Math.round(Math.max(86, padX*2+sw+gap+maxLen*6.6));
+      const boxH = padY*2+rowH*2;
+      // Clampato in orizzontale così il box non esce dal grafico (mese selezionato
+      // = prima o ultima colonna) né copre l'etichetta dell'asse Y a sinistra.
+      const boxX = Math.min(Math.max(cx-boxW/2, ml+4), W-mr-boxW-4);
+      const boxY = Math.max(mt-2, Math.min(y1,y2)-10-boxH);
+      const r1y = boxY+padY+12, r2y = r1y+rowH;
+      const swX = boxX+padX, txX = swX+sw+gap;
+      // pointer-events:none: il box è più largo della colonna e altrimenti
+      // ruba i click alla colonna adiacente su cui si sovrappone.
+      cifre = `<g class="chart-tip" style="pointer-events:none">
+        <rect x="${boxX}" y="${boxY}" width="${boxW}" height="${boxH}" rx="12" class="chart-tip-bg" filter="url(#chartTipShadow)"/>
+        <rect x="${swX}" y="${r1y-9}" width="${sw}" height="${sw}" rx="2" class="chart-tip-sw1"/>
+        <text x="${txX}" y="${r1y}" class="chart-tip-txt">${testi[0]}</text>
+        <rect x="${swX}" y="${r2y-9}" width="${sw}" height="${sw}" rx="2" class="chart-tip-sw2"/>
+        <text x="${txX}" y="${r2y}" class="chart-tip-txt">${testi[1]}</text>
+      </g>`;
+    }
+    const hl = sel ? `<rect x="${ml+i*gw+2}" y="${mt}" width="${gw-4}" height="${ph}" rx="8" class="chart-hl"/>` : '';
+    return `<g class="chart-mese" onclick="chartSelMese(${m.anno},${m.mese})">
+      ${hl}
+      <rect x="${ml+i*gw}" y="${mt}" width="${gw}" height="${ph}" fill="transparent"/>
+      <path d="${barra(x1,y1,bw,y0-y1)}" class="${cls('chart-bar-1')}"><title>${esc(m.label+' '+m.anno)} · Emesso ${eur(m.emesso)}</title></path>
+      <path d="${barra(x2,y2,bw,y0-y2)}" class="${cls('chart-bar-2')}"><title>${esc(m.label+' '+m.anno)} · Incassato ${eur(m.incassato)}</title></path>
+      ${cifre}
+      <text x="${cx}" y="${H-8}" text-anchor="middle" class="chart-axis${dim?' dim':''}${sel?' sel':''}">${esc(m.label)}</text>
+    </g>`;
+  }).join('');
+
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart-svg" role="img" aria-label="Andamento fatturato: emesso e incassato su 12 mesi">
+    <defs><filter id="chartTipShadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.22"/>
+    </filter></defs>
+    <line x1="${ml}" y1="${y0}" x2="${W-mr}" y2="${y0}" class="chart-axisline"/>
+    <text x="${ml-8}" y="${y0+4}" text-anchor="end" class="chart-axis">€0</text>
+    ${grid}
+    ${gruppi}
+  </svg>`;
+}
+function vChartAndamento(){
+  const mesi = datiAndamento12m();
+  const selIdx = mesi.findIndex(m=>m.anno===ui.resY && m.mese===ui.resM);
+  const navLabel = selIdx>-1 ? (MESI[mesi[selIdx].mese]+' '+mesi[selIdx].anno) : '—';
+  return `
+  <div class="chart-card">
+    <div class="chart-head">
+      <div>
+        <div class="chart-title">Andamento fatturato</div>
+        <div class="chart-sub">12 mesi · clicca un mese o usa le frecce</div>
+      </div>
+      <div class="chart-nav">
+        <button class="btn neutro mini" onclick="chartNav(-1)" aria-label="Mese precedente">‹</button>
+        <b>${esc(navLabel)}</b>
+        <button class="btn neutro mini" onclick="chartNav(1)" aria-label="Mese successivo">›</button>
+      </div>
+      <div class="chart-legend">
+        <span class="lk lk-1">Emesso <b>${eur0(somma(mesi,m=>m.emesso))}</b></span>
+        <span class="lk lk-2">Incassato <b>${eur0(somma(mesi,m=>m.incassato))}</b></span>
+      </div>
+    </div>
+    ${svgAndamento(mesi)}
+  </div>`;
+}
+/* vista Resoconto: grafico + selettore periodo + tabelle */
+function vResoconto(){
+  const mode = ui.resMode;
+  const anchor = new Date(ui.resY, ui.resM, 1);
+  const b     = resBounds(mode, anchor);
+  const len   = LEN_PERIODO[mode];
+  const bPrev = resBounds(mode, new Date(anchor.getFullYear(), anchor.getMonth()-len, 1));
+
+  const emesse      = db.fatture.filter(f=> inP(f.dataEmissione, b));
+  const incassate   = db.fatture.filter(f=> f.statoPagamento==='Pagata' && inP(f.dataIncasso, b));
+  const emessePrev    = db.fatture.filter(f=> inP(f.dataEmissione, bPrev));
+  const incassatePrev = db.fatture.filter(f=> f.statoPagamento==='Pagata' && inP(f.dataIncasso, bPrev));
+  const fattPeriodo = db.fatture.filter(f=> inP(f.dataEmissione,b) || inP(f.dataIncasso,b));
+  const fattSenza   = db.fatture.filter(f=> !f.dataEmissione && !f.dataIncasso);
+
+  const fatturato    = somma(emesse,    valoreDoc);
+  const incassato    = somma(incassate, valoreDoc);
+  const accantona    = somma(incassate, accantonare);
+  const fatturatoPrev = somma(emessePrev,    valoreDoc);
+  const incassatoPrev = somma(incassatePrev, valoreDoc);
+
+  const prevInviati = db.preventivi.filter(p=> inP(p.dataInvio, b));
+  const prevSenza   = db.preventivi.filter(p=> !p.dataInvio);
+  const valPrev     = somma(prevInviati, p=>p.importo);
+  const nAcc        = prevInviati.filter(p=>p.stato==='Accettato').length;
+
+  const progAvviati = db.progetti.filter(p=> inP(p.dataInizio, b));
+  const progSenza   = db.progetti.filter(p=> !p.dataInizio);
+  const valProg     = somma(progAvviati, p=>p.valore);
+
+  const selMode = ['mese','trimestre','semestre','anno'].map(m=>
+    '<option value="'+m+'"'+(m===mode?' selected':'')+'>'+
+    ({mese:'Mese',trimestre:'Trimestre',semestre:'Semestre',anno:'Anno'}[m])+'</option>').join('');
+
+  const barra = `
+  <div class="res-bar" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 16px">
+    <select onchange="resSetMode(this.value)" style="padding:9px 12px;border-radius:12px;border:1px solid var(--line);background:var(--input);color:var(--ink);font-size:15px;font-weight:600">${selMode}</select>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="btn neutro" onclick="resNav(-1)" aria-label="Periodo precedente" style="min-width:44px">‹</button>
+      <b style="min-width:150px;text-align:center;font-size:16px">${resLabel(mode,b)}</b>
+      <button class="btn neutro" onclick="resNav(1)" aria-label="Periodo successivo" style="min-width:44px">›</button>
+    </div>
+    <button class="btn" onclick="resOggi()">Oggi</button>
+  </div>`;
+
+  const cards = `
+  <div class="cards">
+    <div class="stat">
+      <div class="lbl">Fatturato (emesso)</div>
+      <div class="big">${eur(fatturato)}</div>
+      <div class="det">${emesse.length} fatture emesse${resDelta(fatturato,fatturatoPrev)}</div>
+    </div>
+    <div class="stat">
+      <div class="lbl">Incassato</div>
+      <div class="big">${eur(incassato)}</div>
+      <div class="det">${incassate.length} fatture incassate${resDelta(incassato,incassatoPrev)}</div>
+    </div>
+    <div class="stat">
+      <div class="lbl">Da accantonare</div>
+      <div class="big">${eur(arrot(accantona))}</div>
+      <div class="det">~${fmtPerc(db.aliquotaAccantonamento)}% dell'incassato del periodo</div>
+    </div>
+    <div class="stat">
+      <div class="lbl">Preventivi inviati</div>
+      <div class="big">${eur(valPrev)}</div>
+      <div class="det">${prevInviati.length} inviati · ${nAcc} accettati nel periodo</div>
+    </div>
+    <div class="stat">
+      <div class="lbl">Progetti avviati</div>
+      <div class="big">${eur(valProg)}</div>
+      <div class="det">${progAvviati.length} per data di inizio</div>
+    </div>
+  </div>`;
+
+  const fattOrd = [...fattPeriodo].sort((a,c)=>{
+    const x=(a.dataIncasso||a.dataEmissione||''), y=(c.dataIncasso||c.dataEmissione||'');
+    return x<y?1:x>y?-1:0;
+  });
+  const righeFatt = fattOrd.map(f=>`<tr class="${fatturaScaduta(f)?'scaduta':''}">
+      <td><b>${esc(f.numero)}</b></td>
+      <td>${esc(f.titolo)}</td>
+      <td>${esc(nomeCliente(f.clienteId))}</td>
+      <td class="euro">${eur(f.totale)}</td>
+      <td>${badge(f.statoPagamento)}</td>
+      <td>${fmtData(f.dataEmissione)}</td>
+      <td>${fmtData(f.dataIncasso)}</td>
+      <td class="euro">${accantonare(f)?eur(accantonare(f)):'—'}</td>
+    </tr>`).join('');
+  const tabFatt = tabella(
+    ['N°','Titolo','Cliente','Totale','Stato','Emessa','Incassata','Accantona'],
+    righeFatt, 'Nessuna fattura in questo periodo.');
+
+  const righePrev = prevInviati
+    .sort((a,c)=>(c.dataInvio||'').localeCompare(a.dataInvio||''))
+    .map(p=>`<tr>
+      <td><b>${esc(p.numero)}</b></td>
+      <td>${esc(p.titolo)}</td>
+      <td>${esc(nomeCliente(p.clienteId))}</td>
+      <td class="euro">${eur(p.importo)}</td>
+      <td>${badge(p.stato)}</td>
+      <td>${fmtData(p.dataInvio)}</td>
+    </tr>`).join('');
+  const tabPrev = tabella(
+    ['N°','Titolo','Cliente','Importo','Stato','Inviato'],
+    righePrev, 'Nessun preventivo inviato in questo periodo.');
+
+  const righeProg = progAvviati
+    .sort((a,c)=>(c.dataInizio||'').localeCompare(a.dataInizio||''))
+    .map(p=>`<tr>
+      <td>${esc(p.titolo)}</td>
+      <td>${esc(nomeCliente(p.clienteId))}</td>
+      <td class="euro">${eur(p.valore)}</td>
+      <td>${badge(p.stato)}</td>
+      <td>${fmtData(p.dataInizio)}</td>
+    </tr>`).join('');
+  const tabProg = tabella(
+    ['Titolo','Cliente','Valore','Stato','Inizio'],
+    righeProg, 'Nessun progetto avviato in questo periodo.');
+
+  const totSenza = fattSenza.length + prevSenza.length + progSenza.length;
+  let senzaHtml = '';
+  if(totSenza){
+    const rFS = fattSenza.map(f=>`<tr><td><b>${esc(f.numero)}</b></td><td>${esc(f.titolo)}</td><td>${esc(nomeCliente(f.clienteId))}</td><td class="euro">${eur(f.totale)}</td><td>${badge(f.statoPagamento)}</td></tr>`).join('');
+    const rPS = prevSenza.map(p=>`<tr><td><b>${esc(p.numero)}</b></td><td>${esc(p.titolo)}</td><td>${esc(nomeCliente(p.clienteId))}</td><td class="euro">${eur(p.importo)}</td><td>${badge(p.stato)}</td></tr>`).join('');
+    const rGS = progSenza.map(p=>`<tr><td>—</td><td>${esc(p.titolo)}</td><td>${esc(nomeCliente(p.clienteId))}</td><td class="euro">${eur(p.valore)}</td><td>${badge(p.stato)}</td></tr>`).join('');
+    senzaHtml = `
+    <details class="res-senza" style="margin-top:22px;background:var(--card);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);padding:6px 16px 16px">
+      <summary style="cursor:pointer;font-weight:700;padding:12px 0">Senza data · ${totSenza} voci da completare</summary>
+      <p style="color:var(--muted);margin:.2em 0 1em">Queste voci non hanno la data che serve per collocarle in un periodo. Apri la scheda e compila la data (emissione/incasso, invio o inizio) perché rientrino nel resoconto.</p>
+      ${fattSenza.length ? '<h4 style="margin:.6em 0">Fatture</h4>'+tabella(['N°','Titolo','Cliente','Totale','Stato'], rFS, '') : ''}
+      ${prevSenza.length ? '<h4 style="margin:.6em 0">Preventivi</h4>'+tabella(['N°','Titolo','Cliente','Importo','Stato'], rPS, '') : ''}
+      ${progSenza.length ? '<h4 style="margin:.6em 0">Progetti</h4>'+tabella(['','Titolo','Cliente','Valore','Stato'], rGS, '') : ''}
+    </details>`;
+  }
+
+  return `
+  <div class="res-sep"></div>
+  <details class="res-wrap"${ui.resAperto?' open':''} ontoggle="ui.resAperto=this.open">
+    <summary><span class="res-ch">›</span><span class="res-tt">Resoconto</span><span class="res-hint">${resLabel(mode,b)} · grafico e tabelle</span></summary>
+    <div class="res-in">
+  ${vChartAndamento()}
+  ${barra}
+  ${cards}
+  <div class="sec-head" style="margin-top:24px"><h2>Fatture del periodo</h2><span class="sub">emesse o incassate nel periodo</span></div>
+  ${tabFatt}
+  <div class="sec-head" style="margin-top:24px"><h2>Preventivi inviati</h2></div>
+  ${tabPrev}
+  <div class="sec-head" style="margin-top:24px"><h2>Progetti avviati</h2></div>
+  ${tabProg}
+  ${senzaHtml}
+    </div>
+  </details>
   `;
 }
 
@@ -1506,6 +2017,18 @@ function generaAvvisi(){
   const out=[]; const oggiS=oggi();
   const lim=new Date(); lim.setDate(lim.getDate()+7);
   const limS=lim.getFullYear()+'-'+String(lim.getMonth()+1).padStart(2,'0')+'-'+String(lim.getDate()).padStart(2,'0');
+  // soglia 85.000€ del regime forfettario, sull'incassato dell'anno solare in corso
+  const annoCorr = new Date().getFullYear();
+  const incassatoAnnoCorr = somma(db.fatture.filter(f=>f.statoPagamento==='Pagata' && annoCompetenza(f)===annoCorr), valoreDoc);
+  if(incassatoAnnoCorr >= SOGLIA_FORFETTARIO_USCITA_IMMEDIATA) out.push({t:'r',vista:'dashboard',
+    titolo:'Superati i 100.000 € incassati nel '+annoCorr,
+    testo:'Incassato '+eur(incassatoAnnoCorr)+'. Per legge sei uscito dal regime forfettario da questo momento, con l\'obbligo di applicare l\'IVA sulle fatture emesse da ora. Parlane subito col commercialista.'});
+  else if(incassatoAnnoCorr >= SOGLIA_FORFETTARIO) out.push({t:'r',vista:'dashboard',
+    titolo:'Superata la soglia di 85.000 € nel '+annoCorr,
+    testo:'Incassato '+eur(incassatoAnnoCorr)+'. Dal '+(annoCorr+1)+' esci dal regime forfettario. Restano '+eur(SOGLIA_FORFETTARIO_USCITA_IMMEDIATA-incassatoAnnoCorr)+' prima dei 100.000 € (uscita immediata, con IVA da quel momento).'});
+  else if(incassatoAnnoCorr >= SOGLIA_FORFETTARIO*0.8) out.push({t:'a',vista:'dashboard',
+    titolo:'Vicino alla soglia di 85.000 € ('+Math.round(incassatoAnnoCorr/SOGLIA_FORFETTARIO*100)+'%)',
+    testo:'Incassato '+eur(incassatoAnnoCorr)+' nel '+annoCorr+'. Restano '+eur(SOGLIA_FORFETTARIO-incassatoAnnoCorr)+' prima della soglia: oltre 85.000 € esci dal regime forfettario dall\'anno dopo.'});
   // fatture
   const scadute=db.fatture.filter(fatturaScaduta);
   if(scadute.length) out.push({t:'r',vista:'fatture',
@@ -1603,19 +2126,41 @@ function promemoriaHTML(){
 
 /* overlay con la spiegazione del calcolo tasse */
 window.apriInfoTasse = function(){
+  const percSost = fmtPerc(db.impostaSostitutiva);
+  const percAcc  = fmtPerc(db.aliquotaAccantonamento);
   apriModal(`<h3>Come stimo le tasse (regime forfettario)</h3>
-  <p class="cloud-desc">Su ogni fattura <b>pagata</b> metto da parte circa il <b>23%</b> dell'incasso. Il conto, in parole semplici: lo Stato considera "reddito" solo il 78% di quello che incassi (coefficiente di redditività), e su quel 78% paghi l'imposta sostitutiva e i contributi INPS.</p>
+  <p class="cloud-desc">Su ogni fattura <b>pagata</b> metto da parte circa il <b>${percAcc}%</b> dell'incasso. Il conto, in parole semplici: lo Stato considera "reddito" solo il 78% di quello che incassi (coefficiente di redditività), e su quel 78% paghi l'imposta sostitutiva e i contributi INPS.</p>
   <div class="taxrow">
     <div class="taxpill">Coefficiente di redditività<b>78%</b></div>
-    <div class="taxpill">Imposta sostitutiva (primi 5 anni)<b>5%</b></div>
+    <div class="taxpill">Imposta sostitutiva<b>${percSost}%</b></div>
     <div class="taxpill">INPS Gestione Separata<b>~26%</b></div>
-    <div class="taxpill">Accantonamento consigliato<b>~23% dell'incasso</b></div>
+    <div class="taxpill">Accantonamento consigliato<b>~${percAcc}% dell'incasso</b></div>
   </div>
   <div class="avviso">⚠ <b>Stima indicativa per pianificare i versamenti, non un calcolo ufficiale:</b> aliquota e INPS da confermare con il commercialista.</div>
-  <div class="frm" style="margin-top:14px"><div class="frm-foot">
-    <button class="btn" onclick="apriSalvadanaio()">Vai al salvadanaio</button>
-    <button class="btn primary" onclick="chiudiModal()">Ho capito</button>
-  </div></div>`);
+  <form class="frm" style="margin-top:14px" onsubmit="salvaAliquoteTasse(event)">
+    <div><label>Imposta sostitutiva (%)</label><input type="number" name="impostaSostitutiva" step="0.01" min="0" max="50" value="${percSost}">
+      <div class="nota-campo">5% nei primi 5 anni di attività, poi 15%. Qui è solo un promemoria: non entra da sola nel calcolo, aggiorna anche l'aliquota di accantonamento qui sotto quando cambia.</div></div>
+    <div><label>Aliquota di accantonamento (%)</label><input type="number" name="aliquotaAccantonamento" step="0.01" min="0" max="70" value="${percAcc}">
+      <div class="nota-campo">Percentuale di ogni incasso messa da parte: è quella usata davvero nei calcoli di dashboard, fatture e resoconto. Ricalcolala col commercialista quando cambia l'imposta sostitutiva.</div></div>
+    <div class="frm-foot">
+      <button type="button" class="btn neutro" onclick="chiudiModal()">Chiudi</button>
+      <button type="button" class="btn" onclick="apriSalvadanaio()">Vai al salvadanaio</button>
+      <button type="submit" class="btn primary">Salva aliquote</button>
+    </div>
+  </form>`);
+};
+window.salvaAliquoteTasse = function(ev){
+  ev.preventDefault();
+  const f = ev.target;
+  const sost = numOK(f.elements.impostaSostitutiva.value);
+  const acc  = numOK(f.elements.aliquotaAccantonamento.value);
+  if(sost==null || sost<0 || sost>50 || acc==null || acc<0 || acc>70){
+    alert('Inserisci due percentuali valide (imposta sostitutiva 0–50%, aliquota di accantonamento 0–70%).');
+    return;
+  }
+  db.impostaSostitutiva = arrot(sost)/100;
+  db.aliquotaAccantonamento = arrot(acc)/100;
+  salva(); chiudiModal(); toast('Aliquote aggiornate'); render();
 };
 
 /* ============================================================
@@ -1819,9 +2364,12 @@ function vClienteDettaglio(){
   const incassato = somma(fatt.filter(f=>f.statoPagamento==='Pagata'), valoreDoc);
   const daIncassareC = fatt.filter(f=>f.statoPagamento==='Emessa'||fatturaScaduta(f));
   const daEmettereC = fatt.filter(f=>f.statoPagamento==='Da emettere');
-  // cifre concordate e ultimo rapporto lavorativo
+  // cifre concordate e ultimo rapporto lavorativo. Preventivi accettati e
+  // progetti sono conteggi indipendenti (un preventivo accettato genera una
+  // fattura, non un progetto): vanno sommati, non scelti in alternativa —
+  // con l'|| un cliente con entrambi perdeva il valore dei progetti.
   const accettati = prev.filter(p=>p.stato==='Accettato');
-  const concordato = somma(accettati, p=>p.importo) || somma(prog, p=>p.valore);
+  const concordato = somma(accettati, p=>p.importo) + somma(prog, p=>p.valore);
   const fatturatoC = somma(fatt.filter(f=>f.statoPagamento!=='Da emettere'), valoreDoc);
   let ultimo = null;
   fatt.forEach(f=>{ const d=f.dataIncasso||f.dataEmissione; if(d && (!ultimo||d>ultimo.data)) ultimo={data:d, cosa:'Fattura '+(f.numero||'')+' · '+f.titolo}; });
@@ -1978,7 +2526,7 @@ function cardPreventivo(p){
   const date = [];
   if(p.dataInvio) date.push('inviato '+fmtData(p.dataInvio));
   if(p.validoFino) date.push('valido fino '+fmtData(p.validoFino));
-  return `<div class="kcard" draggable="true" data-id="${p.id}" data-entity="preventivo">
+  return `<div class="kcard" draggable="true" data-id="${p.id}" data-entity="preventivo" data-cerca="${esc(testoCercaKb(p))}">
     <div class="kcard-top"><span class="num">${esc(p.numero)}</span><span class="kcard-val${p.importo==null?' vuoto':''}">${p.importo==null?'da quotare':eur(p.importo)}</span></div>
     <div class="kcard-title">${esc(p.titolo)}</div>
     <div class="kcard-sub">${esc(nomeCliente(p.clienteId))}</div>
@@ -1992,11 +2540,129 @@ function cardPreventivo(p){
     </div>
   </div>`;
 }
+/* ---------- board compatte + filtro periodo (Preventivi/Progetti/Fatture) ----------
+   Compatta (default): schede minimali, senza chip/date/icone — su touch non
+   esiste il drag & drop, quindi restano solo le frecce ‹ › e la scheda intera
+   apre la modifica (listener delegato più sotto, agganciato una volta sola
+   perché sopravviva ai render()). Esteso: schede complete, come in origine. */
+function kbBounds(mode, y, m){
+  let sm;
+  if(mode==='mese')           sm = m;
+  else if(mode==='trimestre') sm = Math.floor(m/3)*3;
+  else if(mode==='semestre')  sm = Math.floor(m/6)*6;
+  else                        sm = 0;
+  const len = LEN_PERIODO[mode];
+  const start = new Date(y, sm, 1), end = new Date(y, sm+len, 1);
+  return { from: fmtISO(start), to: fmtISO(end), start: start };
+}
+function kbLabel(mode, y, m){
+  const b = kbBounds(mode, y, m);
+  const sy = b.start.getFullYear(), sm = b.start.getMonth();
+  if(mode==='mese')      return MESI[sm]+' '+sy;
+  if(mode==='trimestre') return 'T'+(sm/3+1)+' '+sy;
+  if(mode==='semestre')  return (sm===0?'1º':'2º')+' semestre '+sy;
+  return ''+sy;
+}
+function kbIn(d, b){ return !!d && d>=b.from && d<b.to; }
+/* testo su cui cercare (numero, titolo, cliente): stessa stringa sia per il
+   filtro a render sia per il data-cerca delle schede, usato dal filtro dal
+   vivo mentre si digita. */
+function testoCercaKb(r){
+  return normCerca([r.numero, r.titolo, nomeCliente(r.clienteId)].join(' '));
+}
+/* filtra i record per periodo (mantiene sempre le schede SENZA data) e per
+   ricerca testuale (solo preventivi e fatture: la barra compare solo lì). */
+function kbFiltra(records, entity){
+  let out = records;
+  if(ui.kbMode !== 'tutto'){
+    const b = kbBounds(ui.kbMode, ui.kbY, ui.kbM);
+    out = out.filter(r=>{
+      if(entity === 'fattura'){
+        if(!r.dataEmissione && !r.dataIncasso) return true;           // senza data: sempre visibile
+        return kbIn(r.dataEmissione, b) || kbIn(r.dataIncasso, b);
+      }
+      const d = entity === 'preventivo' ? r.dataInvio : r.dataInizio;
+      return d ? kbIn(d, b) : true;                                   // senza data: sempre visibile
+    });
+  }
+  const campoCerca = entity==='preventivo' ? 'cercaPreventivi' : entity==='fattura' ? 'cercaFatture' : null;
+  const q = campoCerca ? normCerca((ui[campoCerca]||'').trim()) : '';
+  if(q) out = out.filter(r => testoCercaKb(r).includes(q));
+  return out;
+}
+/* Filtra le schede già a schermo senza ridisegnare la pagina (un render() a
+   ogni tasto chiuderebbe la tastiera sul telefono): aggiorna anche i contatori
+   di colonna (desktop) e delle schede di stato (mobile). kbFiltra() sopra
+   applica la STESSA ricerca a ogni render() vero e proprio (es. dopo aver
+   cambiato periodo), così i due meccanismi non divergono mai. */
+window.cercaBoard = function(entity, valore){
+  const campo = entity==='preventivo' ? 'cercaPreventivi' : 'cercaFatture';
+  ui[campo] = valore;
+  const q = normCerca(valore.trim());
+  document.querySelectorAll('#app .kb-col').forEach(col=>{
+    let visibili = 0;
+    col.querySelectorAll('.kcard').forEach(el=>{
+      const ok = !q || (el.dataset.cerca||'').includes(q);
+      el.hidden = !ok;
+      if(ok) visibili++;
+    });
+    const cEl = col.querySelector('.kb-count');
+    if(cEl) cEl.textContent = visibili;
+  });
+  document.querySelectorAll('#app .kb-tabs button').forEach((btn,i)=>{
+    const col = document.querySelectorAll('#app .kb-col')[i];
+    const nEl = btn.querySelector('.n');
+    if(col && nEl) nEl.textContent = col.querySelectorAll('.kcard:not([hidden])').length;
+  });
+  const nessuno = document.getElementById('kbNessuno');
+  if(nessuno) nessuno.hidden = !q || !!document.querySelector('#app .kcard:not([hidden])');
+};
+window.kbToggleCompact = function(){ ui.kbCompact = !ui.kbCompact; render(); };
+window.kbSetMode = function(m){ ui.kbMode = m; render(); };
+window.kbNav = function(dir){
+  const len = LEN_PERIODO[ui.kbMode] || 1;
+  const a = new Date(ui.kbY, ui.kbM + dir*len, 1);
+  ui.kbY = a.getFullYear(); ui.kbM = a.getMonth();
+  render();
+};
+window.kbOggi = function(){ const t=new Date(); ui.kbY=t.getFullYear(); ui.kbM=t.getMonth(); render(); };
+/* barra strumenti sopra ogni board */
+function kbToolbar(entity){
+  const modes = [['tutto','Tutto'],['mese','Mese'],['trimestre','Trimestre'],['semestre','Semestre'],['anno','Anno']];
+  const sel = modes.map(([v,l])=>'<option value="'+v+'"'+(v===ui.kbMode?' selected':'')+'>'+l+'</option>').join('');
+  const showNav = ui.kbMode !== 'tutto';
+  const navHtml = showNav
+    ? `<span style="display:inline-flex;align-items:center;gap:6px">
+         <button class="btn neutro" onclick="kbNav(-1)" aria-label="Periodo precedente" style="min-width:40px">‹</button>
+         <b style="min-width:120px;text-align:center">${kbLabel(ui.kbMode, ui.kbY, ui.kbM)}</b>
+         <button class="btn neutro" onclick="kbNav(1)" aria-label="Periodo successivo" style="min-width:40px">›</button>
+         <button class="btn" onclick="kbOggi()">Oggi</button>
+       </span>`
+    : '';
+  // la ricerca vive solo su preventivi e fatture (non sui progetti)
+  const campoCerca = entity==='preventivo' ? 'cercaPreventivi' : entity==='fattura' ? 'cercaFatture' : null;
+  const ricercaHtml = campoCerca
+    ? `<input type="search" class="cerca" placeholder="Cerca per numero, titolo o cliente…" aria-label="Cerca ${esc(entity)}"
+        value="${esc(ui[campoCerca]||'')}" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="80"
+        oninput="cercaBoard('${entity}', this.value)">`
+    : '';
+  return `<div class="kb-toolbar">
+    <button class="btn" onclick="kbToggleCompact()">${ui.kbCompact ? '▤ Esteso' : '▦ Compatta'}</button>
+    <select onchange="kbSetMode(this.value)" aria-label="Filtro periodo">${sel}</select>
+    ${navHtml}
+    ${ricercaHtml}
+  </div>`;
+}
+function kbWrap(kbHtml, conRicerca){
+  return '<div class="kbwrap'+(ui.kbCompact ? ' compact' : '')+'">'+kbHtml+'</div>'
+    + (conRicerca ? '<div class="twrap" id="kbNessuno" hidden><div class="vuoto">Nessun risultato per la ricerca.</div></div>' : '');
+}
 function vPreventivi(){
   return `
   ${sezioneCantieri()}
   <div class="sec-head"><h2>Preventivi</h2><button class="btn primary" onclick="apriFormPreventivo()">${ICO.plus}Nuovo</button></div>
-  ${kanban('preventivo', STATI_PREVENTIVO, db.preventivi, 'stato', cardPreventivo)}
+  ${kbToolbar('preventivo')}
+  ${kbWrap(kanban('preventivo', STATI_PREVENTIVO, kbFiltra(db.preventivi,'preventivo'), 'stato', cardPreventivo), true)}
   `;
 }
 
@@ -2029,7 +2695,8 @@ function cardProgetto(p){
 function vProgetti(){
   return `
   <div class="sec-head"><h2>Progetti</h2><button class="btn primary" onclick="apriFormProgetto()">${ICO.plus}Nuovo</button></div>
-  ${kanban('progetto', STATI_PROGETTO, db.progetti, 'stato', cardProgetto)}
+  ${kbToolbar()}
+  ${kbWrap(kanban('progetto', STATI_PROGETTO, kbFiltra(db.progetti,'progetto'), 'stato', cardProgetto))}
   `;
 }
 
@@ -2039,7 +2706,7 @@ function fatturaScaduta(f){
 }
 function cardFattura(f){
   const acc = accantonare(f);
-  return `<div class="kcard" draggable="true" data-id="${f.id}" data-entity="fattura">
+  return `<div class="kcard" draggable="true" data-id="${f.id}" data-entity="fattura" data-cerca="${esc(testoCercaKb(f))}">
     <div class="kcard-top"><span class="num">${esc(f.numero)}</span><span class="kcard-val${f.totale==null?' vuoto':''}">${f.totale==null?'da definire':eur(f.totale)}</span></div>
     <div class="kcard-title">${esc(f.titolo)}</div>
     <div class="kcard-sub">${esc(nomeCliente(f.clienteId))} · ${esc(f.tipoDoc)}</div>
@@ -2073,18 +2740,65 @@ function scadenzarioHTML(soloAperte){
       <td style="white-space:nowrap"><button class="icon" onclick="apriDocumento('fattura','${f.id}')" title="Documento: PDF e XML">${ICO.doc}</button>${bottoneAllegati('fattura', f)}<button class="icon" onclick="apriFormFattura('${f.id}')" title="Modifica">${ICO.pen}</button></td>
     </tr>`).join('');
   return `
-  <div class="sec-head"><h2>${soloAperte?'Scadenzario — da incassare':'Scadenzario fatture'}</h2><span class="sub">per scadenza di pagamento</span></div>
+  <div class="sec-head"><h2>${soloAperte?'Scadenzario — da incassare':'Scadenzario fatture'}</h2><span class="sub">per scadenza di pagamento</span>
+    ${soloAperte ? '' : '<button class="btn" onclick="esportaScadenzarioCSV()">Esporta CSV</button>'}</div>
   <div class="twrap"><table>
     <thead><tr><th>N°</th><th>Titolo</th><th>Cliente</th><th>Totale</th><th>Stato</th><th>Scad. pagamento</th><th>Incasso</th><th>Da accantonare</th><th></th></tr></thead>
     <tbody>${righe}</tbody>
   </table></div>`;
 }
+/* ---------- export CSV dello scadenzario, per il commercialista ----------
+   Separatore ";" e virgola decimale: è il formato che Excel italiano apre
+   già in colonne. Le cifre NON hanno il punto delle migliaia: nel CSV sono
+   dati da calcolare, e "1.700,00" rischia di essere letto come testo; il
+   foglio di calcolo le mostra poi col suo formato. BOM in testa per gli
+   accenti in Excel. */
+function csvCampo(v, testo){
+  let s = v==null ? '' : String(v);
+  // un campo di testo che inizia con = + - @ verrebbe eseguito come formula
+  if(testo && /^[=+\-@\t\r]/.test(s)) s = "'" + s;
+  return '"' + s.replace(/"/g, '""') + '"';
+}
+function csvNum(n){ return n==null || n==='' || isNaN(n) ? '' : Number(n).toFixed(2).replace('.', ','); }
+function scadenzarioCSV(){
+  const intest = ['Numero','Tipo documento','Data emissione','Cliente','P.IVA / C.F. cliente','Titolo',
+    'Imponibile','Bollo in rivalsa','Totale','Stato','Scadenza pagamento','Data incasso','Metodo','Da accantonare'];
+  const list = [...db.fatture].sort((a,b)=>{
+    const x=a.scadenzaPagamento||'9999-12-31', y=b.scadenzaPagamento||'9999-12-31';
+    return x<y?-1:x>y?1:0;
+  });
+  const righe = list.map(f=>{
+    const c = getCliente(f.clienteId) || {};
+    const bollo = f.rivalsaBollo && calcolaFattura(f).bolloDovuto ? IMPORTO_BOLLO : 0;
+    return [
+      csvCampo(f.numero, true), csvCampo(f.tipoDoc, true), csvCampo(fmtData(f.dataEmissione)==='—'?'':fmtData(f.dataEmissione)),
+      csvCampo(c.nome, true), csvCampo(c.piva || c.cf, true), csvCampo(f.titolo, true),
+      csvNum(f.imponibile), csvNum(bollo), csvNum(f.totale),
+      csvCampo(fatturaScaduta(f) && f.statoPagamento!=='Scaduta' ? 'Scaduta' : f.statoPagamento),
+      csvCampo(fmtData(f.scadenzaPagamento)==='—'?'':fmtData(f.scadenzaPagamento)),
+      csvCampo(fmtData(f.dataIncasso)==='—'?'':fmtData(f.dataIncasso)),
+      csvCampo(f.metodo, true), csvNum(accantonare(f) || null)
+    ].join(';');
+  });
+  return '﻿' + [intest.map(h=>csvCampo(h)).join(';'), ...righe].join('\r\n');
+}
+window.esportaScadenzarioCSV = function(){
+  if(!db.fatture.length){ toast('Nessuna fattura da esportare'); return; }
+  const blob = new Blob([scadenzarioCSV()], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'scadenzario-fatture-'+oggi()+'.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 500);
+  toast('Scadenzario esportato');
+};
 function vFatture(){
   return `
   <div class="sec-head"><h2>Fatture</h2>
     <span class="sub"><button class="linkino-btn" onclick="apriImpostazioniSdI()">Fatturazione elettronica: invio n. ${prog5(db.counters.xml||0)}</button></span>
     <button class="btn primary" onclick="apriFormFattura()">${ICO.plus}Nuova</button></div>
-  ${kanban('fattura', STATI_FATTURA, db.fatture, 'statoPagamento', cardFattura)}
+  ${kbToolbar('fattura')}
+  ${kbWrap(kanban('fattura', STATI_FATTURA, kbFiltra(db.fatture,'fattura'), 'statoPagamento', cardFattura), true)}
   ${scadenzarioHTML(false)}
   `;
 }
@@ -2563,7 +3277,7 @@ window.aggiornaHintFattura = function(form){
   const tot = parseFloat(form.elements.totale.value)||0;
   const pagata = form.elements.statoPagamento.value==='Pagata';
   const hintA = form.querySelector('.hint-acc');
-  if(hintA) hintA.textContent = 'Da accantonare per le tasse: ' + eur(pagata ? arrot(tot*ALIQUOTA_ACC) : 0) + (pagata?'':' (si calcola quando la fattura è Pagata)');
+  if(hintA) hintA.textContent = 'Da accantonare per le tasse: ' + eur(pagata ? arrot(tot*(db.aliquotaAccantonamento!=null ? db.aliquotaAccantonamento : ALIQUOTA_ACC)) : 0) + (pagata?'':' (si calcola quando la fattura è Pagata)');
 };
 window.salvaFattura = function(ev){
   ev.preventDefault();
@@ -2584,6 +3298,12 @@ window.salvaFattura = function(ev){
     alert('Il numero "'+numero+'" è già usato da un\'altra fattura. Scegline uno diverso.');
     return;
   }
+  const conflitto = fatturaFuoriOrdine(numero, dataEmissione, id);
+  if(conflitto && !confirm(
+    'Occhio all\'ordine cronologico: la fattura numero "'+numero+'" del '+fmtData(dataEmissione)+
+    ' e la numero "'+conflitto.numero+'" del '+fmtData(conflitto.dataEmissione)+
+    ' hanno numeri e date in ordine opposto. Salvare comunque?'
+  )) return;
   const dati={titolo:v('titolo'),numero,mese:v('mese')||'',tipoDoc:v('tipoDoc'),clienteId:v('clienteId')||null,progettoId:v('progettoId')||null,
     voci, natura:v('natura')||'N2.2', condizioni:v('condizioni'), rivalsaBollo:f.elements.rivalsaBollo.checked,
     imponibile:imp===''?null:parseFloat(imp), totale:tot===''?null:parseFloat(tot),
@@ -2654,7 +3374,8 @@ window.creaFatturaDaProgetto = function(id){
 /* ---------- formati ---------- */
 function fmtQta(q){
   const n = parseFloat(q)||0;
-  return Number.isInteger(n) ? String(n) : String(n).replace('.', ',');
+  const decimali = Number.isInteger(n) ? 0 : (String(n).split('.')[1]||'').length;
+  return numIT(n, decimali);
 }
 /* Riga "3 ore × € 45,00".
    Il formato della cifra cambia col posto in cui finisce: l'app usa eur()
@@ -3109,7 +3830,7 @@ window.eliminaVoceListino = function(id){
 
 function eurDoc(n){
   if(n == null || n === '' || isNaN(n)) return '—';
-  return '€ ' + new Intl.NumberFormat('it-IT',{minimumFractionDigits:2, maximumFractionDigits:2}).format(parseFloat(n));
+  return '€ ' + numIT(parseFloat(n), 2);
 }
 function num2(n){ return (Math.round((parseFloat(n)||0)*100)/100).toFixed(2); }   // formato XML: 125.00
 function prog5(n){ return String(n||0).padStart(5,'0'); }
@@ -3174,7 +3895,7 @@ function docFatturaHTML(f){
     ? 'Imposta di bollo da € 2,00 addebitata in rivalsa al cliente.'
     : NOTA_BOLLO);
 
-  return `<div class="doc">
+  return `<div class="doc doc-fattura">
     <div class="d-hdr">
       <div class="d-hdr-l">
         ${docHeaderNB([['Email',NB.email],['Tel',NB.telefono],['P.IVA',NB.piva],['C.F.',NB.cf],
@@ -3255,7 +3976,7 @@ function docPreventivoHTML(p){
       <td>${esc(v.descrizione)}${v.dettaglio?' <span class="d-det">('+esc(v.dettaglio)+')</span>':''}</td>
       <td class="d-imp">${v.importo!=null && v.importo>0 ? eurDoc(v.importo) : '—'}</td></tr>`;
 
-  return `<div class="doc">
+  return `<div class="doc doc-preventivo">
     <div class="d-hdr">
       <div class="d-hdr-l">
         ${docHeaderNB([['Email',NB.email],['Tel',NB.telefono],['P.IVA',NB.piva],
@@ -3577,8 +4298,23 @@ function apriDocumento(tipo, id){
     <div class="doc-scroll">${corpo}</div>`;
   ov.classList.add('open');
   document.body.classList.add('doc-aperto');
+  adattaFoglio();
 }
 window.apriDocumento = apriDocumento;
+/* Il foglio è largo 210mm fissi: se lo schermo è più stretto lo rimpicciolisco
+   in proporzione (zoom) invece di ricomporlo, così resta una pagina A4
+   riconoscibile e senza scorrimento orizzontale. In stampa zoom torna a 1. */
+function adattaFoglio(){
+  const doc = document.querySelector('#docOverlay .doc');
+  const box = document.querySelector('#docOverlay .doc-scroll');
+  if(!doc || !box) return;
+  doc.style.zoom = '';
+  const cs = getComputedStyle(box);
+  const disponibile = box.clientWidth - (parseFloat(cs.paddingLeft)||0) - (parseFloat(cs.paddingRight)||0);
+  const f = disponibile / doc.offsetWidth;
+  if(f > 0 && f < 1) doc.style.zoom = f.toFixed(4);
+}
+window.addEventListener('resize', ()=>{ if(document.body.classList.contains('doc-aperto')) adattaFoglio(); });
 window.chiudiDocumento = function(){
   const ov = document.getElementById('docOverlay');
   if(ov){ ov.classList.remove('open'); ov.innerHTML=''; }
@@ -3617,7 +4353,7 @@ $('#importFile').addEventListener('change', e=>{
       const d = JSON.parse(r.result);
       if(!Array.isArray(d.clienti)||!Array.isArray(d.preventivi)||!Array.isArray(d.progetti)||!Array.isArray(d.fatture)) throw new Error('struttura');
       if(!confirm('Importare il backup? I dati attuali verranno sostituiti.')) return;
-      db = d; db.counters = db.counters || {pr:0,ft:0};
+      db = d; db.counters = db.counters || {pr:0};
       migraDati();
       salva(); render(); toast('Backup importato');
     }catch(_){ alert('File non valido: deve essere un backup JSON di questo gestionale.'); }
@@ -3683,10 +4419,10 @@ function datiDiUnAltroAccount(){
   const o = ownerLocale();
   return !!(o && utente && o !== utente.id);
 }
-function dbVuoto(){ return { clienti:[], preventivi:[], progetti:[], fatture:[], cantieri:[], listino:[], versamenti:[], counters:{pr:0,ft:0,xml:0} }; }
+function dbVuoto(){ return { clienti:[], preventivi:[], progetti:[], fatture:[], cantieri:[], listino:[], versamenti:[], counters:{pr:0,xml:0} }; }
 function applicaRemoto(remoto){
   db = remoto.dati || db;
-  db.counters = db.counters || {pr:0,ft:0};
+  db.counters = db.counters || {pr:0};
   migraDati();
   cloudStamp = remoto.updated_at;
   segnaOwner(utente ? utente.id : '');
@@ -3804,7 +4540,7 @@ function attivaRealtime(){
           // ignora l'eco dei propri salvataggi e non toccare modifiche locali in corso
           if(!nuovo || nuovo.updated_at === cloudStamp || modifichePendenti) return;
           db = nuovo.dati || db;
-          db.counters = db.counters || {pr:0,ft:0};
+          db.counters = db.counters || {pr:0};
           migraDati();
           cloudStamp = nuovo.updated_at;
           salvaLocale(); render(); setSync('ok');
@@ -3925,587 +4661,12 @@ if('serviceWorker' in navigator && (location.protocol==='https:' || location.hos
 
 /* ---------- avvio ---------- */
 if(!lsOk) $('#bannerMem').style.display='block';
-/* ============================================================
-   SEZIONE "RESOCONTO" — Gestionale P.IVA
-   Filtra fatture/preventivi/progetti per periodo (Mese/Trimestre/Semestre/
-   Anno) con navigazione avanti/indietro. In cima, un grafico a barre
-   "Andamento fatturato" (Emesso/Incassato, SVG disegnato a mano) su una
-   finestra di 12 mesi; il mese in evidenza è sincronizzato con quello
-   del Resoconto sotto (cliccare un mese o usare le frecce del grafico
-   imposta anche il periodo del Resoconto, e viceversa). Di default la
-   finestra mostra gli ultimi 12 mesi da oggi, ma scorre per seguire il
-   mese selezionato quando questo esce dalla finestra corrente (vedi
-   finestraFine più sotto).
-   NON è più una pagina a sé: viene renderizzata IN CODA alla Dashboard,
-   subito sotto "Consigli & promemoria".
-   Non modifica nessuna riga esistente. Per rimuoverla, cancella questo blocco.
-   ============================================================ */
+
+/* In compatta la scheda apre la modifica: le icone sono nascoste, quindi senza
+   questo la scheda sarebbe muta (niente matita, niente documento, niente
+   cestino). Il listener sta su #app e non sulle schede, così sopravvive ai
+   render() che ne riscrivono il contenuto. */
 (function(){
-
-  /* 1. nessuna voce di menu: il Resoconto vive dentro la Dashboard.
-        Rimuove l'eventuale voce residua e reindirizza la vecchia vista. */
-  const _iRes = VIEWS.findIndex(v=>v.id==='resoconto');
-  if(_iRes > -1) VIEWS.splice(_iRes, 1);
-  if(ui.view === 'resoconto') ui.view = 'dashboard';
-  const _vaiBase = vai;
-  vai = function(view, clienteId){
-    return _vaiBase(view === 'resoconto' ? 'dashboard' : view, clienteId);
-  };
-  window.vai = vai;
-
-  /* 2. stato del periodo selezionato */
-  const _oggi = new Date();
-  if(ui.resMode == null) ui.resMode = 'mese';
-  if(ui.resY == null){ ui.resY = _oggi.getFullYear(); ui.resM = _oggi.getMonth(); }
-
-  const MESI = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-  const LEN  = {mese:1, trimestre:3, semestre:6, anno:12};
-
-  function pad2(n){ return String(n).padStart(2,'0'); }
-  function fmtISO(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
-
-  function resBounds(mode, anchor){
-    const y = anchor.getFullYear(), m = anchor.getMonth();
-    let sm;
-    if(mode==='mese')           sm = m;
-    else if(mode==='trimestre') sm = Math.floor(m/3)*3;
-    else if(mode==='semestre')  sm = Math.floor(m/6)*6;
-    else                        sm = 0;
-    const len = LEN[mode];
-    const start = new Date(y, sm, 1), end = new Date(y, sm+len, 1);
-    return { from: fmtISO(start), to: fmtISO(end), start: start };
-  }
-  function resLabel(mode, b){
-    const y = b.start.getFullYear(), sm = b.start.getMonth();
-    if(mode==='mese')      return MESI[sm]+' '+y;
-    if(mode==='trimestre') return 'T'+(sm/3+1)+' '+y;
-    if(mode==='semestre')  return (sm===0?'1º':'2º')+' semestre '+y;
-    return ''+y;
-  }
-  function inP(d, b){ return !!d && d>=b.from && d<b.to; }
-
-  function resDelta(cur, prev){
-    if(!prev) return '';
-    const p = Math.round((cur-prev)/prev*100);
-    if(p===0) return ' · = periodo prec.';
-    const su = p>0;
-    return ' · <b style="color:'+(su?'var(--ok)':'var(--danger)')+'">'+(su?'▲':'▼')+' '+Math.abs(p)+'%</b> vs prec.';
-  }
-
-  /* 3. controlli del selettore (globali per gli onclick)
-        resRender mantiene la posizione di scroll: il Resoconto sta in fondo
-        alla Dashboard, un salto in cima a ogni cambio periodo sarebbe fastidioso. */
-  function resRender(){
-    const y = window.scrollY;
-    render();
-    try{ window.scrollTo(0, y); }catch(e){}
-  }
-  window.resSetMode = function(m){ ui.resMode = m; resRender(); };
-  window.resNav = function(dir){
-    const len = LEN[ui.resMode];
-    const a = new Date(ui.resY, ui.resM + dir*len, 1);
-    ui.resY = a.getFullYear(); ui.resM = a.getMonth();
-    resRender();
-  };
-  window.resOggi = function(){
-    const t = new Date(); ui.resY = t.getFullYear(); ui.resM = t.getMonth();
-    resRender();
-  };
-  window.chartSelMese = function(anno, mese){
-    ui.resMode = 'mese'; ui.resY = anno; ui.resM = mese;
-    resRender();
-  };
-  window.chartNav = function(dir){
-    const a = new Date(ui.resY, ui.resM + dir, 1);
-    ui.resMode = 'mese'; ui.resY = a.getFullYear(); ui.resM = a.getMonth();
-    resRender();
-  };
-
-  /* 4. costruttore tabelle (riusa gli stili esistenti) */
-  function tabella(intestazioni, righeHtml, vuotoMsg){
-    if(!righeHtml){
-      return '<div class="twrap"><div class="vuoto" style="padding:14px">'+vuotoMsg+'</div></div>';
-    }
-    return '<div class="twrap"><table><thead><tr>'
-      + intestazioni.map(h=>'<th>'+h+'</th>').join('')
-      + '</tr></thead><tbody>'+righeHtml+'</tbody></table></div>';
-  }
-
-  /* 4b. grafico "Andamento fatturato" — barre Emesso/Incassato, finestra
-        di 12 mesi che di default mostra gli ultimi 12 rispetto a oggi, ma
-        scorre (finestraFine) per includere sempre il mese selezionato
-        (ui.resY/ui.resM, condiviso col Resoconto): cliccare una colonna o
-        le frecce del grafico chiama chartSelMese/chartNav, che impostano
-        anche il periodo del Resoconto sotto, e viceversa.
-        SVG disegnato a mano, nessuna libreria. */
-  function eur0(n){ return new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n||0); }
-  function niceMax(v){
-    if(v<=0) return 100;
-    const exp = Math.floor(Math.log10(v));
-    const f = v / Math.pow(10, exp);
-    const nf = f<=1?1 : f<=2?2 : f<=5?5 : 10;
-    return nf * Math.pow(10, exp);
-  }
-  function finestraFine(sel){
-    const oggi = new Date(), oggiM = new Date(oggi.getFullYear(), oggi.getMonth(), 1);
-    const inizioDefault = new Date(oggiM.getFullYear(), oggiM.getMonth()-11, 1);
-    if(sel > oggiM) return new Date(sel.getFullYear(), sel.getMonth(), 1);
-    if(sel < inizioDefault) return new Date(sel.getFullYear(), sel.getMonth()+11, 1);
-    return oggiM;
-  }
-  function datiAndamento12m(){
-    const fine = finestraFine(new Date(ui.resY, ui.resM, 1));
-    const out = [];
-    for(let i=11; i>=0; i--){
-      const d = new Date(fine.getFullYear(), fine.getMonth()-i, 1);
-      const y = d.getFullYear(), m = d.getMonth();
-      const from = fmtISO(new Date(y,m,1)), to = fmtISO(new Date(y,m+1,1));
-      const dentro = dt => dt>=from && dt<to;
-      out.push({
-        label: MESI[m].slice(0,3),
-        mese: m,
-        anno: y,
-        emesso:    somma(db.fatture.filter(f=>dentro(f.dataEmissione||'')), valoreDoc),
-        incassato: somma(db.fatture.filter(f=>f.statoPagamento==='Pagata' && dentro(f.dataIncasso||'')), valoreDoc),
-      });
-    }
-    return out;
-  }
-  // Il testo dentro un SVG scala con l'intero disegno (viewBox): con un viewBox
-  // fisso a 900 unità, su un telefono (SVG renderizzato ~300px) un "font-size:11px"
-  // diventa realmente ~3-4px, illeggibile. Costruendo il viewBox sulla larghezza
-  // reale del contenitore, il fattore di scala resta vicino a 1 su ogni schermo.
-  function larghezzaGraficoSvg(){
-    const card = document.querySelector('.chart-card');
-    if(card){
-      const cs = getComputedStyle(card);
-      const w = card.clientWidth - (parseFloat(cs.paddingLeft)||0) - (parseFloat(cs.paddingRight)||0);
-      if(w > 0) return Math.round(w);
-    }
-    const padMain = (window.innerWidth||900) <= 640 ? 24 : 32;
-    return Math.max(280, Math.round((window.innerWidth||900) - padMain - 36));
-  }
-  function svgAndamento(mesi){
-    const max = Math.max(1, ...mesi.map(m=>Math.max(m.emesso, m.incassato)));
-    const top = niceMax(max);
-    const W=larghezzaGraficoSvg(), H=280, ml=54, mr=10, mt=16, mb=28;
-    const pw = W-ml-mr, ph = H-mt-mb, y0 = mt+ph;
-    const y = v => mt + ph - (v/top)*ph;
-    const gw = pw/mesi.length, bw = Math.min(27, gw*0.38), gap = 2;
-    const selIdx = mesi.findIndex(m=>m.anno===ui.resY && m.mese===ui.resM);
-
-    const grid = [top/2, top].map(v=>{
-      const yy = y(v);
-      return `<line x1="${ml}" y1="${yy}" x2="${W-mr}" y2="${yy}" class="chart-grid"/>`
-           + `<text x="${ml-8}" y="${yy+4}" text-anchor="end" class="chart-axis">${eur0(v)}</text>`;
-    }).join('');
-
-    function barra(x, yTop, w, h){
-      if(h<=0) return '';
-      const r = Math.min(4, w/2, h);
-      return `M${x},${y0} L${x},${yTop+r} Q${x},${yTop} ${x+r},${yTop} `
-           + `L${x+w-r},${yTop} Q${x+w},${yTop} ${x+w},${yTop+r} L${x+w},${y0} Z`;
-    }
-
-    const gruppi = mesi.map((m,i)=>{
-      const cx = ml + i*gw + gw/2;
-      const x1 = cx - gap/2 - bw, x2 = cx + gap/2;
-      const y1 = y(m.emesso), y2 = y(m.incassato);
-      const sel = i===selIdx;
-      const dim = selIdx!==-1 && !sel;
-      const cls = c => dim ? c+' dim' : c;
-      // Le cifre del mese selezionato vanno in un tooltip scuro (badge colorato +
-      // valore, una riga per serie) ancorato al gruppo, non a ciascuna barra: così
-      // quando i due valori coincidono (o sono vicini) non si sovrappongono mai.
-      let cifre = '';
-      if(sel){
-        const testi = [eur0(m.emesso), eur0(m.incassato)];
-        const padX=10, padY=7, sw=9, gap=7, rowH=17;
-        const maxLen = Math.max(testi[0].length, testi[1].length);
-        const boxW = Math.round(Math.max(86, padX*2+sw+gap+maxLen*6.6));
-        const boxH = padY*2+rowH*2;
-        // Clampato in orizzontale così il box non esce dal grafico (mese selezionato
-        // = prima o ultima colonna) né copre l'etichetta dell'asse Y a sinistra.
-        const boxX = Math.min(Math.max(cx-boxW/2, ml+4), W-mr-boxW-4);
-        const boxY = Math.max(mt-2, Math.min(y1,y2)-10-boxH);
-        const r1y = boxY+padY+12, r2y = r1y+rowH;
-        const swX = boxX+padX, txX = swX+sw+gap;
-        // pointer-events:none: il box è più largo della colonna e altrimenti
-        // ruba i click alla colonna adiacente su cui si sovrappone.
-        cifre = `<g class="chart-tip" style="pointer-events:none">
-          <rect x="${boxX}" y="${boxY}" width="${boxW}" height="${boxH}" rx="12" class="chart-tip-bg" filter="url(#chartTipShadow)"/>
-          <rect x="${swX}" y="${r1y-9}" width="${sw}" height="${sw}" rx="2" class="chart-tip-sw1"/>
-          <text x="${txX}" y="${r1y}" class="chart-tip-txt">${testi[0]}</text>
-          <rect x="${swX}" y="${r2y-9}" width="${sw}" height="${sw}" rx="2" class="chart-tip-sw2"/>
-          <text x="${txX}" y="${r2y}" class="chart-tip-txt">${testi[1]}</text>
-        </g>`;
-      }
-      const hl = sel ? `<rect x="${ml+i*gw+2}" y="${mt}" width="${gw-4}" height="${ph}" rx="8" class="chart-hl"/>` : '';
-      return `<g class="chart-mese" onclick="chartSelMese(${m.anno},${m.mese})">
-        ${hl}
-        <rect x="${ml+i*gw}" y="${mt}" width="${gw}" height="${ph}" fill="transparent"/>
-        <path d="${barra(x1,y1,bw,y0-y1)}" class="${cls('chart-bar-1')}"><title>${esc(m.label+' '+m.anno)} · Emesso ${eur(m.emesso)}</title></path>
-        <path d="${barra(x2,y2,bw,y0-y2)}" class="${cls('chart-bar-2')}"><title>${esc(m.label+' '+m.anno)} · Incassato ${eur(m.incassato)}</title></path>
-        ${cifre}
-        <text x="${cx}" y="${H-8}" text-anchor="middle" class="chart-axis${dim?' dim':''}${sel?' sel':''}">${esc(m.label)}</text>
-      </g>`;
-    }).join('');
-
-    return `<svg viewBox="0 0 ${W} ${H}" class="chart-svg" role="img" aria-label="Andamento fatturato: emesso e incassato su 12 mesi">
-      <defs><filter id="chartTipShadow" x="-40%" y="-40%" width="180%" height="180%">
-        <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.22"/>
-      </filter></defs>
-      <line x1="${ml}" y1="${y0}" x2="${W-mr}" y2="${y0}" class="chart-axisline"/>
-      <text x="${ml-8}" y="${y0+4}" text-anchor="end" class="chart-axis">€0</text>
-      ${grid}
-      ${gruppi}
-    </svg>`;
-  }
-  function vChartAndamento(){
-    const mesi = datiAndamento12m();
-    const selIdx = mesi.findIndex(m=>m.anno===ui.resY && m.mese===ui.resM);
-    const navLabel = selIdx>-1 ? (MESI[mesi[selIdx].mese]+' '+mesi[selIdx].anno) : '—';
-    return `
-    <div class="chart-card">
-      <div class="chart-head">
-        <div>
-          <div class="chart-title">Andamento fatturato</div>
-          <div class="chart-sub">12 mesi · clicca un mese o usa le frecce</div>
-        </div>
-        <div class="chart-nav">
-          <button class="btn neutro mini" onclick="chartNav(-1)" aria-label="Mese precedente">‹</button>
-          <b>${esc(navLabel)}</b>
-          <button class="btn neutro mini" onclick="chartNav(1)" aria-label="Mese successivo">›</button>
-        </div>
-        <div class="chart-legend">
-          <span class="lk lk-1">Emesso <b>${eur0(somma(mesi,m=>m.emesso))}</b></span>
-          <span class="lk lk-2">Incassato <b>${eur0(somma(mesi,m=>m.incassato))}</b></span>
-        </div>
-      </div>
-      ${svgAndamento(mesi)}
-    </div>`;
-  }
-
-  /* 5. vista Resoconto */
-  window.vResoconto = function(){
-    const mode = ui.resMode;
-    const anchor = new Date(ui.resY, ui.resM, 1);
-    const b     = resBounds(mode, anchor);
-    const len   = LEN[mode];
-    const bPrev = resBounds(mode, new Date(anchor.getFullYear(), anchor.getMonth()-len, 1));
-
-    const emesse      = db.fatture.filter(f=> inP(f.dataEmissione, b));
-    const incassate   = db.fatture.filter(f=> f.statoPagamento==='Pagata' && inP(f.dataIncasso, b));
-    const emessePrev    = db.fatture.filter(f=> inP(f.dataEmissione, bPrev));
-    const incassatePrev = db.fatture.filter(f=> f.statoPagamento==='Pagata' && inP(f.dataIncasso, bPrev));
-    const fattPeriodo = db.fatture.filter(f=> inP(f.dataEmissione,b) || inP(f.dataIncasso,b));
-    const fattSenza   = db.fatture.filter(f=> !f.dataEmissione && !f.dataIncasso);
-
-    const fatturato    = somma(emesse,    valoreDoc);
-    const incassato    = somma(incassate, valoreDoc);
-    const accantona    = somma(incassate, accantonare);
-    const fatturatoPrev = somma(emessePrev,    valoreDoc);
-    const incassatoPrev = somma(incassatePrev, valoreDoc);
-
-    const prevInviati = db.preventivi.filter(p=> inP(p.dataInvio, b));
-    const prevSenza   = db.preventivi.filter(p=> !p.dataInvio);
-    const valPrev     = somma(prevInviati, p=>p.importo);
-    const nAcc        = prevInviati.filter(p=>p.stato==='Accettato').length;
-
-    const progAvviati = db.progetti.filter(p=> inP(p.dataInizio, b));
-    const progSenza   = db.progetti.filter(p=> !p.dataInizio);
-    const valProg     = somma(progAvviati, p=>p.valore);
-
-    const selMode = ['mese','trimestre','semestre','anno'].map(m=>
-      '<option value="'+m+'"'+(m===mode?' selected':'')+'>'+
-      ({mese:'Mese',trimestre:'Trimestre',semestre:'Semestre',anno:'Anno'}[m])+'</option>').join('');
-
-    const barra = `
-    <div class="res-bar" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 16px">
-      <select onchange="resSetMode(this.value)" style="padding:9px 12px;border-radius:12px;border:1px solid var(--line);background:var(--input);color:var(--ink);font-size:15px;font-weight:600">${selMode}</select>
-      <div style="display:flex;align-items:center;gap:8px">
-        <button class="btn neutro" onclick="resNav(-1)" aria-label="Periodo precedente" style="min-width:44px">‹</button>
-        <b style="min-width:150px;text-align:center;font-size:16px">${resLabel(mode,b)}</b>
-        <button class="btn neutro" onclick="resNav(1)" aria-label="Periodo successivo" style="min-width:44px">›</button>
-      </div>
-      <button class="btn" onclick="resOggi()">Oggi</button>
-    </div>`;
-
-    const cards = `
-    <div class="cards">
-      <div class="stat">
-        <div class="lbl">Fatturato (emesso)</div>
-        <div class="big">${eur(fatturato)}</div>
-        <div class="det">${emesse.length} fatture emesse${resDelta(fatturato,fatturatoPrev)}</div>
-      </div>
-      <div class="stat">
-        <div class="lbl">Incassato</div>
-        <div class="big">${eur(incassato)}</div>
-        <div class="det">${incassate.length} fatture incassate${resDelta(incassato,incassatoPrev)}</div>
-      </div>
-      <div class="stat">
-        <div class="lbl">Da accantonare</div>
-        <div class="big">${eur(arrot(accantona))}</div>
-        <div class="det">~23,22% dell'incassato del periodo</div>
-      </div>
-      <div class="stat">
-        <div class="lbl">Preventivi inviati</div>
-        <div class="big">${eur(valPrev)}</div>
-        <div class="det">${prevInviati.length} inviati · ${nAcc} accettati nel periodo</div>
-      </div>
-      <div class="stat">
-        <div class="lbl">Progetti avviati</div>
-        <div class="big">${eur(valProg)}</div>
-        <div class="det">${progAvviati.length} per data di inizio</div>
-      </div>
-    </div>`;
-
-    const fattOrd = [...fattPeriodo].sort((a,c)=>{
-      const x=(a.dataIncasso||a.dataEmissione||''), y=(c.dataIncasso||c.dataEmissione||'');
-      return x<y?1:x>y?-1:0;
-    });
-    const righeFatt = fattOrd.map(f=>`<tr class="${fatturaScaduta(f)?'scaduta':''}">
-        <td><b>${esc(f.numero)}</b></td>
-        <td>${esc(f.titolo)}</td>
-        <td>${esc(nomeCliente(f.clienteId))}</td>
-        <td class="euro">${eur(f.totale)}</td>
-        <td>${badge(f.statoPagamento)}</td>
-        <td>${fmtData(f.dataEmissione)}</td>
-        <td>${fmtData(f.dataIncasso)}</td>
-        <td class="euro">${accantonare(f)?eur(accantonare(f)):'—'}</td>
-      </tr>`).join('');
-    const tabFatt = tabella(
-      ['N°','Titolo','Cliente','Totale','Stato','Emessa','Incassata','Accantona'],
-      righeFatt, 'Nessuna fattura in questo periodo.');
-
-    const righePrev = prevInviati
-      .sort((a,c)=>(c.dataInvio||'').localeCompare(a.dataInvio||''))
-      .map(p=>`<tr>
-        <td><b>${esc(p.numero)}</b></td>
-        <td>${esc(p.titolo)}</td>
-        <td>${esc(nomeCliente(p.clienteId))}</td>
-        <td class="euro">${eur(p.importo)}</td>
-        <td>${badge(p.stato)}</td>
-        <td>${fmtData(p.dataInvio)}</td>
-      </tr>`).join('');
-    const tabPrev = tabella(
-      ['N°','Titolo','Cliente','Importo','Stato','Inviato'],
-      righePrev, 'Nessun preventivo inviato in questo periodo.');
-
-    const righeProg = progAvviati
-      .sort((a,c)=>(c.dataInizio||'').localeCompare(a.dataInizio||''))
-      .map(p=>`<tr>
-        <td>${esc(p.titolo)}</td>
-        <td>${esc(nomeCliente(p.clienteId))}</td>
-        <td class="euro">${eur(p.valore)}</td>
-        <td>${badge(p.stato)}</td>
-        <td>${fmtData(p.dataInizio)}</td>
-      </tr>`).join('');
-    const tabProg = tabella(
-      ['Titolo','Cliente','Valore','Stato','Inizio'],
-      righeProg, 'Nessun progetto avviato in questo periodo.');
-
-    const totSenza = fattSenza.length + prevSenza.length + progSenza.length;
-    let senzaHtml = '';
-    if(totSenza){
-      const rFS = fattSenza.map(f=>`<tr><td><b>${esc(f.numero)}</b></td><td>${esc(f.titolo)}</td><td>${esc(nomeCliente(f.clienteId))}</td><td class="euro">${eur(f.totale)}</td><td>${badge(f.statoPagamento)}</td></tr>`).join('');
-      const rPS = prevSenza.map(p=>`<tr><td><b>${esc(p.numero)}</b></td><td>${esc(p.titolo)}</td><td>${esc(nomeCliente(p.clienteId))}</td><td class="euro">${eur(p.importo)}</td><td>${badge(p.stato)}</td></tr>`).join('');
-      const rGS = progSenza.map(p=>`<tr><td>—</td><td>${esc(p.titolo)}</td><td>${esc(nomeCliente(p.clienteId))}</td><td class="euro">${eur(p.valore)}</td><td>${badge(p.stato)}</td></tr>`).join('');
-      senzaHtml = `
-      <details class="res-senza" style="margin-top:22px;background:var(--card);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);padding:6px 16px 16px">
-        <summary style="cursor:pointer;font-weight:700;padding:12px 0">Senza data · ${totSenza} voci da completare</summary>
-        <p style="color:var(--muted);margin:.2em 0 1em">Queste voci non hanno la data che serve per collocarle in un periodo. Apri la scheda e compila la data (emissione/incasso, invio o inizio) perché rientrino nel resoconto.</p>
-        ${fattSenza.length ? '<h4 style="margin:.6em 0">Fatture</h4>'+tabella(['N°','Titolo','Cliente','Totale','Stato'], rFS, '') : ''}
-        ${prevSenza.length ? '<h4 style="margin:.6em 0">Preventivi</h4>'+tabella(['N°','Titolo','Cliente','Importo','Stato'], rPS, '') : ''}
-        ${progSenza.length ? '<h4 style="margin:.6em 0">Progetti</h4>'+tabella(['','Titolo','Cliente','Valore','Stato'], rGS, '') : ''}
-      </details>`;
-    }
-
-    return `
-    <div class="res-sep"></div>
-    <details class="res-wrap"${ui.resAperto?' open':''} ontoggle="ui.resAperto=this.open">
-      <summary><span class="res-ch">›</span><span class="res-tt">Resoconto</span><span class="res-hint">${resLabel(mode,b)} · grafico e tabelle</span></summary>
-      <div class="res-in">
-    ${vChartAndamento()}
-    ${barra}
-    ${cards}
-    <div class="sec-head" style="margin-top:24px"><h2>Fatture del periodo</h2><span class="sub">emesse o incassate nel periodo</span></div>
-    ${tabFatt}
-    <div class="sec-head" style="margin-top:24px"><h2>Preventivi inviati</h2></div>
-    ${tabPrev}
-    <div class="sec-head" style="margin-top:24px"><h2>Progetti avviati</h2></div>
-    ${tabProg}
-    ${senzaHtml}
-      </div>
-    </details>
-    `;
-  };
-
-  /* 6. separatore visivo fra "Consigli & promemoria" e il Resoconto */
-  if(!document.getElementById('res-embed-style')){
-    const st = document.createElement('style');
-    st.id = 'res-embed-style';
-    st.textContent = '.res-sep{height:1px;background:var(--line);margin:30px 0 18px;border:0}'
-      + '.res-wrap{background:var(--card);border:1px solid var(--line);border-radius:var(--r-xl)}'
-      + '.res-wrap>summary{cursor:pointer;padding:15px 17px;list-style:none;display:flex;align-items:center;gap:10px;flex-wrap:wrap}'
-      + '.res-wrap>summary::-webkit-details-marker{display:none}'
-      + '.res-wrap>summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:var(--r-xl)}'
-      + '.res-tt{font-weight:800;font-size:17px;letter-spacing:-.02em}'
-      + '.res-hint{font-size:13px;color:var(--muted)}'
-      + '.res-ch{color:var(--muted);font-size:17px;font-weight:700;transition:transform .2s;display:inline-block}'
-      + '.res-wrap[open]>summary .res-ch{transform:rotate(90deg)}'
-      + '.res-in{padding:2px 17px 18px;border-top:1px solid var(--line);margin-top:2px;padding-top:16px}'
-      + '@media(prefers-reduced-motion:reduce){.res-ch{transition:none}}'
-      + ':root{--chart-1:var(--accent);--chart-2:var(--blu);--tooltip-bg:#1c1c1e;--tooltip-ink:#f2f2f7;--chart-hl:rgba(120,120,128,.26)}'
-      + '[data-theme=dark]{--tooltip-bg:#4a4a4d;--tooltip-ink:#f2f2f7;--chart-hl:rgba(170,170,178,.22)}'
-      + '.chart-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-xl);padding:18px 18px 20px;margin-bottom:22px}'
-      + '.chart-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:8px}'
-      + '.chart-title{font-weight:800;font-size:16px}'
-      + '.chart-sub{color:var(--muted);font-size:12.5px;margin-top:2px}'
-      + '.chart-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted)}'
-      + '.chart-legend b{color:var(--ink);font-weight:700;margin-left:4px}'
-      + '.chart-legend .lk{position:relative;padding-left:15px}'
-      + '.chart-legend .lk::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);width:9px;height:9px;border-radius:3px}'
-      + '.chart-legend .lk-1::before{background:var(--chart-1)}'
-      + '.chart-legend .lk-2::before{background:var(--chart-2)}'
-      + '.chart-svg{width:100%;height:auto;display:block;overflow:visible}'
-      + '.chart-bar-1{fill:var(--chart-1);transition:opacity .15s}'
-      + '.chart-bar-2{fill:var(--chart-2);transition:opacity .15s}'
-      + '.chart-bar-1.dim,.chart-bar-2.dim{opacity:.3}'
-      + '.chart-grid{stroke:var(--line);stroke-width:1}'
-      + '.chart-axisline{stroke:var(--line);stroke-width:1}'
-      + '.chart-axis{fill:var(--muted);font-size:11px;transition:opacity .15s}'
-      + '.chart-axis.dim{opacity:.7}'
-      + '.chart-axis.sel{fill:var(--ink);font-weight:700}'
-      + '.chart-mese{cursor:pointer}'
-      + '@media (hover:hover){ .chart-mese:hover .chart-bar-1:not(.dim){opacity:.82} .chart-mese:hover .chart-bar-2:not(.dim){opacity:.82} }'
-      + '.chart-hl{fill:var(--chart-hl)}'
-      + '.chart-tip-bg{fill:var(--tooltip-bg);stroke:var(--line);stroke-width:1}'
-      + '.chart-tip-txt{fill:var(--tooltip-ink);font-size:11px;font-weight:700}'
-      + '.chart-tip-sw1{fill:var(--chart-1)}'
-      + '.chart-tip-sw2{fill:var(--chart-2)}'
-      + '.chart-nav{display:flex;align-items:center;gap:8px;font-size:14px}'
-      + '.chart-nav b{min-width:112px;text-align:center;font-weight:700}'
-      + '.chart-nav .btn{min-width:44px;min-height:44px;padding:5px 10px;display:inline-flex;align-items:center;justify-content:center}';
-    document.head.appendChild(st);
-  }
-
-  /* 7. aggancio alla Dashboard: il Resoconto viene accodato alla vista
-        dashboard, subito dopo "Consigli & promemoria" (ultima sezione). */
-  const _vDashboardBase = vDashboard;
-  vDashboard = function(){
-    return _vDashboardBase() + vResoconto();
-  };
-
-})();
-/* ============ FINE SEZIONE RESOCONTO ============ */
-
-/* ============================================================
-   BOARD COMPATTE + FILTRO PERIODO — Gestionale P.IVA
-   - interruttore Compatta/Esteso sulle board (default: compatta)
-   - in COMPATTA: schede minimali, senza chip, senza date, SENZA ICONE (azioni nascoste)
-   - in ESTESO: schede complete con icone, come in origine
-   - schede concluse (Accettato/Fatto/Pagata) attenuate; piene al passaggio del mouse
-   - filtro periodo (Tutto/Mese/Trimestre/Semestre/Anno) su Preventivi, Progetti, Fatture
-   Non modifica righe esistenti: sovrascrive a runtime le viste board.
-   Per rimuoverlo, cancella questo blocco.
-   ============================================================ */
-(function(){
-
-  /* --- stile (iniettato a runtime, così non tocchiamo il CSS esistente) --- */
-  if(!document.getElementById('kb-compact-style')){
-    const st = document.createElement('style');
-    st.id = 'kb-compact-style';
-    st.textContent = `
-    .kb-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 14px}
-    .kb-toolbar select{padding:8px 11px;border-radius:11px;border:1px solid var(--line);background:var(--input);color:var(--ink);font-size:14px;font-weight:600}
-    /* modalità compatta: massima densità (niente chip, date, icone) */
-    .kbwrap.compact .kb-cards{gap:6px}
-    .kbwrap.compact .kcard{padding:8px 11px;border-radius:12px}
-    .kbwrap.compact .kcard-title{font-size:13px;margin-top:2px;line-height:1.25}
-    .kbwrap.compact .kcard-sub{font-size:11.5px;margin-top:1px}
-    .kbwrap.compact .kcard-val{font-size:13.5px}
-    .kbwrap.compact .kcard .chip{display:none}
-    .kbwrap.compact .kcard-date{display:none}
-    /* In compatta si nascondono le icone, MAI le frecce ‹ ›: su touch il drag &
-       drop non esiste e senza di loro la scheda non si può più spostare di stato.
-       La scheda intera diventa cliccabile e apre la modifica (vedi il listener
-       delegato più sotto), così non si perde nemmeno una funzione. */
-    .kbwrap.compact .kcard{cursor:pointer}
-    .kbwrap.compact .kcard-actions{margin-top:7px;gap:5px}
-    .kbwrap.compact .kcard-actions > *{display:none}
-    .kbwrap.compact .kcard-actions > .mover{display:flex}
-    .kbwrap.compact .mv{width:24px;height:24px;font-size:14px}
-    /* schede concluse: attenuate in ogni modalità, piene al passaggio del mouse */
-    .kbwrap .kb-col[data-stato="Accettato"] .kcard,
-    .kbwrap .kb-col[data-stato="Fatto"] .kcard,
-    .kbwrap .kb-col[data-stato="Pagata"] .kcard{opacity:.6}
-    .kbwrap .kb-col[data-stato="Accettato"] .kcard:hover,
-    .kbwrap .kb-col[data-stato="Fatto"] .kcard:hover,
-    .kbwrap .kb-col[data-stato="Pagata"] .kcard:hover{opacity:1}
-    `;
-    document.head.appendChild(st);
-  }
-
-  /* --- stato UI (default: compatta, nessun filtro periodo) --- */
-  const _t = new Date();
-  if(ui.kbCompact == null) ui.kbCompact = true;
-  if(ui.kbMode == null)    ui.kbMode = 'tutto';
-  if(ui.kbY == null){ ui.kbY = _t.getFullYear(); ui.kbM = _t.getMonth(); }
-
-  const LEN  = {mese:1, trimestre:3, semestre:6, anno:12};
-  const MESI = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-  function pad2(n){ return String(n).padStart(2,'0'); }
-  function isoOf(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
-  function bounds(mode, y, m){
-    let sm;
-    if(mode==='mese')           sm = m;
-    else if(mode==='trimestre') sm = Math.floor(m/3)*3;
-    else if(mode==='semestre')  sm = Math.floor(m/6)*6;
-    else                        sm = 0;
-    const len = LEN[mode];
-    const start = new Date(y, sm, 1), end = new Date(y, sm+len, 1);
-    return { from: isoOf(start), to: isoOf(end), start: start };
-  }
-  function labelOf(mode, y, m){
-    const b = bounds(mode, y, m);
-    const sy = b.start.getFullYear(), sm = b.start.getMonth();
-    if(mode==='mese')      return MESI[sm]+' '+sy;
-    if(mode==='trimestre') return 'T'+(sm/3+1)+' '+sy;
-    if(mode==='semestre')  return (sm===0?'1º':'2º')+' semestre '+sy;
-    return ''+sy;
-  }
-  function inPer(d, b){ return !!d && d>=b.from && d<b.to; }
-
-  /* --- filtro record per periodo (mantiene sempre le schede SENZA data) --- */
-  function filtra(records, entity){
-    if(ui.kbMode === 'tutto') return records;
-    const b = bounds(ui.kbMode, ui.kbY, ui.kbM);
-    return records.filter(r=>{
-      if(entity === 'fattura'){
-        if(!r.dataEmissione && !r.dataIncasso) return true;           // senza data: sempre visibile
-        return inPer(r.dataEmissione, b) || inPer(r.dataIncasso, b);
-      }
-      const d = entity === 'preventivo' ? r.dataInvio : r.dataInizio;
-      return d ? inPer(d, b) : true;                                   // senza data: sempre visibile
-    });
-  }
-
-  /* --- controlli (globali per gli onclick) --- */
-  window.kbToggleCompact = function(){ ui.kbCompact = !ui.kbCompact; render(); };
-  window.kbSetMode = function(m){ ui.kbMode = m; render(); };
-  window.kbNav = function(dir){
-    const len = LEN[ui.kbMode] || 1;
-    const a = new Date(ui.kbY, ui.kbM + dir*len, 1);
-    ui.kbY = a.getFullYear(); ui.kbM = a.getMonth();
-    render();
-  };
-  window.kbOggi = function(){ const t=new Date(); ui.kbY=t.getFullYear(); ui.kbM=t.getMonth(); render(); };
-
-  /* --- in compatta la scheda apre la modifica ---
-     Le icone sono nascoste, quindi senza questo la scheda sarebbe muta: niente
-     matita, niente documento, niente cestino. Il listener sta su #app e non
-     sulle schede, così sopravvive ai render() che ne riscrivono il contenuto. */
   const _app = document.getElementById('app');
   if(_app && !_app.dataset.tapCard){
     _app.dataset.tapCard = '1';
@@ -4521,59 +4682,7 @@ if(!lsOk) $('#bannerMem').style.display='block';
       else if(card.dataset.entity === 'fattura')  apriFormFattura(id);
     });
   }
-
-  /* --- barra strumenti sopra ogni board --- */
-  function toolbar(){
-    const modes = [['tutto','Tutto'],['mese','Mese'],['trimestre','Trimestre'],['semestre','Semestre'],['anno','Anno']];
-    const sel = modes.map(([v,l])=>'<option value="'+v+'"'+(v===ui.kbMode?' selected':'')+'>'+l+'</option>').join('');
-    const showNav = ui.kbMode !== 'tutto';
-    const navHtml = showNav
-      ? `<span style="display:inline-flex;align-items:center;gap:6px">
-           <button class="btn neutro" onclick="kbNav(-1)" aria-label="Periodo precedente" style="min-width:40px">‹</button>
-           <b style="min-width:120px;text-align:center">${labelOf(ui.kbMode, ui.kbY, ui.kbM)}</b>
-           <button class="btn neutro" onclick="kbNav(1)" aria-label="Periodo successivo" style="min-width:40px">›</button>
-           <button class="btn" onclick="kbOggi()">Oggi</button>
-         </span>`
-      : '';
-    return `<div class="kb-toolbar">
-      <button class="btn" onclick="kbToggleCompact()">${ui.kbCompact ? '▤ Esteso' : '▦ Compatta'}</button>
-      <select onchange="kbSetMode(this.value)" aria-label="Filtro periodo">${sel}</select>
-      ${navHtml}
-    </div>`;
-  }
-  function wrap(kbHtml){
-    return '<div class="kbwrap'+(ui.kbCompact ? ' compact' : '')+'">'+kbHtml+'</div>';
-  }
-
-  /* --- viste board sovrascritte (aggiungono barra + filtro, riusano tutto il resto) --- */
-  window.vPreventivi = function(){
-    return `
-    ${sezioneCantieri()}
-    <div class="sec-head"><h2>Preventivi</h2><button class="btn primary" onclick="apriFormPreventivo()">${ICO.plus}Nuovo</button></div>
-    ${toolbar()}
-    ${wrap(kanban('preventivo', STATI_PREVENTIVO, filtra(db.preventivi,'preventivo'), 'stato', cardPreventivo))}
-    `;
-  };
-  window.vProgetti = function(){
-    return `
-    <div class="sec-head"><h2>Progetti</h2><button class="btn primary" onclick="apriFormProgetto()">${ICO.plus}Nuovo</button></div>
-    ${toolbar()}
-    ${wrap(kanban('progetto', STATI_PROGETTO, filtra(db.progetti,'progetto'), 'stato', cardProgetto))}
-    `;
-  };
-  window.vFatture = function(){
-    return `
-    <div class="sec-head"><h2>Fatture</h2>
-      <span class="sub"><button class="linkino-btn" onclick="apriImpostazioniSdI()">Fatturazione elettronica: invio n. ${prog5(db.counters.xml||0)}</button></span>
-      <button class="btn primary" onclick="apriFormFattura()">${ICO.plus}Nuova</button></div>
-    ${toolbar()}
-    ${wrap(kanban('fattura', STATI_FATTURA, filtra(db.fatture,'fattura'), 'statoPagamento', cardFattura))}
-    ${scadenzarioHTML(false)}
-    `;
-  };
-
 })();
-/* ============ FINE BOARD COMPATTE ============ */
 
 costruisciNav();
 render();
