@@ -519,8 +519,6 @@ input[type=color].colore-cliente{width:100%;height:41px;border:none;border-radiu
 @keyframes pulsa{50%{opacity:.4}}
 .cloud-desc{color:var(--muted);font-size:13.5px;margin:-8px 0 16px;line-height:1.5}
 .auth-err{grid-column:1/-1;display:none;font-size:13px;color:var(--danger);background:var(--danger-soft);border-radius:13px;padding:10px 13px;font-weight:500}
-.auth-link{grid-column:1/-1;text-align:center;margin-top:4px}
-.auth-link button{background:none;border:none;color:var(--muted);font-size:13px;font-weight:500;text-decoration:underline}
 .cloud-mail{font-weight:700;font-size:15px;word-break:break-all}
 
 /* ============ EDITOR VOCI (form) ============ */
@@ -823,12 +821,28 @@ body.doc-aperto{overflow:hidden}
   .cv-imp{margin-left:auto}
   .doc-scroll{padding:12px 8px 60px}
 }
+/* ============ SCHERMATA DI ACCESSO (blocca tutto finché non si entra) ============ */
+#gate{display:none;position:fixed;inset:0;z-index:300;background:var(--bg);overflow-y:auto;
+  align-items:center;justify-content:center;padding:24px 16px}
+body.bloccato #gate{display:flex}
+body.bloccato header,body.bloccato main,body.bloccato #tabbar,body.bloccato #modal,body.bloccato #docOverlay{display:none !important}
+.gate-box{width:100%;max-width:380px;margin:auto}
+.gate-brand{font-weight:800;font-size:17px;letter-spacing:-.03em;margin-bottom:22px}
+.gate-box h1{font-size:24px;font-weight:800;letter-spacing:-.03em;margin-bottom:6px}
+.gate-box .cloud-desc{margin:0 0 20px}
+.gate-box .frm{grid-template-columns:1fr}
+.gate-box .frm input{min-height:44px}
+.gate-box .btn{min-height:44px;width:100%}
+.gate-box .btn[disabled]{opacity:.6;cursor:default}
+.gate-box .frm input:focus-visible,.gate-box .btn:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
 @media (prefers-reduced-motion: reduce){
   *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}
 }
 </style>
 </head>
-<body>
+<body class="bloccato">
+
+<div id="gate" role="dialog" aria-modal="true" aria-labelledby="gateTitolo"><div class="gate-box"><div class="gate-brand">Niccolò Busato</div><div id="gateCorpo"></div></div></div>
 
 <header>
   <div class="topbar">
@@ -859,7 +873,6 @@ body.doc-aperto{overflow:hidden}
 
 const LS_KEY = 'gestionale_piva_nb_v1';
 const THEME_KEY = 'gestionale_piva_nb_theme';
-const CLOUD_DISMISS_KEY = 'gestionale_piva_nb_cloud_dismiss';
 const OWNER_KEY = 'gestionale_piva_nb_owner';   // di quale account sono i dati salvati qui
 
 /* ---------- Supabase (sincronizzazione cloud) ---------- */
@@ -4555,14 +4568,9 @@ function disattivaRealtime(){
 
 /* ---------- sheet login / account ---------- */
 window.apriLoginSheet = function(){
-  if(!supa){
-    apriModal(`<h3>Cloud non disponibile</h3>
-      <p class="cloud-desc">La libreria di sincronizzazione non si è caricata (sei offline?). I dati vengono comunque salvati su questo dispositivo.</p>
-      <div class="frm"><div class="frm-foot"><button class="btn primary" onclick="chiudiModal()">Ok</button></div></div>`);
-    return;
-  }
-  if(utente){
-    apriModal(`<h3>Account cloud</h3>
+  if(!supa){ bloccaApp('offline'); return; }
+  if(!utente){ bloccaApp('login'); return; }
+  apriModal(`<h3>Account cloud</h3>
       <p class="cloud-desc">Connesso come</p>
       <p class="cloud-mail">${esc(utente.email)}</p>
       <p class="cloud-desc" style="margin-top:12px">I dati si sincronizzano automaticamente su tutti i dispositivi dove accedi con questo account.</p>
@@ -4573,46 +4581,57 @@ window.apriLoginSheet = function(){
           <button class="btn primary" onclick="chiudiModal()">Chiudi</button>
         </div>
       </div>`);
-    return;
-  }
-  apriModal(`<h3>Sincronizza sul cloud</h3>
-    <p class="cloud-desc">Accedi per avere gli stessi dati su computer e telefono. I dati sono privati: solo il tuo account può leggerli.</p>
-    <form class="frm" onsubmit="accedi(event)">
-      <div class="full"><label>Email</label><input type="email" name="email" required autocomplete="email"></div>
-      <div class="full"><label>Password</label><input type="password" name="password" required minlength="6" autocomplete="current-password"></div>
-      <div class="auth-err" id="authErr"></div>
-      <div class="frm-foot">
-        <button type="button" class="btn" onclick="registrati(this.form)">Registrati</button>
-        <button type="submit" class="btn primary">Accedi</button>
-      </div>
-      <div class="auth-link"><button type="button" onclick="soloLocale()">Continua senza account (solo questo dispositivo)</button></div>
-    </form>`);
 };
+/* ---------- schermata di blocco: senza accesso l'app non si vede ---------- */
+function bloccaApp(stato){
+  document.body.classList.add('bloccato');
+  const app = $('#app'); if(app) app.innerHTML = '';   // niente dati nel DOM mentre è bloccata
+  chiudiModal();
+  const c = $('#gateCorpo'); if(!c) return;
+  if(stato==='verifica'){
+    c.innerHTML = '<h1 id="gateTitolo">Verifica accesso…</h1><p class="cloud-desc" role="status">Un attimo.</p>';
+  }else if(stato==='offline'){
+    c.innerHTML = `<h1 id="gateTitolo">Accesso non disponibile</h1>
+      <p class="cloud-desc">Non riesco a verificare l'accesso (sei offline?). Controlla la connessione e riprova.</p>
+      <button type="button" class="btn primary" onclick="location.reload()">Riprova</button>`;
+  }else{
+    c.innerHTML = `<h1 id="gateTitolo">Accedi</h1>
+      <p class="cloud-desc">Area privata. Per vedere il gestionale devi entrare col tuo account.</p>
+      <form class="frm" onsubmit="accedi(event)">
+        <div><label for="gateEmail">Email</label><input id="gateEmail" type="email" name="email" required autocomplete="email"></div>
+        <div><label for="gatePwd">Password</label><input id="gatePwd" type="password" name="password" required autocomplete="current-password"></div>
+        <div class="auth-err" id="authErr" role="alert"></div>
+        <button type="submit" class="btn primary">Accedi</button>
+      </form>`;
+    const e = $('#gateEmail'); if(e) e.focus();
+  }
+}
+function sbloccaApp(){
+  if(!document.body.classList.contains('bloccato')) return;
+  document.body.classList.remove('bloccato');
+  render();
+}
 function mostraAuthErr(msg){
   const e = $('#authErr'); if(!e) return;
   e.textContent = msg; e.style.display = 'block';
 }
 window.accedi = async function(ev){
   ev.preventDefault();
-  const f = ev.target;
+  const f = ev.target, bt = f.querySelector('button[type=submit]');
+  const errEl = $('#authErr'); if(errEl) errEl.style.display = 'none';
+  bt.disabled = true; bt.textContent = 'Accesso in corso…';
   try{
     const { error } = await supa.auth.signInWithPassword({ email:f.elements.email.value.trim(), password:f.elements.password.value });
     if(error){
-      mostraAuthErr(error.message==='Invalid login credentials' ? 'Email o password errati. Se è la prima volta, usa "Registrati".' : 'Errore: '+error.message);
+      mostraAuthErr(error.message==='Invalid login credentials' ? 'Email o password errati.' : 'Errore: '+error.message);
+      bt.disabled = false; bt.textContent = 'Accedi';
       return;
     }
-    chiudiModal(); toast('Connesso al cloud');
-  }catch(e){ mostraAuthErr('Errore di rete: controlla la connessione e riprova.'); }
-};
-window.registrati = async function(f){
-  const email = f.elements.email.value.trim(), password = f.elements.password.value;
-  if(!email || password.length<6){ mostraAuthErr('Inserisci email e una password di almeno 6 caratteri.'); return; }
-  try{
-    const { data, error } = await supa.auth.signUp({ email, password });
-    if(error){ mostraAuthErr('Errore: '+error.message); return; }
-    if(data.session){ chiudiModal(); toast('Account creato e connesso'); }
-    else mostraAuthErr('Quasi fatto: controlla la mail "'+email+'" e clicca il link di conferma, poi torna qui e premi Accedi.');
-  }catch(e){ mostraAuthErr('Errore di rete: controlla la connessione e riprova.'); }
+    toast('Connesso al cloud');   // lo sblocco lo fa onAuthStateChange
+  }catch(e){
+    mostraAuthErr('Errore di rete: controlla la connessione e riprova.');
+    bt.disabled = false; bt.textContent = 'Accedi';
+  }
 };
 window.esciCloud = async function(){
   if(!confirm('Uscire dall\'account? I dati restano salvati su questo dispositivo e sul cloud.')) return;
@@ -4622,31 +4641,23 @@ window.esciCloud = async function(){
     aggiornaCloudUI(); chiudiModal(); toast('Disconnesso');
   }catch(e){ alert('Errore di rete: non sono riuscito a disconnetterti. Riprova.'); }
 };
-window.soloLocale = function(){
-  if(lsOk){ try{ localStorage.setItem(CLOUD_DISMISS_KEY,'1'); }catch(e){} }
-  chiudiModal();
-};
-
 function initCloud(){
-  if(!(window.supabase && window.supabase.createClient)){ setSync('off','Cloud non disponibile (offline)'); return; }
+  if(!(window.supabase && window.supabase.createClient)){ setSync('off','Cloud non disponibile (offline)'); bloccaApp('offline'); return; }
   supa = window.supabase.createClient(SUPA_URL, SUPA_KEY);
   supa.auth.onAuthStateChange((evento, sessione)=>{
     const prima = !!utente;
     utente = sessione ? sessione.user : null;
     aggiornaCloudUI();
+    if(utente) sbloccaApp(); else bloccaApp('login');
     if(utente && !prima){ pullCloud(); attivaRealtime(); }
     if(!utente) disattivaRealtime();
   });
   supa.auth.getSession().then(({data})=>{
     utente = data.session ? data.session.user : null;
     aggiornaCloudUI();
-    if(utente){ pullCloud(); attivaRealtime(); }
-    else {
-      let dism = false;
-      if(lsOk){ try{ dism = localStorage.getItem(CLOUD_DISMISS_KEY)==='1'; }catch(e){} }
-      if(!dism) apriLoginSheet();
-    }
-  }).catch(()=>{ setSync('err','Errore di connessione al cloud'); });
+    if(utente){ sbloccaApp(); pullCloud(); attivaRealtime(); }
+    else bloccaApp('login');
+  }).catch(()=>{ setSync('err','Errore di connessione al cloud'); bloccaApp('offline'); });
   // quando torni sull'app (es. riapri dal telefono), ricontrolla il cloud
   document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && utente) pullCloud(); });
   // controllo automatico ogni 60 secondi mentre l'app è aperta
@@ -4686,6 +4697,7 @@ if(!lsOk) $('#bannerMem').style.display='block';
 
 costruisciNav();
 render();
+bloccaApp('verifica');   // chiusa finché non è confermata la sessione
 initCloud();
 </script>
 </body>
