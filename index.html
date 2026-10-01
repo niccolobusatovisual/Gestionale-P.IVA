@@ -913,21 +913,36 @@ const SOGLIA_FORFETTARIO_USCITA_IMMEDIATA = 100000;
    all'ANNO D'IMPOSTA (l'anno degli incassi), non all'anno in cui si paga. */
 const TIPI_VERSAMENTO = ['Imposta sostitutiva','INPS Gestione Separata','Acconto','Altro'];
 
-/* ---------- profilo fornitore (fonte: skill nick-profile) ---------- */
-const NB = {
-  nome:'Niccolò Busato',
-  piva:'00000000000',
-  cf:'XXXXXX00X00X000X',
-  regime:'RF19',                 // regime forfettario, tracciato FatturaPA
-  via:'Via Esempio', civico:'38',
-  cap:'36010', comune:'Zanè', provincia:'VI', nazione:'IT',
-  email:'nome@esempio.it',
-  pec:'nome@pec.esempio.it',
-  telefono:'+39 000 000 0000',
-  telefonoXml:'0000000000',
-  iban:'IT00X0000000000000000000000',
-  banca:'Banca Esempio'
-};
+/* ---------- profilo fornitore ----------
+   I dati di chi emette i documenti NON stanno nel codice: il sito è pubblico
+   (repo GitHub pubblico + GitHub Pages) e chiunque potrebbe leggerli. Vivono in
+   db.profilo, sincronizzati su Supabase e protetti da RLS come il resto; si
+   compilano da Account → "I tuoi dati per fatture" (apriProfilo). */
+const REGIME_FISCALE = 'RF19';   // regime forfettario, tracciato FatturaPA
+const CAMPI_PROFILO = ['nome','piva','cf','via','civico','cap','comune','provincia','email','telefono','iban','banca'];
+/* Dati senza i quali fattura PDF e XML escono sbagliati (l'XML verrebbe scartato). */
+function datiProfiloMancanti(){
+  const p = db.profilo, m = [];
+  if(!p.nome.trim()) m.push('nome');
+  if(!/^\d{11}$/.test(p.piva)) m.push('Partita IVA');
+  if(!/^([A-Z0-9]{16}|\d{11})$/.test(p.cf)) m.push('codice fiscale');
+  if(!p.via.trim()) m.push('indirizzo');
+  if(!/^\d{5}$/.test(p.cap)) m.push('CAP');
+  if(!p.comune.trim()) m.push('comune');
+  if(!/^[A-Z]{2}$/.test(p.provincia)) m.push('provincia');
+  if(!/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(p.iban)) m.push('IBAN');
+  return m;
+}
+/* Il tracciato vuole solo cifre (5-12), senza prefisso internazionale. */
+function telefonoXml(t){
+  const s = String(t||'').replace(/[^\d+]/g,'').replace(/^(\+|00)39/,'').replace(/\D/g,'');
+  return s.length >= 5 && s.length <= 12 ? s : '';
+}
+function indirizzoProfilo(p){
+  const strada = [p.via, p.civico].filter(Boolean).join(' ');
+  const luogo = ([p.cap, p.comune].filter(Boolean).join(' ') + (p.provincia ? ' ('+p.provincia+')' : '')).trim();
+  return [strada, luogo].filter(Boolean).join(', ');
+}
 
 /* ---------- diciture fiscali (forfettario, nessuna IVA) ---------- */
 const NATURE = {
@@ -1119,26 +1134,11 @@ try {
     matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e=>applicaTema(e.matches?'dark':'light'));
 } catch(e){}
 
-/* ---------- dati iniziali ---------- */
-function seed(){
-  const c1={id:uid(),nome:'Cliente A',referente:'',email:'',telefono:'',zona:'Altro',tipo:'Altro',sito:'',note:''};
-  const c2={id:uid(),nome:'Cliente B',referente:'',email:'',telefono:'',zona:'Altro',tipo:'Studio professionale',sito:'',note:''};
-  const c3={id:uid(),nome:'Cliente C',referente:'',email:'',telefono:'',zona:'Altro',tipo:'Altro',sito:'',note:'Gestione profili social.'};
-
-  const p1={id:uid(),titolo:'Progetto A',clienteId:c1.id,stato:'In corso',servizi:['Graphic Design'],dataInizio:'',scadenza:'',valore:null,note:'Valore da definire.'};
-  const p2={id:uid(),titolo:'Progetto B',clienteId:c2.id,stato:'In corso',servizi:['Graphic Design','Brand Identity'],dataInizio:'',scadenza:'',valore:1000,
-    note:'Nota di esempio.'};
-  const p3={id:uid(),titolo:'Social Media Manager',clienteId:c3.id,stato:'Non iniziato',servizi:['Consulenza','Content Creation'],dataInizio:'',scadenza:'',valore:null,note:''};
-
-  const pr1={id:uid(),numero:'PR-1',titolo:'Progetto A',clienteId:c1.id,progettoId:p1.id,importo:null,stato:'Bozza',dataInvio:'',validoFino:'',servizi:['Graphic Design'],note:'Importo da definire.'};
-  const pr2={id:uid(),numero:'PR-2',titolo:'Progetto B',clienteId:c2.id,progettoId:p2.id,importo:1000,stato:'Inviato',dataInvio:'',validoFino:'',servizi:['Graphic Design','Brand Identity'],
-    note:'Nota di esempio.'};
-  const pr3={id:uid(),numero:'PR-3',titolo:'Social Media Manager',clienteId:c3.id,progettoId:p3.id,importo:null,stato:'Bozza',dataInvio:'',validoFino:'',servizi:['Consulenza','Content Creation'],note:''};
-
-  return { clienti:[c1,c2,c3], preventivi:[pr1,pr2,pr3], progetti:[p1,p2,p3], fatture:[], cantieri:[], listino:[], counters:{pr:3} };
-}
-
-let db = caricaDB() || seed();
+/* ---------- dati iniziali ----------
+   Si parte vuoti: i dati veri arrivano dal cloud dopo il login. Niente clienti
+   di esempio nel codice (il sito è pubblico), e un dispositivo nuovo non deve
+   avere dati locali da "tenere" al posto di quelli del cloud. */
+let db = caricaDB() || dbVuoto();
 db.counters = db.counters || {pr:0};
 migraDati();
 salvaLocale();
@@ -1160,6 +1160,10 @@ function migraDati(){
   db.listino = Array.isArray(db.listino) ? db.listino : [];
   db.versamenti = Array.isArray(db.versamenti) ? db.versamenti : [];
   if(db.counters.xml == null) db.counters.xml = 0;   // progressivo di trasmissione SdI
+  // profilo fornitore: solo i campi noti, sempre stringhe (finiscono in PDF e XML)
+  const pf = (db.profilo && typeof db.profilo === 'object' && !Array.isArray(db.profilo)) ? db.profilo : {};
+  db.profilo = {};
+  CAMPI_PROFILO.forEach(k=>{ db.profilo[k] = typeof pf[k] === 'string' ? pf[k].slice(0, 200) : ''; });
   // aliquote tasse: modificabili da Impostazioni (apriInfoTasse) per quando
   // l'imposta sostitutiva passa dal 5% al 15% dopo i primi 5 anni di attività.
   if(typeof db.aliquotaAccantonamento !== 'number' || !(db.aliquotaAccantonamento >= 0 && db.aliquotaAccantonamento <= 0.7))
@@ -2042,6 +2046,11 @@ function generaAvvisi(){
   else if(incassatoAnnoCorr >= SOGLIA_FORFETTARIO*0.8) out.push({t:'a',vista:'dashboard',
     titolo:'Vicino alla soglia di 85.000 € ('+Math.round(incassatoAnnoCorr/SOGLIA_FORFETTARIO*100)+'%)',
     testo:'Incassato '+eur(incassatoAnnoCorr)+' nel '+annoCorr+'. Restano '+eur(SOGLIA_FORFETTARIO-incassatoAnnoCorr)+' prima della soglia: oltre 85.000 € esci dal regime forfettario dall\'anno dopo.'});
+  // i tuoi dati per fatture e XML
+  const mp=datiProfiloMancanti();
+  if(mp.length) out.push({t:'a',azione:'apriProfilo()',
+    titolo:'Completa i tuoi dati per fatture',
+    testo:'Manca '+mp.join(', ')+'. Senza, fatture e preventivi escono senza intestazione e l\'XML non si genera. Tocca qui per compilarli.'});
   // fatture
   const scadute=db.fatture.filter(fatturaScaduta);
   if(scadute.length) out.push({t:'r',vista:'fatture',
@@ -2113,7 +2122,7 @@ function avvisiHTML(){
   const ordine={r:0,a:1,b:2,g:3,v:4};
   const items=generaAvvisi().sort((x,y)=>ordine[x.t]-ordine[y.t]).slice(0,8);
   return `<div class="sec-head"><h2>Consigli & promemoria</h2><button class="btn mini" onclick="aggiornaAvvisi()">↻ Aggiorna</button></div>
-  <div class="avvisi-list">${items.map(x=>`<div class="avviso-item" onclick="vai('${x.vista}')">
+  <div class="avvisi-list">${items.map(x=>`<div class="avviso-item" onclick="${x.azione || `vai('${x.vista}')`}">
     <span class="dot d-${x.t}"></span>
     <div><div class="avviso-tit">${x.titolo}</div><div class="avviso-desc">${x.testo}</div></div>
   </div>`).join('')}</div>`;
@@ -3867,13 +3876,14 @@ function numeroPreventivoDoc(p){
 
 /* ---------- blocco intestazione fornitore, comune ai due documenti ---------- */
 function docHeaderNB(righe){
-  return `<div class="d-nome">${esc(NB.nome)}</div>
-    <div class="d-meta">${righe.map(r=>`<div><span>${esc(r[0])}</span>${esc(r[1])}</div>`).join('')}</div>`;
+  return `<div class="d-nome">${esc(db.profilo.nome)}</div>
+    <div class="d-meta">${righe.filter(r=>r[1]).map(r=>`<div><span>${esc(r[0])}</span>${esc(r[1])}</div>`).join('')}</div>`;
 }
 
 /* ---------- FATTURA (PDF di cortesia) ---------- */
 function docFatturaHTML(f){
   const c = getCliente(f.clienteId) || {};
+  const pf = db.profilo;
   const t = calcolaFattura(f);
   const ind = indirizzoCliente(c);
   const titoloDoc = 'Fattura n. ' + (f.numero || '—');
@@ -3911,8 +3921,8 @@ function docFatturaHTML(f){
   return `<div class="doc doc-fattura">
     <div class="d-hdr">
       <div class="d-hdr-l">
-        ${docHeaderNB([['Email',NB.email],['Tel',NB.telefono],['P.IVA',NB.piva],['C.F.',NB.cf],
-                       ['Indirizzo',NB.via+' '+NB.civico+', '+NB.cap+' '+NB.comune+' ('+NB.provincia+')']])}
+        ${docHeaderNB([['Email',pf.email],['Tel',pf.telefono],['P.IVA',pf.piva],['C.F.',pf.cf],
+                       ['Indirizzo',indirizzoProfilo(pf)]])}
       </div>
       <div class="d-hdr-r">
         <div class="d-tipo">FATTURA</div>
@@ -3943,12 +3953,12 @@ function docFatturaHTML(f){
     <div class="d-hr"></div>
 
     <div class="d-foot">
-      <div>
+      <div>${pf.iban ? `
         <div class="d-foot-t">Coordinate Bancarie</div>
-        <div class="d-riga">IBAN ${esc(NB.iban)}</div>
-        <div class="d-riga">Banca ${esc(NB.banca)}</div>
-        <div class="d-riga">Intestato a ${esc(NB.nome)}</div>
-      </div>
+        <div class="d-riga">IBAN ${esc(pf.iban)}</div>
+        ${pf.banca ? `<div class="d-riga">Banca ${esc(pf.banca)}</div>` : ''}
+        <div class="d-riga">Intestato a ${esc(pf.nome)}</div>
+      ` : ''}</div>
       <div>
         <div class="d-foot-t">Condizioni</div>
         ${estremi.length ? '<table class="d-estremi"><tbody>' + estremi.map(e=>
@@ -3980,6 +3990,7 @@ function datiFiscaliMancanti(c){
 /* ---------- PREVENTIVO (PDF) ---------- */
 function docPreventivoHTML(p){
   const c = getCliente(p.clienteId) || {};
+  const pf = db.profilo;
   const voci = (p.voci||[]).filter(v=>v.descrizione || v.importo!=null);
   const software = (p.software||[]).filter(v=>v.descrizione || v.importo!=null);
   const totale = p.importo!=null ? p.importo : arrot(totaleVoci(voci) + totaleVoci(software));
@@ -3992,8 +4003,8 @@ function docPreventivoHTML(p){
   return `<div class="doc doc-preventivo">
     <div class="d-hdr">
       <div class="d-hdr-l">
-        ${docHeaderNB([['Email',NB.email],['Tel',NB.telefono],['P.IVA',NB.piva],
-                       ['Indirizzo',NB.comune+' ('+NB.provincia+')']])}
+        ${docHeaderNB([['Email',pf.email],['Tel',pf.telefono],['P.IVA',pf.piva],
+                       ['Indirizzo',[pf.comune, pf.provincia ? '('+pf.provincia+')' : ''].filter(Boolean).join(' ')]])}
       </div>
       <div class="d-hdr-r">
         <div class="d-prev-num"><b>PREVENTIVO #${esc(numeroPreventivoDoc(p))}</b> del ${fmtData(data)}</div>
@@ -4039,6 +4050,8 @@ function tglim(nome, val, max){ return tg(nome, String(val==null?'':val).slice(0
 /* Controlli preventivi: il SdI scarta la fattura se mancano questi dati. */
 function verificaDatiXML(f){
   const err = [];
+  const mp = datiProfiloMancanti();
+  if(mp.length) err.push('Nei tuoi dati (chi emette la fattura) manca o non è valido: ' + mp.join(', ') + '.');
   const c = getCliente(f.clienteId);
   if(!c) err.push('La fattura non è collegata a nessun cliente.');
   else {
@@ -4125,6 +4138,13 @@ function costruisciXML(f, progressivo){
   const cfCli = c.cf ? '        ' + tg('CodiceFiscale', c.cf) + '\n' : '';
   const civicoCli = c.civico ? '        ' + tglim('NumeroCivico', c.civico, 8) + '\n' : '';
 
+  // Fornitore: telefono, email e civico sono facoltativi nel tracciato, ma un tag
+  // vuoto farebbe scartare il file — se mancano, non si scrivono.
+  const pf = db.profilo, telPf = telefonoXml(pf.telefono);
+  const contattiPf = (telPf ? '        ' + tg('Telefono', telPf) + '\n' : '') +
+                     (pf.email ? '        ' + tglim('Email', pf.email, 256) + '\n' : '');
+  const civicoPf = pf.civico ? '        ' + tglim('NumeroCivico', pf.civico, 8) + '\n' : '';
+
   return `<?xml version="1.0" encoding="UTF-8"?>
 <p:FatturaElettronica versione="FPR12"
   xmlns:p="http://ivaservizi.agenziaentrate.gov.it/docs/xsd/fatture/v1.2"
@@ -4134,41 +4154,32 @@ function costruisciXML(f, progressivo){
     <DatiTrasmissione>
       <IdTrasmittente>
         ${tg('IdPaese','IT')}
-        ${tg('IdCodice', NB.piva)}
+        ${tg('IdCodice', pf.piva)}
       </IdTrasmittente>
       ${tg('ProgressivoInvio', prog5(progressivo))}
       ${tg('FormatoTrasmissione','FPR12')}
       ${tg('CodiceDestinatario', codiceDest)}
-      <ContattiTrasmittente>
-        ${tg('Telefono', NB.telefonoXml)}
-        ${tg('Email', NB.email)}
-      </ContattiTrasmittente>
-${pecDest ? '      ' + tg('PECDestinatario', pecDest) + '\n' : ''}    </DatiTrasmissione>
+${contattiPf ? '      <ContattiTrasmittente>\n' + contattiPf + '      </ContattiTrasmittente>\n' : ''}${pecDest ? '      ' + tg('PECDestinatario', pecDest) + '\n' : ''}    </DatiTrasmissione>
     <CedentePrestatore>
       <DatiAnagrafici>
         <IdFiscaleIVA>
           ${tg('IdPaese','IT')}
-          ${tg('IdCodice', NB.piva)}
+          ${tg('IdCodice', pf.piva)}
         </IdFiscaleIVA>
-        ${tg('CodiceFiscale', NB.cf)}
+        ${tg('CodiceFiscale', pf.cf)}
         <Anagrafica>
-          ${tg('Denominazione', NB.nome)}
+          ${tglim('Denominazione', pf.nome, 80)}
         </Anagrafica>
-        ${tg('RegimeFiscale', NB.regime)}
+        ${tg('RegimeFiscale', REGIME_FISCALE)}
       </DatiAnagrafici>
       <Sede>
-        ${tg('Indirizzo', NB.via)}
-        ${tg('NumeroCivico', NB.civico)}
-        ${tg('CAP', NB.cap)}
-        ${tg('Comune', NB.comune)}
-        ${tg('Provincia', NB.provincia)}
-        ${tg('Nazione', NB.nazione)}
+        ${tglim('Indirizzo', pf.via, 60)}
+${civicoPf}        ${tg('CAP', pf.cap)}
+        ${tglim('Comune', pf.comune, 60)}
+        ${tg('Provincia', pf.provincia)}
+        ${tg('Nazione', 'IT')}
       </Sede>
-      <Contatti>
-        ${tg('Telefono', NB.telefonoXml)}
-        ${tg('Email', NB.email)}
-      </Contatti>
-    </CedentePrestatore>
+${contattiPf ? '      <Contatti>\n' + contattiPf + '      </Contatti>\n' : ''}    </CedentePrestatore>
     <CessionarioCommittente>
       <DatiAnagrafici>
 ${idIva}${cfCli}        <Anagrafica>
@@ -4210,7 +4221,7 @@ ${linee}
       <DettaglioPagamento>
         ${tg('ModalitaPagamento', MODALITA_XML[f.metodo] || 'MP05')}
         ${tg('ImportoPagamento', num2(t.totale))}
-        ${tg('IBAN', NB.iban)}
+        ${tg('IBAN', pf.iban)}
       </DettaglioPagamento>
     </DatiPagamento>
   </FatturaElettronicaBody>
@@ -4237,7 +4248,8 @@ window.scaricaXML = function(id, nuovoProgressivo){
       <ul class="lista-errori">${errori.map(e=>'<li>'+esc(e)+'</li>').join('')}</ul>
       <div class="frm-foot" style="margin-top:16px">
         <button type="button" class="btn neutro" onclick="chiudiModal()">Chiudi</button>
-        ${c?`<button type="button" class="btn primary" onclick="chiudiModal();apriFormCliente('${c.id}')">Completa il cliente</button>`
+        ${datiProfiloMancanti().length ? `<button type="button" class="btn primary" onclick="chiudiModal();apriProfilo()">Completa i tuoi dati</button>`
+          : c?`<button type="button" class="btn primary" onclick="chiudiModal();apriFormCliente('${c.id}')">Completa il cliente</button>`
            :`<button type="button" class="btn primary" onclick="chiudiModal();apriFormFattura('${f.id}')">Apri la fattura</button>`}
       </div>`);
     return;
@@ -4247,7 +4259,7 @@ window.scaricaXML = function(id, nuovoProgressivo){
     f.xmlProgressivo = db.counters.xml;
     salva();
   }
-  scaricaFile('IT' + NB.piva + '_' + prog5(f.xmlProgressivo) + '.xml', costruisciXML(f, f.xmlProgressivo), 'application/xml');
+  scaricaFile('IT' + db.profilo.piva + '_' + prog5(f.xmlProgressivo) + '.xml', costruisciXML(f, f.xmlProgressivo), 'application/xml');
   toast('XML generato — progressivo ' + prog5(f.xmlProgressivo));
   if(document.getElementById('docOverlay') && document.getElementById('docOverlay').classList.contains('open')) apriDocumento('fattura', id);
 };
@@ -4256,7 +4268,7 @@ window.scaricaXML = function(id, nuovoProgressivo){
 window.apriImpostazioniSdI = function(){
   const usati = db.fatture.filter(f=>f.xmlProgressivo).length;
   apriModal(`<h3>Fatturazione elettronica</h3>
-    <p class="cloud-desc">Il <b>progressivo di invio</b> è il contatore delle trasmissioni al Sistema di Interscambio: finisce nel nome del file (<code>IT${esc(NB.piva)}_00001.xml</code>) e dentro il tracciato. È indipendente dal numero della fattura e non riparte a inizio anno.</p>
+    <p class="cloud-desc">Il <b>progressivo di invio</b> è il contatore delle trasmissioni al Sistema di Interscambio: finisce nel nome del file (<code>IT${esc(db.profilo.piva || 'partitaIVA')}_00001.xml</code>) e dentro il tracciato. È indipendente dal numero della fattura e non riparte a inizio anno.</p>
     <form class="frm" onsubmit="salvaImpostazioniSdI(event)">
       <div class="full"><label>Ultimo progressivo già usato</label>
         <input type="number" name="xml" min="0" step="1" inputmode="numeric" value="${db.counters.xml||0}">
@@ -4273,6 +4285,46 @@ window.salvaImpostazioniSdI = function(ev){
   salva(); chiudiModal(); toast('Progressivo aggiornato'); render();
 };
 
+/* ---------- i tuoi dati (profilo fornitore, vedi CAMPI_PROFILO) ---------- */
+window.apriProfilo = function(){
+  const p = db.profilo;
+  const campo = (nome, etichetta, attr, nota, cls) => `<div${cls?' class="'+cls+'"':''}>
+      <label for="pf-${nome}">${etichetta}</label>
+      <input id="pf-${nome}" name="${nome}" ${attr} value="${esc(p[nome])}"${nota?` aria-describedby="pf-${nome}-nota"`:''}>
+      ${nota?`<div class="nota-campo" id="pf-${nome}-nota">${nota}</div>`:''}</div>`;
+  apriModal(`<h3>I tuoi dati per fatture</h3>
+    <p class="cloud-desc">Finiscono nell'intestazione di fatture e preventivi e nel file XML. Stanno nei tuoi dati sincronizzati, protetti dal login: non sono scritti nel codice del sito.</p>
+    <form class="frm" onsubmit="salvaProfilo(event)">
+      ${campo('nome','Nome e cognome','type="text" maxlength="80" autocomplete="name"','','full')}
+      ${campo('email','Email','type="email" maxlength="200" autocomplete="email" autocapitalize="off" spellcheck="false"')}
+      ${campo('telefono','Telefono','type="tel" maxlength="30" autocomplete="tel"')}
+      <div class="full sep-frm">Dati fiscali</div>
+      ${campo('piva','Partita IVA','type="text" inputmode="numeric" maxlength="16" pattern="\\s*(\\d\\s*){11}" title="11 cifre, senza IT davanti"','11 cifre, senza IT davanti.')}
+      ${campo('cf','Codice fiscale','type="text" maxlength="16" autocapitalize="characters" spellcheck="false" style="text-transform:uppercase" pattern="[A-Za-z0-9]{16}|\\d{11}" title="16 caratteri"','16 caratteri.')}
+      ${campo('via','Indirizzo (via)','type="text" maxlength="60" autocomplete="address-line1"')}
+      ${campo('civico','Numero civico','type="text" maxlength="8"')}
+      ${campo('cap','CAP','type="text" inputmode="numeric" maxlength="5" autocomplete="postal-code" pattern="\\d{5}" title="5 cifre"')}
+      ${campo('comune','Comune','type="text" maxlength="60" autocomplete="address-level2"')}
+      ${campo('provincia','Provincia','type="text" maxlength="2" style="text-transform:uppercase" pattern="[A-Za-z]{2}" title="Sigla di 2 lettere, es. VI"','Sigla di 2 lettere, es. VI.')}
+      <div class="full sep-frm">Pagamento</div>
+      ${campo('iban','IBAN','type="text" maxlength="42" autocapitalize="characters" spellcheck="false" style="text-transform:uppercase" pattern="\\s*[A-Za-z]{2}\\d{2}[A-Za-z0-9 ]{11,38}" title="Es. IT60X0542811101000000123456"',"Stampato in fattura e scritto nell'XML per il bonifico.",'full')}
+      ${campo('banca','Banca','type="text" maxlength="80"','','full')}
+      <div class="frm-foot"><button type="button" class="btn neutro" onclick="chiudiModal()">Annulla</button><button type="submit" class="btn primary">Salva</button></div>
+    </form>`);
+};
+window.salvaProfilo = function(ev){
+  ev.preventDefault();
+  const v = n => ev.target.elements[n].value.trim();
+  const senzaSpazi = n => v(n).replace(/\s/g,'').toUpperCase();
+  Object.assign(db.profilo, {
+    nome:v('nome'), email:v('email'), telefono:v('telefono'),
+    piva:senzaSpazi('piva'), cf:senzaSpazi('cf'), via:v('via'), civico:v('civico'),
+    cap:senzaSpazi('cap'), comune:v('comune'), provincia:senzaSpazi('provincia'),
+    iban:senzaSpazi('iban'), banca:v('banca')
+  });
+  salva(); chiudiModal(); toast('Dati salvati'); render();
+};
+
 /* ---------- anteprima a schermo intero + stampa ---------- */
 function apriDocumento(tipo, id){
   const rec = tipo==='fattura' ? db.fatture.find(x=>x.id===id) : db.preventivi.find(x=>x.id===id);
@@ -4285,10 +4337,16 @@ function apriDocumento(tipo, id){
   /* Avviso a schermo se il documento uscirebbe senza i dati del cliente:
      la @media print lo esclude, quindi non finisce nel PDF. */
   let avviso = '';
+  // il preventivo stampa solo nome, P.IVA e comune: il resto lì non serve
+  const mp = datiProfiloMancanti().filter(x => tipo==='fattura' || ['nome','Partita IVA','comune','provincia'].includes(x));
+  if(mp.length) avviso += `<div class="doc-avviso">
+      <b>${tipo==='fattura' ? 'La fattura' : 'Il preventivo'} esce senza i tuoi dati:</b> manca ${esc(mp.join(', '))}.
+      <button class="btn mini" onclick="chiudiDocumento();apriProfilo()">Completa i tuoi dati</button>
+    </div>`;
   if(tipo==='fattura'){
     const manca = datiClienteMancanti(rec);
     const cl = getCliente(rec.clienteId);
-    if(manca.length) avviso = `<div class="doc-avviso">
+    if(manca.length) avviso += `<div class="doc-avviso">
       <b>La fattura esce incompleta:</b> nella scheda cliente manca ${esc(manca.join(', '))}.
       ${cl ? `<button class="btn mini" onclick="chiudiDocumento();apriFormCliente('${cl.id}')">Completa ${esc(cl.nome)}</button>`
            : `<button class="btn mini" onclick="chiudiDocumento();apriFormFattura('${rec.id}')">Collega un cliente</button>`}
@@ -4575,6 +4633,7 @@ window.apriLoginSheet = function(){
       <p class="cloud-mail">${esc(utente.email)}</p>
       <p class="cloud-desc" style="margin-top:12px">I dati si sincronizzano automaticamente su tutti i dispositivi dove accedi con questo account.</p>
       <div class="frm">
+        <div class="full"><button type="button" class="btn" onclick="chiudiModal();apriProfilo()">I tuoi dati per fatture${datiProfiloMancanti().length ? ' · da completare' : ''}</button></div>
         <div class="frm-foot">
           <button class="btn danger" onclick="esciCloud()">Esci</button>
           <button class="btn" onclick="chiudiModal();sincronizzaOra()">Aggiorna adesso</button>

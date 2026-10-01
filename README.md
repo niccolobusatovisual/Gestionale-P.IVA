@@ -65,7 +65,7 @@ gestionale-piva/
 
 ### 🔒 Privacy
 - **I tuoi dati NON vengono caricati su GitHub.** Clienti, preventivi e fatture vivono solo nel localStorage del browser che usi. Su GitHub c'è solo il "guscio" dell'app.
-- Però: il file `index.html` contiene i **dati di esempio precaricati** (clienti fittizi). Con repository pubblico chiunque può vederli nel codice. Se ti dà fastidio, dimmelo e li rimuovo lasciando l'app vuota al primo avvio.
+- Il codice non contiene dati personali né dati di esempio: l'app parte vuota, e i dati di chi emette le fatture (P.IVA, indirizzo, IBAN…) si compilano dentro l'app e restano nei dati, non nel file.
 
 ### 📱 Sincronizzazione tra dispositivi
 - localStorage è **per dispositivo**: il telefono e il computer hanno ciascuno i propri dati.
