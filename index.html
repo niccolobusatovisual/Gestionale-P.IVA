@@ -4042,10 +4042,27 @@ function docPreventivoHTML(p){
 function xesc(s){
   return String(s==null?'':s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[ch]));
 }
-function tg(nome, val){ return '<'+nome+'>'+xesc(val)+'</'+nome+'>'; }
+/* Lo schema FatturaPA accetta solo caratteri Latin-1 (\p{IsBasicLatin} e
+   \p{IsLatin-1Supplement}): le lettere accentate sì, ma trattino lungo,
+   virgolette curve, € ed emoji fanno scartare il file. Qui si convertono
+   nell'equivalente semplice; quello che non ne ha uno viene tolto. Vale solo
+   per l'XML: PDF e app mostrano il testo com'è. */
+function testoXml(s){
+  return String(s==null?'':s)
+    .replace(/[\u2010-\u2015\u2212]/g, '-')
+    .replace(/[\u2018\u2019\u201A\u2032]/g, "'")
+    .replace(/[\u201C\u201D\u201E\u2033]/g, '"')
+    .replace(/\u2026/g, '...')
+    .replace(/\u20AC/g, 'EUR')
+    .replace(/\u2022/g, '-')
+    .replace(/[\s\u2000-\u200A\u202F\u205F\u3000]+/g, ' ')
+    .replace(/[^\x20-\x7E\xA0-\xFF]/g, '')
+    .replace(/ {2,}/g, ' ').trim();
+}
+function tg(nome, val){ return '<'+nome+'>'+xesc(testoXml(val))+'</'+nome+'>'; }
 /* Lo schema FatturaPA impone una lunghezza massima a quasi tutti i campi
    testuali: se si sfora, il SdI scarta il file. Qui tronchiamo per sicurezza. */
-function tglim(nome, val, max){ return tg(nome, String(val==null?'':val).slice(0, max)); }
+function tglim(nome, val, max){ return tg(nome, testoXml(val).slice(0, max)); }
 
 /* Controlli preventivi: il SdI scarta la fattura se mancano questi dati. */
 function verificaDatiXML(f){
@@ -4064,10 +4081,11 @@ function verificaDatiXML(f){
   }
   if(!f.numero) err.push('Manca il numero della fattura.');
   if(!f.dataEmissione) err.push('Manca la data di emissione.');
+  else if(f.dataEmissione > oggi()) err.push('La data della fattura è nel futuro: il SdI la scarta (errore 00403). Usa la data di oggi o una passata.');
   if((f.natura||'N2.2')==='N2.1') err.push('Natura N2.1 (cliente estero): questo gestionale genera l\'XML solo con indirizzo italiano (CAP 5 cifre, provincia IT). Non generarlo per un cliente estero senza prima far verificare al commercialista come compilare Nazione e CodiceDestinatario.');
   const t = calcolaFattura(f);
   if(!t.voci.length) err.push('La fattura non ha voci di dettaglio.');
-  else if(t.voci.some(v=>!v.descrizione || !v.descrizione.trim())) err.push('Una voce non ha descrizione: il SdI scarta una riga senza descrizione.');
+  else if(t.voci.some(v=>!testoXml(v.descrizione))) err.push('Una voce non ha descrizione: il SdI scarta una riga senza descrizione.');
   if(!(t.totale > 0)) err.push('Il totale della fattura è zero.');
   if(f.tipoDoc === 'Prestazione occasionale') err.push('Le prestazioni occasionali non si trasmettono come fattura elettronica: cambia il tipo documento o non generare l\'XML.');
   /* I conti devono tornare, non solo esserci: il SdI rifiuta il file se la somma
@@ -4203,8 +4221,7 @@ ${civicoCli}        ${tg('CAP', c.cap)}
         ${tg('Data', f.dataEmissione)}
         ${tglim('Numero', f.numero, 20)}
 ${bollo}        ${tg('ImportoTotaleDocumento', num2(t.totale))}
-        ${tglim('Causale', f.titolo, 200)}
-      </DatiGeneraliDocumento>
+${testoXml(f.titolo) ? '        ' + tglim('Causale', f.titolo, 200) + '\n' : ''}      </DatiGeneraliDocumento>
     </DatiGenerali>
     <DatiBeniServizi>
 ${linee}
@@ -4220,8 +4237,8 @@ ${linee}
       ${tg('CondizioniPagamento','TP02')}
       <DettaglioPagamento>
         ${tg('ModalitaPagamento', MODALITA_XML[f.metodo] || 'MP05')}
-        ${tg('ImportoPagamento', num2(t.totale))}
-        ${tg('IBAN', pf.iban)}
+${/^\d{4}-\d{2}-\d{2}$/.test(f.scadenzaPagamento||'') ? '        ' + tg('DataScadenzaPagamento', f.scadenzaPagamento) + '\n' : ''}        ${tg('ImportoPagamento', num2(t.totale))}
+${testoXml(pf.banca) ? '        ' + tglim('IstitutoFinanziario', pf.banca, 80) + '\n' : ''}        ${tg('IBAN', pf.iban)}
       </DettaglioPagamento>
     </DatiPagamento>
   </FatturaElettronicaBody>
